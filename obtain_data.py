@@ -15,6 +15,7 @@ def make_tif_from_images(image_and_paths, is_masks, dest_folder):
     :param dest_folder: folder where the images came from
     :return: void
     """
+    os.mkdir(dest_folder)
     for i in range(len(image_and_paths)):
         img = image_and_paths[i][0]
         name = image_and_paths[i][1]
@@ -23,7 +24,7 @@ def make_tif_from_images(image_and_paths, is_masks, dest_folder):
             # NOTICE: this is correct only for the database that we have where each mask is tagged the same as
             # the image only "mask" instead of "sat"
             name = name[:name.find(MASK_PREFIX)] + IMG_PREFIX + name[name.find(MASK_PREFIX) + len(MASK_PREFIX):]
-        cv2.imwrite(dest_folder + name[:-3] + 'tif', img)
+        cv2.imwrite(dest_folder, img)
 
 
 def load_images_from_folder(folder):
@@ -52,16 +53,6 @@ def black_and_whitefy(img):
 
 
 if __name__ == '__main__':
-    # in order to use this, source is the regular images and dest is the destination folder(need to open in advance)
-
-    # regular images
-    source = "Forest Segmented/all_images"
-    dest_directory = source + '_tif/'
-    os.mkdir(dest_directory)
-    make_tif_from_images(load_images_from_folder(source), False, dest_directory)
-
-    # mask images
-    source = "Forest Segmented/all_masks"
-    dest_directory = source + '_tif/'
-    os.mkdir(dest_directory)
-    make_tif_from_images(load_images_from_folder(source), True, dest_directory)
+    source = "Forest Segmented/some_images"
+    dest = source + '_tif/'
+    make_tif_from_images(load_images_from_folder(source), False, dest)
