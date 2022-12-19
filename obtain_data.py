@@ -24,7 +24,7 @@ def make_tif_from_images(image_and_paths, is_masks, dest_folder):
             # NOTICE: this is correct only for the database that we have where each mask is tagged the same as
             # the image only "mask" instead of "sat"
             name = name[:name.find(MASK_PREFIX)] + IMG_PREFIX + name[name.find(MASK_PREFIX) + len(MASK_PREFIX):]
-        cv2.imwrite(dest_folder, img)
+        cv2.imwrite(dest_folder + name[:-3] + "tif", img)
 
 
 def load_images_from_folder(folder):
@@ -52,7 +52,15 @@ def black_and_whitefy(img):
     return black_and_white_image
 
 
+def load_folder_to_folder(is_mask_folder):
+    if is_mask_folder:
+        name = "masks"
+    else:
+        name = "images"
+    source = "Forest Segmented/" + name
+    dest = source + '_processed/'
+    make_tif_from_images(load_images_from_folder(source), is_mask_folder, dest)
+
 if __name__ == '__main__':
-    source = "Forest Segmented/some_images"
-    dest = source + '_tif/'
-    make_tif_from_images(load_images_from_folder(source), False, dest)
+    load_folder_to_folder(False)
+    load_folder_to_folder(True)
