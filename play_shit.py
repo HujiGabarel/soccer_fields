@@ -8,7 +8,7 @@ from joblib import dump, load
 
 def create_model_and_test_image(image_directory, mask_directory):
     """
-    train model on a given data from directories and then polt test file
+    train model on a given data from directories and then polt test image
     :param image_directory: name of directory - string
     :param mask_directory: name of directory - string
     :return:
