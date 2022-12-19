@@ -17,7 +17,6 @@ image_to_predict="" # path to image to predict
 y_pred = dtr.Classifier().classify_img(image_to_predict, trained_model)
 
 # plots predicted and original images
-
 # side-by-side plot of the tile and the predicted tree/non-tree pixels
 figwidth, figheight = plt.rcParams['figure.figsize']
 fig, axes = plt.subplots(1, 2, figsize=(2 * figwidth, figheight))
