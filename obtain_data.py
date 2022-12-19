@@ -52,6 +52,16 @@ def black_and_whitefy(img):
 
 
 if __name__ == '__main__':
-    source = "Forest Segmented/some_images"
-    dest = source + '_tif/'
-    make_tif_from_images(load_images_from_folder(source), False, dest)
+    # in order to use this, source is the regular images and dest is the destination folder(need to open in advance)
+
+    # regular images
+    source = "Forest Segmented/all_images"
+    dest_directory = source + '_tif/'
+    os.mkdir(dest_directory)
+    make_tif_from_images(load_images_from_folder(source), False, dest_directory)
+
+    # mask images
+    source = "Forest Segmented/all_masks"
+    dest_directory = source + '_tif/'
+    os.mkdir(dest_directory)
+    make_tif_from_images(load_images_from_folder(source), True, dest_directory)

@@ -12,7 +12,11 @@ split_df = ts.train_test_split(method='cluster-I')
 # train a tree/non-tree pixel classfier
 clf = dtr.ClassifierTrainer().train_classifier(
     split_df=split_df, response_img_dir='Forest Segmented/some_masks_tif') # mask
+import pickle
+with open("a.model") as f:
+pickle.dump(clf,f)
 
+pikle
 # use the trained classifier to predict the tree/non-tree pixels
 trysplit=split_df.loc[~split_df['train']]
 test_filepath = trysplit.sample(1).iloc[0]['img_filepath']
