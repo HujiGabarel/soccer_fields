@@ -4,7 +4,8 @@ import cv2
 
 IMG_PREFIX = "sat"
 MASK_PREFIX = "mask"
-
+MASK=True
+IMAGE=False
 
 def make_tif_from_images(image_and_paths, is_masks, dest_folder):
     """
@@ -62,5 +63,5 @@ def load_folder_to_folder(is_mask_folder):
     make_tif_from_images(load_images_from_folder(source), is_mask_folder, dest)
 
 if __name__ == '__main__':
-    load_folder_to_folder(False)
-    load_folder_to_folder(True)
+    load_folder_to_folder(IMAGE)
+    load_folder_to_folder(MASK)
