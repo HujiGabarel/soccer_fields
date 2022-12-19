@@ -6,15 +6,15 @@ from os import path
 from joblib import dump, load
 
 # select the training tiles from the tiled aerial imagery dataset
-ts = dtr.TrainingSelector(img_dir='Forest Segmented/images_processed')
+ts = dtr.TrainingSelector(img_dir='Forest Segmented/some_images_tif')
 split_df = ts.train_test_split(method='cluster-I')
 
 # train a tree/non-tree pixel classfier
 clf = dtr.ClassifierTrainer().train_classifier(
-    split_df=split_df, response_img_dir='Forest Segmented/masks_processed')  # mask
+    split_df=split_df, response_img_dir='Forest Segmented/some_masks_tif')  # mask
 
 # save the model to 'trained_model.joblib'
-dump(clf, 'trained_model_with_all_images.joblib')
+dump(clf, 'trained_model.joblib')
 
 # use the trained classifier to predict the tree/non-tree pixels
 trysplit = split_df.loc[~split_df['train']]
