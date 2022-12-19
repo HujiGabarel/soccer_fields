@@ -63,5 +63,6 @@ def load_folder_to_folder(is_mask_folder):
     make_tif_from_images(load_images_from_folder(source), is_mask_folder, dest)
 
 if __name__ == '__main__':
+    # format of file is directory masks and images
     load_folder_to_folder(IMAGE)
     load_folder_to_folder(MASK)
