@@ -1,15 +1,17 @@
 import os
-
 import cv2
 
 IMG_PREFIX = "sat"
 MASK_PREFIX = "mask"
-MASK=True
-IMAGE=False
+DEFAULT_IMAGES_FILEPATH = "Forest Segmented/images"
+DEFAULT_MASKS_FILEPATH = "Forest Segmented/masks"
+MASK = True
+IMAGE = False
+
 
 def make_tif_from_images(image_and_paths, is_masks, dest_folder):
     """
-    This function takes a set of loaded images and their file paths, and saves them in a new folder
+    This function takes a set of loaded images and their file paths, and saves them in a new folder as a .tif
     if the images are masks, make them binary and change their name to match the prev image
     :param image_and_paths: 2 columns that save the images, and the paths
     :param is_masks: boolean
@@ -25,7 +27,7 @@ def make_tif_from_images(image_and_paths, is_masks, dest_folder):
             # NOTICE: this is correct only for the database that we have where each mask is tagged the same as
             # the image only "mask" instead of "sat"
             name = name[:name.find(MASK_PREFIX)] + IMG_PREFIX + name[name.find(MASK_PREFIX) + len(MASK_PREFIX):]
-        cv2.imwrite(dest_folder + name[:-3] + "tif", img)
+        cv2.imwrite(dest_folder + name[:name.find(".")] + ".tif", img)
 
 
 def load_images_from_folder(folder):
@@ -53,14 +55,15 @@ def black_and_whitefy(img):
     return black_and_white_image
 
 
-def load_folder_to_folder(is_mask_folder):
+def load_folder_to_folder(is_mask_folder, masks_filepath=DEFAULT_MASKS_FILEPATH,
+                          images_filepath=DEFAULT_IMAGES_FILEPATH):
     if is_mask_folder:
-        name = "masks"
+        source = masks_filepath
     else:
-        name = "images"
-    source = "Forest Segmented/" + name
+        source = images_filepath
     dest = source + '_processed/'
     make_tif_from_images(load_images_from_folder(source), is_mask_folder, dest)
+
 
 if __name__ == '__main__':
     # format of file is directory masks and images
