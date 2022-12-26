@@ -67,5 +67,5 @@ def load_folder_to_folder(is_mask_folder, masks_filepath=DEFAULT_MASKS_FILEPATH,
 
 if __name__ == '__main__':
     # format of file is directory masks and images
-    load_folder_to_folder(IMAGE)
-    load_folder_to_folder(MASK)
+    #load_folder_to_folder(IMAGE)
+    load_folder_to_folder(MASK, masks_filepath="Forest Segmented/one_image")
