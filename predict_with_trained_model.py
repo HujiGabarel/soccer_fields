@@ -8,11 +8,11 @@ from os import path
 This file load trained model and predict for given image
 """
 # load the trained model
-trained_model_name='clf.joblib'
+trained_model_name='trained_model_try_manual.joblib'
 trained_model = load(trained_model_name)
 
 # chose image
-image_to_predict="Forest Segmented/some_images_tif\\3484_sat_23.tif" # path to image to predict
+image_to_predict="Forest Segmented/images_processed\\434243_sat_76.tif" # path to image to predict
 
 y_pred = dtr.Classifier().classify_img(image_to_predict, trained_model)
 
