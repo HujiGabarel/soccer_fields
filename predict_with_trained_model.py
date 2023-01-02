@@ -12,8 +12,8 @@ trained_model_name='trained_model_manual_all.joblib'
 trained_model = load(trained_model_name)
 
 # chose image
-image_to_predict="Forest Segmented/images_processed\\3484_sat_10.tif" # path to image to predict
-
+#image_to_predict="Forest Segmented/images_processed\\182422_sat_07.tif" # path to image to predict
+image_to_predict="Forest Segmented/from google\\Capture7.png"
 y_pred = dtr.Classifier().classify_img(image_to_predict, trained_model)
 
 # plots predicted and original images
