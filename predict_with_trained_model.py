@@ -40,7 +40,7 @@ def predict(trained_model_name, image_to_predict, image_name, path_for_result_im
     plt.savefig(path_for_result_images + "\\result_" + trained_model_name[0:-7]+"_"+image_name[0:-4])
     plt.show()
 
-
+print("aaa")
 
 if __name__ == '__main__':
 
