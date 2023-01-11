@@ -22,7 +22,7 @@ def create_model_and_test_image(image_directory, mask_directory):
         split_df=split_df, response_img_dir='Forest Segmented/' + mask_directory)  # mask
 
     # save the model to 'trained_model.joblib'
-    dump(clf, 'trained_model_with_all_images.joblib')
+    dump(clf, 'models/trained_model_with_all_images.joblib')
 
     # use the trained classifier to predict the tree/non-tree pixels
     take_images_not_trained = split_df.loc[~split_df['train']]
