@@ -15,7 +15,7 @@ def create_model_and_test_image(image_directory, mask_directory):
     """
     # select the training tiles from the tiled aerial imagery dataset
     ts = dtr.TrainingSelector(img_dir='Forest Segmented/' + image_directory)
-    split_df = ts.train_test_split(method='cluster-I')
+    split_df = ts.train_test_split(method='cluster-I',train_prop=0.9)
 
     # train a tree/non-tree pixel classfier
     clf = dtr.ClassifierTrainer().train_classifier(
