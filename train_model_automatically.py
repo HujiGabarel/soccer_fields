@@ -15,14 +15,15 @@ def create_model_and_test_image(image_directory, mask_directory):
     """
     # select the training tiles from the tiled aerial imagery dataset
     ts = dtr.TrainingSelector(img_dir='Forest Segmented/' + image_directory)
-    split_df = ts.train_test_split(method='cluster-I',train_prop=0.9)
+    split_df = ts.train_test_split(method='cluster-I',train_prop=0.98)
+    dump(split_df, 'models/split_df_with_98%.joblib')
 
     # train a tree/non-tree pixel classfier
     clf = dtr.ClassifierTrainer().train_classifier(
         split_df=split_df, response_img_dir='Forest Segmented/' + mask_directory)  # mask
 
     # save the model to 'trained_model.joblib'
-    dump(clf, 'models/trained_model_with_all_images.joblib')
+    dump(clf, 'models/trained_model_with_98%.joblib')
 
     # use the trained classifier to predict the tree/non-tree pixels
     take_images_not_trained = split_df.loc[~split_df['train']]
