@@ -3,19 +3,19 @@ import cv2
 
 IMG_PREFIX = "sat"
 MASK_PREFIX = "mask"
-DEFAULT_IMAGES_FILEPATH = "Forest Segmented/images"
-DEFAULT_MASKS_FILEPATH = "Forest Segmented/masks"
+DEFAULT_IMAGES_FILEPATH = "Forest Segmented/all_images"
+DEFAULT_MASKS_FILEPATH = "Forest Segmented/all_masks"
 MASK = True
 IMAGE = False
 
 
 def make_tif_from_images(image_and_paths, is_masks, dest_folder):
     """
-    This function takes a set of loaded images and their file paths, and saves them in a new folder as a .tif
-    if the images are masks, make them binary and change their name to match the prev image
-    :param image_and_paths: 2 columns that save the images, and the paths
+    This function takes a set of loaded all_images and their file paths, and saves them in a new folder as a .tif
+    if the all_images are all_masks, make them binary and change their name to match the prev image
+    :param image_and_paths: 2 columns that save the all_images, and the paths
     :param is_masks: boolean
-    :param dest_folder: folder where the images came from
+    :param dest_folder: folder where the all_images came from
     :return: void
     """
     os.mkdir(dest_folder)
@@ -32,9 +32,9 @@ def make_tif_from_images(image_and_paths, is_masks, dest_folder):
 
 def load_images_from_folder(folder):
     """
-    gets all the images from a folder into a list
+    gets all the all_images from a folder into a list
     :param folder: folder path
-    :return: images paired with their filename
+    :return: all_images paired with their filename
     """
     images = []
     for filename in os.listdir(folder):
@@ -66,7 +66,7 @@ def load_folder_to_folder(is_mask_folder, masks_filepath=DEFAULT_MASKS_FILEPATH,
 
 
 if __name__ == '__main__':
-    # format of file is directory masks and images
+    # format of file is directory all_masks and all_images
     # load_folder_to_folder(IMAGE)
     # load_folder_to_folder(MASK)
     load_folder_to_folder(MASK, 'Forest Segmented/some_manual_masks')

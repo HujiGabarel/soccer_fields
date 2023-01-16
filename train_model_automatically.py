@@ -44,4 +44,4 @@ def create_model_and_test_image(image_directory, mask_directory):
 
 
 if __name__ == '__main__':
-    create_model_and_test_image('images_processed', 'masks_processed')
+    create_model_and_test_image('all_images_tif', 'all_masks_tif')

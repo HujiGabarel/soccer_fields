@@ -9,7 +9,7 @@ GRAY = (128, 128, 128)
 ACCEPTED_SLOPE_COLOR = WHITE
 QUESTIONABLE_SLOPE_COLOR = WHITE
 UNACCEPTED_SLOPE_COLOR = BLACK
-DTM_FILE_PATH = "Forest Segmented/Some.tif"
+DTM_FILE_PATH = "DTM_data/Some.tif"
 
 
 def get_max_height_differences(dem_data, rows, cols):
@@ -54,6 +54,8 @@ def plot_heat_map(height_differences):
 if __name__ == '__main__':
     """
     This is the main function, it reads the DEM and plots a heat map of the maximum height differences
+    Very specific, only works on DTM with 10 meter resolution, with 1 meter accuracy
+    To fix, need to rethink the process for this class (with a whiteboard)
     """
     dem = rasterio.open(DTM_FILE_PATH)
     rows = dem.height
