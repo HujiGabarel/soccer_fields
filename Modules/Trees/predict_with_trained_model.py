@@ -12,30 +12,25 @@ This file load trained model and predict for given image
 """
 
 
-def predict(trained_model_name, image_to_predict, image_name, path_for_result_images):
+def predict(trained_model_name, image_name, images_directory):
     """
 
     :param trained_model_name: the name of the model (joblib)
     :param image_to_predict: the path of the image
     :param image_name: the name of the image file (joblib)
-    :param path_for_result_images: The path of the directory where the images will be saved
     :return:
     """
-
     # load the trained model
     trained_model = load(trained_model_name)
     # use the trained model on the image for prediction
+    image_to_predict = os.path.join(images_directory, image_name)
     predicted_mask = dtr.Classifier().classify_img(image_to_predict, trained_model)
     # Plot
     trained_model_title = file_name_to_title(trained_model_name)
     image_title = file_name_to_title(image_name)
-    plot_image_and_mask(image_title, trained_model_title, predicted_mask)
+    plot_image_and_mask(image_to_predict,predicted_mask, image_title, trained_model_title)
     # Saving the images (side by side view)
-
-    path_result_directory = images_directory + "\\result_" + trained_model_title
-    os.makedirs(path_result_directory)
-    plt.savefig(path_result_directory + "\\"+ image_name)
-    plt.show()
+    save_plot(trained_model_title, image_title, images_directory)
 
 
 def file_name_to_title(file_name):
@@ -45,7 +40,7 @@ def file_name_to_title(file_name):
     return title
 
 
-def plot_image_and_mask(image_title, trained_model_title, predicted_mask):
+def plot_image_and_mask(image_to_predict, predicted_mask,image_title, trained_model_title, ):
     # This part is only plotting style:
     # plots predicted and original images
     # side-by-side plot of the tile and the predicted tree/non-tree pixels
@@ -54,18 +49,27 @@ def plot_image_and_mask(image_title, trained_model_title, predicted_mask):
     # with rio.open(img_filepath) as src:
     with rio.open(image_to_predict) as src:
         plot.show(src.read(), ax=axes[0])
-    axes[0].set_title(trained_model_title)
-    axes[1].set_title(image_title)
+    axes[0].set_title("Model: " + trained_model_title)
+    axes[1].set_title("Image: " + image_title)
     axes[1].imshow(predicted_mask)
 
 
+def save_plot(trained_model_title, image_title, images_directory):
+    # create new directory for the result images
+    # And save the results
+    results_directory_name = "Result of " + trained_model_title
+    path = os.path.join(images_directory, results_directory_name)
+
+    isExist = os.path.exists(path)
+    if not isExist:  # Create a new directory because it does not exist
+        os.makedirs(path)
+    # Save figure
+    plt.savefig(os.path.join(path, "Result of " + image_title))
+    plt.show()
+
+
 if __name__ == '__main__':
-
-    trained_model_path = 'models/trained_model_with_all_images_10%.joblib'  # The trained model
-    images_directory = "Forest Segmented\\from google"  # The directory of the images that the program will predict
-    # "C:\\Users\\t8875796\\PycharmProjects\\soccer_field\\"
-    path_for_result_images = images_directory  # directory for save
-
+    trained_model_path = '../../Models/our_models/official_masks_10%.joblib'  # The trained model
+    images_directory = "../../Forest Segmented/from google"  # The directory of the images that the program will predict
     for image_name in os.listdir(images_directory):
-        image_to_predict = os.path.join(images_directory, image_name)
-        predict(trained_model_path, image_to_predict, image_name, path_for_result_images)
+        predict(trained_model_path, image_name, images_directory)
