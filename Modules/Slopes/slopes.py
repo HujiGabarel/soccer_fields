@@ -9,7 +9,7 @@ GRAY = (128, 128, 128)
 ACCEPTED_SLOPE_COLOR = WHITE
 QUESTIONABLE_SLOPE_COLOR = WHITE
 UNACCEPTED_SLOPE_COLOR = BLACK
-DTM_FILE_PATH = "DTM_data/Some.tif"
+DTM_FILE_PATH = "../../DTM_data/some.tif"
 
 
 def get_max_height_differences(dem_data, rows, cols):

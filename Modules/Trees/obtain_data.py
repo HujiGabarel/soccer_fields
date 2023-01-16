@@ -3,8 +3,8 @@ import cv2
 
 IMG_PREFIX = "sat"
 MASK_PREFIX = "mask"
-DEFAULT_IMAGES_FILEPATH = "Forest Segmented/all_images"
-DEFAULT_MASKS_FILEPATH = "Forest Segmented/all_masks"
+DEFAULT_IMAGES_FILEPATH = "../../Forest Segmented/all_images"
+DEFAULT_MASKS_FILEPATH = "../../Forest Segmented/all_masks"
 MASK = True
 IMAGE = False
 
@@ -69,4 +69,4 @@ if __name__ == '__main__':
     # format of file is directory all_masks and all_images
     # load_folder_to_folder(IMAGE)
     # load_folder_to_folder(MASK)
-    load_folder_to_folder(MASK, 'Forest Segmented/some_manual_masks')
+    load_folder_to_folder(MASK, '../../Forest Segmented/some_manual_masks')

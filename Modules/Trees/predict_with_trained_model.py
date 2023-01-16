@@ -47,7 +47,7 @@ def predict(trained_model_name, image_to_predict, image_name, path_for_result_im
 
 if __name__ == '__main__':
 
-    trained_model_name = 'models/trained_model_with_all_images_10%.joblib'  # The trained model
+    trained_model_name = 'Models/official_masks_10%.joblib'  # The trained model
     images_directory = "Forest Segmented\\from google"  # The directory of the all_images that the program will predict
 
     path_for_result_images = "C:\\Users\\t8875796\\PycharmProjects\\soccer_field\\" +images_directory  # directory for save
