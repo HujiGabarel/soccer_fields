@@ -32,18 +32,4 @@ def max_2d_array_elementwise(a, b):
     return a
 
 
-data_for_plot = max_2d_array_elementwise(dem_horizontal, dem_vertical)
-color_map = {0: np.array([0, 255, 0]),  # green
-             2: np.array([255, 211, 67]),  # Yellow
-             1: np.array([0, 255, 0]),
-             3: np.array([255, 0, 0]),
-             4: np.array([255, 0, 0]), 5: np.array([255, 0, 0])
-    , 6: np.array([255, 0, 0]), 7: np.array([255, 0, 0]), 8: np.array([255, 0, 0]), 9: np.array([255, 0, 0])}  # blue
-for i in range(0, rows - 1):
-    for j in range(0, cols - 1):
-        if dem_horizontal[i][j] > 4:
-            data_for_plot[i][j] = np.array([255, 0, 0])
-        else:
-            data_for_plot[i][j] = color_map[data_for_plot[i][j]]
-plt.imshow(data_for_plot, cmap='hot', interpolation='nearest')
-plt.show()
+
