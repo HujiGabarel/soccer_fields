@@ -23,7 +23,7 @@ def predict(trained_model_name, image_to_predict, image_name, path_for_result_im
     """
     # load the trained model
     trained_model = load(trained_model_name)
-
+    trained_model_name=trained_model_name[7:-7]
     y_pred = dtr.Classifier().classify_img(image_to_predict, trained_model)
 
     # plots predicted and original images
@@ -34,19 +34,23 @@ def predict(trained_model_name, image_to_predict, image_name, path_for_result_im
     # with rio.open(img_filepath) as src:
     with rio.open(image_to_predict) as src:
         plot.show(src.read(), ax=axes[0])
-    axes[0].set_title(trained_model_name[0:-7])
+    axes[0].set_title(trained_model_name)
     axes[1].set_title(image_name)
-    axes[1].imshow(y_pred, cmap='gray')
-    plt.savefig(path_for_result_images + "\\result_" + trained_model_name[0:-7]+"_"+image_name[0:-4])
+    axes[1].imshow(y_pred)
+    print(trained_model_name)
+
+    path_result_directory=path_for_result_images + "\\result_" + trained_model_name+"\\"
+
+    plt.savefig(path_result_directory+image_name[0:-4])
     plt.show()
 
 
 if __name__ == '__main__':
 
-    trained_model_name = 'models/trained_model.joblib'  # The trained model
-    images_directory = "Forest Segmented\\some_images_tif"  # The directory of the images that the program will predict
-    path_for_result_images = "C:\\Users\\t8843081\\PycharmProjects\\soccer_field\\Forest Segmented"  # directory for save
+    trained_model_name = 'models/trained_model_with_all_images_10%.joblib'  # The trained model
+    images_directory = "Forest Segmented\\from google"  # The directory of the images that the program will predict
 
+    path_for_result_images = "C:\\Users\\t8875796\\PycharmProjects\\soccer_field\\" +images_directory  # directory for save
     for image_name in os.listdir(images_directory):
         image_to_predict = os.path.join(images_directory, image_name)
         predict(trained_model_name, image_to_predict, image_name, path_for_result_images)
