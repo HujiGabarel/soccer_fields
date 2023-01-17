@@ -59,10 +59,9 @@ if __name__ == '__main__':
 
     image_directory = '../../Forest Segmented/images_processed'
     mask_directory = '../../Forest Segmented/some_masks_tif'
-    # need to add the file check!
     images_without_mask = check_all_images_have_mask(image_directory, mask_directory)
     if images_without_mask == "":
-        percentage_for_train = 1  # Decide according to what percentage of the information we want to train.\
+        percentage_for_train = 10  # Decide according to what percentage of the information we want to train.\
         create_model_and_test_image(image_directory, mask_directory, percentage_for_train)
     else:
         raise Exception("There is no mask for these photos: " + images_without_mask)
