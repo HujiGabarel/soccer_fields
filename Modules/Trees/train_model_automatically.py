@@ -17,14 +17,14 @@ def create_model_and_test_image(image_directory, mask_directory, percentage_for_
     :return: None
     """
     # select the training tiles from the tiled aerial imagery dataset
-    ts = dtr.TrainingSelector(img_dir='Forest Segmented/' + image_directory)
+    ts = dtr.TrainingSelector(img_dir=image_directory)
     split_df = ts.train_test_split(method='cluster-I', train_prop=(percentage_for_train / 100))
     # We save split_df data because we want to know which files we need to use for the testing (in predict file)
     directory_name = path_to_directory_name(image_directory)
     dump(split_df, 'Models/split_df_of_'+directory_name+'with_' + percentage_for_train + '%.joblib')
     # train a tree/non-tree pixel classfier
     clf = dtr.ClassifierTrainer().train_classifier(
-        split_df=split_df, response_img_dir='Forest Segmented/' + mask_directory)  # mask
+        split_df=split_df, response_img_dir=mask_directory)  # mask
 
     # save the model to 'trained_model_of_xxxx_with_xx%.joblib'
     dump(clf, 'Models/trained_model_of_'+directory_name+'with_' + percentage_for_train + '%.joblib')
