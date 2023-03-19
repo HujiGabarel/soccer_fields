@@ -69,7 +69,7 @@ def save_plot(trained_model_title, image_title, images_directory):
 
 
 if __name__ == '__main__':
-    trained_model_path = '../../Models/our_models/our_masks_1%.joblib'  # The trained model
-    images_directory = "../../Forest Segmented/from google"  # The directory of the images that the program will predict
+    trained_model_path = "C:/Users/t8843081/PycharmProjects/soccer_field/Models/our_models/official_masks_10%.joblib"  # The trained model
+    images_directory = 'C:/Users/t8843081/PycharmProjects/soccer_field/Forest Segmented/manual_images'  # The directory of the images that the program will predict
     for image_name in os.listdir(images_directory):
         predict(trained_model_path, image_name, images_directory)
