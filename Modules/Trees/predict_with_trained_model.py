@@ -60,8 +60,8 @@ def save_plot(trained_model_title, image_title, images_directory):
     results_directory_name = "Result of " + trained_model_title
     path = os.path.join(images_directory, results_directory_name)
 
-    isExist = os.path.exists(path)
-    if not isExist:  # Create a new directory because it does not exist
+    exists = os.path.exists(path)
+    if not exists:  # Create a new directory because it does not exist
         os.makedirs(path)
     # Save figure
     plt.savefig(os.path.join(path, "Result of " + image_title))
