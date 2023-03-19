@@ -47,7 +47,7 @@ def path_to_directory_name(path_to_directory):
     # "your_mom/Matan_is_the_king" -> "Matan_is_the_king"
     directory_name = path_to_directory.split('/')[-1]  # remove the path of the file
     return directory_name
-a
+
 
 if __name__ == '__main__':
     """
