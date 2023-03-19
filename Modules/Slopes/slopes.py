@@ -54,7 +54,7 @@ def plot_heat_map(height_differences):
 if __name__ == '__main__':
     """
     This is the main function, it reads the DEM and plots a heat map of the maximum height differences
-    Very specific, only works on DTM with 10 meter resolution, with 1 meter accuracy
+    Very specific, only works on DTM_data with 10 meter resolution, with 1 meter accuracy
     To fix, need to rethink the process for this class (with a whiteboard)
     """
     dem = rasterio.open(DTM_FILE_PATH)
@@ -62,9 +62,8 @@ if __name__ == '__main__':
     cols = dem.width
     dem_data = dem.read(1).astype("float64")
     # print general information about the DEM
-    print(rows, cols)
+    print("rows: " + str(rows), "cols: " + str(cols))
     print(dem.crs)
     print(dem.bounds)
     max_height_differences = get_max_height_differences(dem_data, rows, cols)
     plot_heat_map(max_height_differences)
-

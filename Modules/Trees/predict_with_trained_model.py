@@ -45,7 +45,7 @@ def plot_image_and_mask(image_to_predict, predicted_mask,image_title, trained_mo
     # plots predicted and original images
     # side-by-side plot of the tile and the predicted tree/non-tree pixels
     figwidth, figheight = plt.rcParams['figure.figsize']
-    fig, axes = plt.subplots(1, 2, figsize=(2 * figwidth, figheight))
+    fig, axes = plt.subplots(1, 2, figsize=(2 * figwidth, figheight),sharex="all", sharey="all")
     # with rio.open(img_filepath) as src:
     with rio.open(image_to_predict) as src:
         plot.show(src.read(), ax=axes[0])
@@ -69,7 +69,7 @@ def save_plot(trained_model_title, image_title, images_directory):
 
 
 if __name__ == '__main__':
-    trained_model_path = '../../Models/our_models/official_masks_10%.joblib'  # The trained model
+    trained_model_path = '../../Models/our_models/our_masks_1%.joblib'  # The trained model
     images_directory = "../../Forest Segmented/from google"  # The directory of the images that the program will predict
     for image_name in os.listdir(images_directory):
         predict(trained_model_path, image_name, images_directory)
