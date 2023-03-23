@@ -45,22 +45,24 @@ def get_partial_dtm_from_total_dtm(coordinates, SIZE, meters_per_pixel=10):
     # find the area in the dtm that is relevant
     # cut around the area in a SIZE*SIZE matrix
 
-    file_path = "../../DTM_data/some.tif"
-    dem = rasterio.open(file_path)
-    rows = dem.height
-    cols = dem.width
-    dem_data = dem.read(1).astype("int")
+    file_path = "../../DTM_data/some.tif"  # path to .tiff file
+    dem = rasterio.open(file_path)  # turn .tiff file to dem format, each pixel is a height
+    rows = dem.height  # number of rows
+    cols = dem.width  # number of columns
+    dem_data = dem.read(1).astype("int")  # convert height to int instead of float
 
-    ### assuming that the coordinates[0] is cols (easting) and coordinates[1] is rows (northing)
+    ### assuming that the coordinates[0] is cols (east / west) and coordinates[1] is rows (north / south)
+
+    # calculating the center for partial_dtm
     row_center = round((coordinates[1] - dem.bounds.bottom) / meters_per_pixel)
     col_center = round((coordinates[0] - dem.bounds.left) / meters_per_pixel)
 
     sub_matrix = dem_data[row_center - SIZE: row_center + SIZE, col_center - SIZE: col_center + SIZE]
     new_rows = sub_matrix.shape[0]
     new_cols = sub_matrix.shape[1]
-    partial_max_height_diff = get_max_slope(sub_matrix, new_rows, new_cols)
+    partial_max_slopes = get_max_slope(sub_matrix, new_rows, new_cols)
 
-    return partial_max_height_diff, new_rows, new_cols
+    return partial_max_slopes, new_rows, new_cols
 
 
 def get_total_mask_from_masks(tree_mask, heights_mask):
@@ -70,13 +72,14 @@ def get_total_mask_from_masks(tree_mask, heights_mask):
     return np.multiply(tree_mask_np,heights_mask_np)
 
 
-def get_slopes_mask_from_dtm(dtm):
+"""def get_slopes_mask_from_dtm(dtm):
     # get heights from the dtm
     # get slopes from the heights
     # get mask from the slopes
     # return mask
     #TODO: SIZE of the image is constant?
-    pass
+    #retuen get_max_slope(dtm, )
+    pass"""
 
 
 def get_viable_landing_in_radius(coordinates, km_radius = 1):
