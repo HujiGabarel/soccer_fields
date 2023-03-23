@@ -12,7 +12,7 @@ from Modules.Trees.predict_with_trained_model import predict_image
 
 
 # TODO: decide about length
-def get_image_from_utm(coordinates, length):
+def get_image_from_utm(coordinates, km_radius):
     """
 
     Args:
@@ -23,7 +23,7 @@ def get_image_from_utm(coordinates, length):
         prefs = json.loads(f.read())
 
     lat, long = image_downloading.convert_to_lat_long(coordinates)
-    img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'], length=1.5)
+    img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'], length=km_radius)
     plt.imshow(img)
     plt.show()
     return img
@@ -75,16 +75,16 @@ def get_viable_landing_in_radius(coordinates, km_radius):
     slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
     slopes_mask_in_black_and_white = convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols)
     plot_heat_map(slopes_mask_in_black_and_white)
-
     # tree_mask = get_tree_mask_from_image(aerial,trained_model_path)
     # total_mask = get_total_mask_from_masks(tree_mask, slopes_mask_in_black_and_white)
     # plt.imshow(total_mask)
+    # plt.show()
     pass
 
 
 if __name__ == '__main__':
-    coordinates = (750000.0, 3710000.0, 36, "u")
-    km_radius = 10
-    DTM_FILE_PATH = "../../DTM_data/top.tif"
+    coordinates = (728254, 3685146, 36, "s")
+    km_radius = 4.1
+    DTM_FILE_PATH = "../../DTM Data/top.tif"
     trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
     get_viable_landing_in_radius(coordinates, km_radius)
