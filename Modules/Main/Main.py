@@ -101,7 +101,5 @@ def main():
 
 
 if __name__ == '__main__':
-    coordinates = (32.73990959272013, 34.972588222295116)
-    get_image_from_utm(coordinates)
-    get_viable_landing_in_radius(coordinates)
+    main()
 
