@@ -20,7 +20,9 @@ def get_partial_dtm_from_utm(coordinates):
 
 def get_total_mask_from_masks(tree_mask, heights_mask):
     # return tree_mask * heights_mask
-    pass
+    tree_mask_np=np.array(tree_mask)
+    heights_mask_np=np.array(heights_mask)
+    return np.multiply(tree_mask_np,heights_mask_np)
 
 
 def get_slopes_mask_from_dtm(dtm):
