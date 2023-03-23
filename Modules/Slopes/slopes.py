@@ -12,7 +12,7 @@ GRAY = (128, 128, 128)
 ACCEPTED_SLOPE_COLOR = WHITE
 QUESTIONABLE_SLOPE_COLOR = WHITE
 UNACCEPTED_SLOPE_COLOR = BLACK
-DTM_FILE_PATH = "../../DTM_data/some.tif"
+DTM_FILE_PATH = "../../DTM_data/Yokneam.tif"
 
 
 # the file is in format utm36
@@ -37,9 +37,11 @@ def get_max_height_differences(dem_data, rows, cols):
     return cells
 
 
-def plot_heat_map(height_differences, maximal_slope):
+def plot_heat_map(height_differences, rows, cols):
     """
     This function plots a heat map of the height differences
+    :param rows:
+    :param cols:
     :param height_differences: height differences as a 2D array
     :return: None, but plots a heat map for 0 (good), 1 (medium) and 2 (bad)
     """
@@ -91,8 +93,8 @@ if __name__ == '__main__':
     cols = dem.width
     dem_data = dem.read(1).astype("float64")
     # print general information about the DEM
-    print("rows: " + str(rows), "cols: " + str(cols))
-    print(dem.crs)
-    print(dem.bounds)
+    # print("rows: " + str(rows), "cols: " + str(cols))
+    # print(dem.crs)
+    # print(dem.bounds)
     max_height_differences = get_max_height_differences(dem_data, rows, cols)
-    plot_heat_map(max_height_differences, maximal_slope)
+    plot_heat_map(max_height_differences,  rows, cols)
