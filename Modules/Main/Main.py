@@ -1,9 +1,36 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import json
+import datetime
+import image_downloading
+import cv2
+import utm
 
-
+#TODO: decide about length
 def get_image_from_utm(coordinates):
-    # Returns an image from the coordinates with the SIZE * SIZE size
+    """_summary_
+
+    Args:
+        coordinates (_type_): _description_
+    """
+
+    with open("preferences.json", 'r', encoding='utf-8') as f:
+        prefs = json.loads(f.read())
+
+    coordinates = utm.from_latlon(coordinates[0],coordinates[1])
+
+    lat,long = image_downloading.convert_to_lat_long(coordinates)
+    img = image_downloading.download_image(lat,long,prefs["zoom"],prefs['url'] ,prefs['tile_size'],length=1.5)
+    return img
+
+    # timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    # name = f'images_from_argcis/img_{timestamp}.png'
+    # cv2.imwrite(name, img)
+    # print(f'Saved as {name}')
+
+
+
     pass
 
 
@@ -44,7 +71,8 @@ def get_viable_landing_in_radius(coordinates, radius = 1):
 
 
 if __name__ == '__main__':
-    coordinates = (0, 0)
+    coordinates = (32.73990959272013, 34.972588222295116)
+    get_image_from_utm(coordinates)
     get_viable_landing_in_radius(coordinates)
 
 
