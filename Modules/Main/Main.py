@@ -14,7 +14,7 @@ def get_tree_mask_from_image(aerial):
     pass
 
 
-def get_partial_dtm_from_utm(coordinates, SIZE, meters_per_pixel):
+def get_partial_dtm_from_utm(coordinates, SIZE, meters_per_pixel=10):
     # find the area in the dtm that is relevant
     # cut around the area in a SIZE*SIZE matrix
 
@@ -55,14 +55,13 @@ def get_slopes_mask_from_dtm(dtm):
     pass
 
 
-def get_viable_landing_in_radius(coordinates, radius = 1):
-    # LOOP OVER ALL THE COORDINATES IN THE RADIUS
-    #     aerial = get_image_from_utm(coordinates)
-    #     tree_mask = get_tree_mask_from_image(aerial)
-    #     dtm = get_partial_dtm_from_utm(coordinates)
-    #     heights_mask = get_slopes_mask_from_dtm(dtm)
-    #     total_mask = get_total_mask_from_masks(tree_mask, heights_mask)
-    #     plt.imshow(total_mask)
+def get_viable_landing_in_radius(coordinates, km_radius = 1):
+    aerial = get_image_from_utm(coordinates, km_radius)
+    tree_mask = get_tree_mask_from_image(aerial)
+    dtm = get_partial_dtm_from_utm(coordinates, km_radius)
+    slopes_mask = get_slopes_mask_from_dtm(dtm)
+    total_mask = get_total_mask_from_masks(tree_mask, slopes_mask)
+    plt.imshow(total_mask)
     pass
 
 
