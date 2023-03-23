@@ -6,6 +6,12 @@ import geopy.distance
 import utm
 
 def download_tile(url, channels):
+    """
+
+    :param url: url of img
+    :param channels: num of channels in img format
+    :return: image
+    """
     response = requests.get(url)
     arr =  np.asarray(bytearray(response.content), dtype=np.uint8)
     
@@ -26,13 +32,12 @@ def convert_to_lat_long(utm_value):
 
 def get_square_edges_from_center(lat, long, length):
     """
-    Args:
-        :param lat: lattitude of square center
-        :param long:  longititude of sqaure center
-        :param length: side of squre in [km]
+    
+    :param lat: lattitude of square center
+    :param long:  Longitude of sqaure center
+    :param length: side of squre in [km]
 
-    Returns:
-        (lat_tl,long_tl),(lat_br,long_br)
+    :return: coordinates in (latitude,longitude)
     """
     lat_tl,long_tl,_ = geopy.distance.distance(kilometers=length/2).destination((lat,long),bearing=-90)
     lat_tl,long_tl,_ = geopy.distance.distance(kilometers=length/2).destination((lat_tl,long_tl),bearing=0)
@@ -47,6 +52,13 @@ def get_square_edges_from_center(lat, long, length):
 # Mercator projection 
 # https://developers.google.com/maps/documentation/javascript/examples/map-coordinates
 def project_with_scale(lat, lon, scale):
+    """
+
+    :param lat: latitude 
+    :param lon: Longitude 
+    :param scale: scale of img (according to zoom)
+    :return: coordinates
+    """
     siny = np.sin(lat * np.pi / 180)
     siny = min(max(siny, -0.9999), 0.9999)
     x = scale * (0.5 + lon / 360)
@@ -56,19 +68,15 @@ def project_with_scale(lat, lon, scale):
 
 def download_image(lat_center,long_center, zoom, url, tile_size = 256, channels = 3,length=10):
     """
-    Downloads a map region. Returns an image stored either in BGR or BGRA as a `numpy.ndarray`.
-    Parameters
-    ----------
 
-    `zoom` - Zoom level
-
-    `url` - Tile URL with {x}, {y} and {z} in place of its coordinate and zoom values
-
-    `headers` - Dictionary of HTTP headers
-
-    `tile_size` - Tile size in pixels
-
-    `channels` - Number of channels in the output image. Use 3 for JPG or PNG tiles and 4 for PNG tiles.
+    :param lat_center: latitude of img center
+    :param long_center: long of img center
+    :param zoom: _description_
+    :param url: _description_
+    :param tile_size: _description_, defaults to 256
+    :param channels: _description_, defaults to 3
+    :param length: _description_, defaults to 10
+    :return: _description_
     """
 
     (lat_tl,long_tl), (lat_br,long_br) = get_square_edges_from_center(lat_center, long_center,length)
@@ -129,9 +137,17 @@ def download_image(lat_center,long_center, zoom, url, tile_size = 256, channels 
     return img
 
 
-def image_size(lat1: float, lon1: float, lat2: float,
-    lon2: float, zoom: int, tile_size: int = 256) -> tuple[int, int]:
-    """ Returns the size of an image without downloading it. """
+def image_size(lat1, lon1, lat2, lon2, zoom, tile_size = 256):
+    """_summary_
+
+    :param lat1: lat of top-left
+    :param lon1: lon of top-left
+    :param lat2: lat of bottom-right
+    :param lon2: lon of bottom_rigth
+    :param zoom: _description_
+    :param tile_size: size of tile, defaults to 256
+    :return: size of frull image
+    """
 
     scale = 1<<int(zoom)
     tl_proj_x, tl_proj_y = project_with_scale(lat1, lon1, scale)

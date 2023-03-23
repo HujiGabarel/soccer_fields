@@ -11,7 +11,7 @@ import rasterio
 
 #TODO: decide about length
 def get_image_from_utm(coordinates):
-    """_summary_
+    """
 
     Args:
         coordinates (_type_): _description_
@@ -105,12 +105,7 @@ def main():
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     coordinates = (32.73990959272013, 34.972588222295116)
     get_image_from_utm(coordinates)
     get_viable_landing_in_radius(coordinates)
-
-=======
-    main()
->>>>>>> dcd1f453a84a425a7226060cede5852cc58232a5
 
