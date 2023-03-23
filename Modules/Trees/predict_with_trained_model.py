@@ -14,11 +14,6 @@ This file load trained model and predict for given image
 
 def predict(trained_model_name, image_name, images_directory):
     """
-
-    :param trained_model_name: the name of the model (joblib)
-    :param image_to_predict: the path of the image
-    :param image_name: the name of the image file (joblib)
-    :return:
     """
     # load the trained model
     trained_model = load(trained_model_name)
@@ -31,6 +26,10 @@ def predict(trained_model_name, image_name, images_directory):
     plot_image_and_mask(image_to_predict,predicted_mask, image_title, trained_model_title)
     # Saving the images (side by side view)
     save_plot(trained_model_title, image_title, images_directory)
+
+def predict_image(image_to_predict,trained_model_path):
+    trained_model = load(trained_model_path)
+    predicted_mask = dtr.Classifier().classify_img(image_to_predict, trained_model)
 
 
 def file_name_to_title(file_name):
@@ -69,7 +68,7 @@ def save_plot(trained_model_title, image_title, images_directory):
 
 
 if __name__ == '__main__':
-    trained_model_path = 'C:/Users/ofir shapira/OneDrive - Technion/Courses/SEM 4/magdad/soccer_field/Models/our_models/official_masks_10%.joblib'  # The trained model
-    images_directory = 'C:/Users/ofir shapira/OneDrive - Technion/Courses/SEM 4/magdad/soccer_field/Forest Segmented/some_images'  # The directory of the images that the program will predict
+    trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
+    images_directory = '../../Forest Segmented/from google'  # The directory of the images that the program will predict
     for image_name in os.listdir(images_directory):
         predict(trained_model_path, image_name, images_directory)

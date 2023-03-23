@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import utm
 import math
 
-
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 PURPLE = (255, 0, 255)
@@ -12,11 +11,10 @@ GRAY = (128, 128, 128)
 ACCEPTED_SLOPE_COLOR = WHITE
 QUESTIONABLE_SLOPE_COLOR = WHITE
 UNACCEPTED_SLOPE_COLOR = BLACK
-DTM_FILE_PATH = "../../DTM_data/Yokneam.tif"
 
 
 # the file is in format utm36
-def get_max_slope(dem_data, rows, cols):
+def get_max_slopes(dem_data, rows, cols):
     """
     This function returns the maximum height differences in the DEM
     :param dem_data: DEM data as a numpy 2D array
@@ -37,24 +35,21 @@ def get_max_slope(dem_data, rows, cols):
     return cells
 
 
-def plot_heat_map(height_differences, rows, cols):
-    """
-    This function plots a heat map of the height differences
-    :param rows:
-    :param cols:
-    :param height_differences: height differences as a 2D array
-    :return: None, but plots a heat map for 0 (good), 1 (medium) and 2 (bad)
-    """
-    data_for_plot = height_differences
+def plot_heat_map(data_in_black_and_white):
+    plt.imshow(data_in_black_and_white, interpolation='nearest')
+    plt.show()
+
+
+def convert_slopes_to_black_and_white(height_differences, rows, cols):
+    data_in_black_and_white = height_differences
     color_map = {0: ACCEPTED_SLOPE_COLOR,
                  1: QUESTIONABLE_SLOPE_COLOR,
                  2: UNACCEPTED_SLOPE_COLOR}
     for i in range(0, rows - 1):
         for j in range(0, cols - 1):
-            data_for_plot[i][j] = color_map[data_for_plot[i][j]]
+            data_in_black_and_white[i][j] = color_map[data_in_black_and_white[i][j]]
+    return data_in_black_and_white
     # interpolation makes it so its strictly black and white
-    plt.imshow(data_for_plot, interpolation='nearest')
-    plt.show()
 
 
 def utm_to_WGS84(easting, northing, zone_number=36, zone_letter='u'):
@@ -86,6 +81,7 @@ if __name__ == '__main__':
     #  The maximum angle for landing a Yaswor is 8 deg, therefore:
     # maximal height differences = tan(8) * resolution
     # in 10 meter resolution the maximum height differences is about 1.5 meters
+    DTM_FILE_PATH = "../../DTM_data/top.tif"
     resolution = 10
     maximal_slope = resolution * math.tan(8 * math.pi / 180)
     dem = rasterio.open(DTM_FILE_PATH)
@@ -93,8 +89,9 @@ if __name__ == '__main__':
     cols = dem.width
     dem_data = dem.read(1).astype("float64")
     # print general information about the DEM
-    # print("rows: " + str(rows), "cols: " + str(cols))
-    # print(dem.crs)
-    # print(dem.bounds)
-    max_height_differences = get_max_slope(dem_data, rows, cols)
-    plot_heat_map(max_height_differences,  rows, cols)
+    print("rows: " + str(rows), "cols: " + str(cols))
+    print(dem.crs)
+    print(dem.bounds)
+    # max_slopes = get_max_slopes(dem_data, rows, cols)
+    # data_in_black_and_white = convert_slopes_to_black_and_white(max_slopes, rows, cols)
+    # max_slopes_in_binary = plot_heat_map(data_in_black_and_white)
