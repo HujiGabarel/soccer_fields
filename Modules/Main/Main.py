@@ -41,24 +41,22 @@ def get_tree_mask_from_image(aerial):
     pass
 
 
-def get_partial_dtm_from_utm(coordinates, SIZE, meters_per_pixel):
+def get_partial_dtm_from_total_dtm(coordinates, SIZE, meters_per_pixel):
     # find the area in the dtm that is relevant
     # cut around the area in a SIZE*SIZE matrix
 
-    file_path = "../../DTM_data/some.tif"
+    file_path = "../../DTM_data/top.tif"
     dem = rasterio.open(file_path)
     rows = dem.height
     cols = dem.width
-    dem_data = dem.read(1).astype("float64")
-    print(dem_data)
+    dem_data = dem.read(1).astype("int")
+
 
     ### assuming that the coordinates[0] is cols (easting) and coordinates[1] is rows (northing)
     row_center = round((coordinates[1] - dem.bounds.bottom) / meters_per_pixel)
     col_center = round((coordinates[0] - dem.bounds.left) / meters_per_pixel)
-    print(row_center, col_center)
 
     sub_matrix = dem_data[row_center - SIZE: row_center + SIZE, col_center - SIZE: col_center + SIZE]
-    print(sub_matrix)
     new_rows = sub_matrix.shape[0]
     new_cols = sub_matrix.shape[1]
     partial_max_height_diff = get_max_height_differences(sub_matrix, new_rows, new_cols)
@@ -94,23 +92,18 @@ def get_viable_landing_in_radius(coordinates, radius = 1):
 
 
 def main():
-    """coordinates = (0, 0)
-    get_viable_landing_in_radius(coordinates)"""
-    coordinates = (685825.0, 3625765.0)
-    radius_in_km=5
+    coordinates = (750000, 3710000)
+    radius_in_km = 20
     meters_per_pixel = 10
-    SIZE = round(radius_in_km*1000/meters_per_pixel)
-    partial_max_height_diff, new_rows, new_cols = get_partial_dtm_from_utm(coordinates, SIZE, meters_per_pixel)
+    SIZE = round(radius_in_km * 1000 / meters_per_pixel)
+    partial_max_height_diff, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, SIZE, meters_per_pixel)
     plot_heat_map(partial_max_height_diff, new_rows, new_cols)
 
 
 if __name__ == '__main__':
-<<<<<<< HEAD
     coordinates = (32.73990959272013, 34.972588222295116)
     get_image_from_utm(coordinates)
     get_viable_landing_in_radius(coordinates)
 
-=======
     main()
->>>>>>> dcd1f453a84a425a7226060cede5852cc58232a5
 
