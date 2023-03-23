@@ -18,7 +18,7 @@ def get_partial_dtm_from_utm(coordinates, SIZE, meters_per_pixel):
     # find the area in the dtm that is relevant
     # cut around the area in a SIZE*SIZE matrix
 
-    file_path = "../../some.tif"
+    file_path = "../../DTM_data/some.tif"
     dem = rasterio.open(file_path)
     rows = dem.height
     cols = dem.width
@@ -69,11 +69,12 @@ def get_viable_landing_in_radius(coordinates, radius = 1):
 def main():
     """coordinates = (0, 0)
     get_viable_landing_in_radius(coordinates)"""
-    coordinates = (684825.0, 3621765.0)
-    SIZE = 10
+    coordinates = (685825.0, 3625765.0)
+    radius_in_km=5
     meters_per_pixel = 10
+    SIZE = round(radius_in_km*1000/meters_per_pixel)
     partial_max_height_diff, new_rows, new_cols = get_partial_dtm_from_utm(coordinates, SIZE, meters_per_pixel)
-    plot_heat_map(partial_max_height_diff, 10, new_rows, new_cols)
+    plot_heat_map(partial_max_height_diff, new_rows, new_cols)
 
 
 if __name__ == '__main__':
