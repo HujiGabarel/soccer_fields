@@ -16,7 +16,7 @@ DTM_FILE_PATH = "../../DTM_data/Yokneam.tif"
 
 
 # the file is in format utm36
-def get_max_height_differences(dem_data, rows, cols):
+def get_max_slope(dem_data, rows, cols):
     """
     This function returns the maximum height differences in the DEM
     :param dem_data: DEM data as a numpy 2D array
@@ -96,5 +96,5 @@ if __name__ == '__main__':
     # print("rows: " + str(rows), "cols: " + str(cols))
     # print(dem.crs)
     # print(dem.bounds)
-    max_height_differences = get_max_height_differences(dem_data, rows, cols)
+    max_height_differences = get_max_slope(dem_data, rows, cols)
     plot_heat_map(max_height_differences,  rows, cols)
