@@ -30,8 +30,8 @@ def predict(trained_model_name, image_name, images_directory):
 def predict_image(image_to_predict,trained_model_path):
     trained_model = load(trained_model_path)
     predicted_mask = dtr.Classifier().classify_img(image_to_predict, trained_model)
-    plot_image_and_mask(image_to_predict,predicted_mask, image_title="", trained_model_title="")
-    plt.show()
+    # plot_image_and_mask(image_to_predict,predicted_mask, image_title="", trained_model_title="")
+    # plt.show()
     return predicted_mask
 
 
