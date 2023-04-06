@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import utm
 import math
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
+WHITE = 0
+BLACK = 255
 PURPLE = (255, 0, 255)
 YELLOW = (255, 255, 0)
 GRAY = (128, 128, 128)
@@ -81,7 +81,7 @@ if __name__ == '__main__':
     #  The maximum angle for landing a Yaswor is 8 deg, therefore:
     # maximal height differences = tan(8) * resolution
     # in 10 meter resolution the maximum height differences is about 1.5 meters
-    DTM_FILE_PATH = "../../DTM_data/top.tif"
+    DTM_FILE_PATH = "../../DTM_data/Yokneam.tif"
     resolution = 10
     maximal_slope = resolution * math.tan(8 * math.pi / 180)
     dem = rasterio.open(DTM_FILE_PATH)
@@ -95,3 +95,4 @@ if __name__ == '__main__':
     # max_slopes = get_max_slopes(dem_data, rows, cols)
     # data_in_black_and_white = convert_slopes_to_black_and_white(max_slopes, rows, cols)
     # max_slopes_in_binary = plot_heat_map(data_in_black_and_white)
+    plot_heat_map(dem_data)
