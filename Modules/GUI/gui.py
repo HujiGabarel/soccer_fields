@@ -44,7 +44,6 @@ class GUI(tk.Tk):
             self.y = 500
             self.state("zoomed")
         picture_x_y = 150
-        print(os.getcwd())
         self.background_image = ImageTk.PhotoImage(Image.open(logo_path).resize((picture_x_y, picture_x_y)))
         self.resizable(False, False)
         self.create_widgets()
