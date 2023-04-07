@@ -9,6 +9,13 @@ import numpy as np
 from Modules.Main.Main import get_viable_landing_in_radius
 import cv2
 import threading
+import os
+
+# Get the directory path of the current file (module.py)
+dir_path = os.path.dirname(os.path.realpath(__file__))
+
+# Construct the absolute path of logo.png
+logo_path = os.path.join(dir_path, 'logo.png')
 
 
 class GUI(tk.Tk):
@@ -37,7 +44,8 @@ class GUI(tk.Tk):
             self.y = 500
             self.state("zoomed")
         picture_x_y = 150
-        self.background_image = ImageTk.PhotoImage(Image.open("logo.png").resize((picture_x_y, picture_x_y)))
+        print(os.getcwd())
+        self.background_image = ImageTk.PhotoImage(Image.open(logo_path).resize((picture_x_y, picture_x_y)))
         self.resizable(False, False)
         self.create_widgets()
 
@@ -88,8 +96,8 @@ class GUI(tk.Tk):
         self.background_label = tk.Label(self, image=self.background_image)
         self.background_label.place(x=1400, y=80, anchor=position)
 
-        self.original_image = Image.open("logo.png")
-        self.result_image = Image.open("logo.png")
+        self.original_image = Image.open(logo_path)
+        self.result_image = Image.open(logo_path)
         # make self.original_image and self.result_image an array of the image
         self.original_image_array = np.array(self.original_image)
         self.result_image_array = np.array(self.result_image)
