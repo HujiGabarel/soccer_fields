@@ -1,3 +1,8 @@
+#from importing from root directory.
+import sys
+sys.path.append('../..')
+
+
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -10,7 +15,7 @@ from rasterio import plot
 from Modules.Trees.predict_with_trained_model import predict_image
 from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
 from Modules.GUI import gui
-import Area_filter
+#import Area_filter
 
 DTM_FILE_PATH = "../../DTM_data/top.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
