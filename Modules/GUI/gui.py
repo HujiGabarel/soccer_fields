@@ -54,6 +54,7 @@ class GUI(tk.Tk):
         self.resizable(True, True)
         self.create_widgets()
 
+
     def create_widgets(self):
         # place the buttons on the window with a nice layout
         # add an entry for entering, E, N, and S, insert the entry values into the search function
@@ -86,19 +87,19 @@ class GUI(tk.Tk):
         level = 1
         start_x = 800
         start_y = 20
-        self.E.place(x=start_x, y=start_y, anchor=position)
+        self.E.place(relx=0.45, rely=0.05, anchor=position)
         self.E.config(font=FONT, foreground="black", background=background_color)
-        self.E_entry.place(x=50 * gap + start_x, y=start_y, anchor=position)
+        self.E_entry.place(relx=0.5, rely=0.05, anchor=position)
         self.E_entry.config(width=entry_width)
-        self.N.place(x=100 * gap + start_x, y=start_y, anchor=position)
+        self.N.place(relx=0.45, rely=0.1, anchor=position)
         self.N.config(font=FONT, foreground="black", background=background_color)
-        self.N_entry.place(x=150 * gap + start_x, y=start_y, anchor=position)
+        self.N_entry.place(relx=0.5, rely=0.1, anchor=position)
         self.N_entry.config(width=entry_width)
-        self.Radius.place(x=start_x, y=start_y + 50 * level, anchor=position)
+        self.Radius.place(relx=0.415, rely=0.15, anchor=position)
         self.Radius.config(font=FONT, foreground="black", background=background_color)
-        self.Radius_entry.place(x=100 * gap + start_x, y=start_y + 50 * level, anchor=position)
+        self.Radius_entry.place(relx=0.5, rely=0.15, anchor=position)
         self.Radius_entry.config(width=entry_width)
-        self.search_button.place(relx=0.5, rely=0.15, anchor=position)
+        self.search_button.place(relx=0.5, rely=0.2, anchor=position)
         self.search_button.config(background=second_background_color, foreground="black", font=FONT)
         self.original_image = Image.open(logo_path)
         self.result_image = Image.open(logo_path)
@@ -111,7 +112,8 @@ class GUI(tk.Tk):
         self.result_image = ImageTk.PhotoImage(
             Image.fromarray(cv2.cvtColor(self.result_image_array, cv2.COLOR_BGR2RGB)).resize((self.x, self.y)))
         self.result_label = tk.Label(self, image=self.result_image)
-        self.result_label.place(relx=0.65, rely=0.5, anchor=tk.CENTER)
+        self.result_label.place(relx=0.7, rely=0.5, anchor=tk.CENTER)
+
     def do(self):
         # get the entry values
         self.E_value = self.E_entry.get()
@@ -133,7 +135,7 @@ class GUI(tk.Tk):
         self.original_image = ImageTk.PhotoImage(
             Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((self.x, self.y)))
         self.original_label = tk.Label(self, image=self.original_image)
-        self.original_label.place(relx=0.35, rely=0.5, anchor=tk.CENTER)
+        self.original_label.place(relx=0.30, rely=0.5, anchor=tk.CENTER)
 
     def add_result_image(self, image):
         """
@@ -143,7 +145,7 @@ class GUI(tk.Tk):
         """
         self.result_image = ImageTk.PhotoImage(Image.fromarray(image).resize((self.x, self.y)))
         self.result_label = tk.Label(self, image=self.result_image)
-        self.result_label.place(relx=0.6, rely=0.5, anchor=tk.CENTER)
+        self.result_label.place(relx=0.7, rely=0.5, anchor=tk.CENTER)
 
     def get_E_value(self):
         return self.E_value
