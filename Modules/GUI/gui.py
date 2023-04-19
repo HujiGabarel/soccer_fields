@@ -1,8 +1,3 @@
-# This is a sample Python script.
-
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
-
 import tkinter as tk
 from PIL import Image, ImageTk
 import numpy as np
@@ -11,7 +6,7 @@ import cv2
 import threading
 import os
 
-# Get the directory path of the current file (module.py)
+# Get the directory path of the current file (gui.py)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # Construct the absolute path of logo.png
@@ -151,4 +146,3 @@ if __name__ == '__main__':
     gui = GUI()
     gui.mainloop()
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

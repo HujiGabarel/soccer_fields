@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import utm
 import math
 
-WHITE = 0
-BLACK = 255
+WHITE = 255
+BLACK = 0
 PURPLE = (255, 0, 255)
 YELLOW = (255, 255, 0)
 GRAY = (128, 128, 128)
