@@ -1,6 +1,5 @@
-# from importing from root directory.
+#from importing from root directory.
 import sys
-
 sys.path.append('../..')
 
 import matplotlib.pyplot as plt
@@ -15,23 +14,20 @@ from rasterio import plot
 from Modules.Trees.predict_with_trained_model import predict_image
 from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
 from Modules.GUI import gui
+import random
+import math
 
-import Area_filter
+#TODO: remove after debug
+import time
+
+#import Area_filter
 
 DTM_FILE_PATH = "../../DTM_data/top.tif"
-trained_model_path = "../../Models/our_models/our_masks_1%.joblib"  # The trained model
+trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
-
-# white =0 , black = 255, white is ok , black is not ok.
-# in the gui black is ok
 
 # TODO: decide about length
 def get_image_from_utm(coordinates, km_radius):
-    """
-
-    Args:
-        coordinates (_type_): _description_
-    """
 
     with open("preferences.json", 'r', encoding='utf-8') as f:
         prefs = json.loads(f.read())
@@ -47,9 +43,9 @@ def get_image_from_utm(coordinates, km_radius):
     return name, img
 
 
-def get_tree_mask_from_image(aerial, trained_model_path):
+def get_tree_mask_from_image(aerial, trained_model_path,pixels_to_ignore =[]):
     # using trees module, get the mask of the trees in black white
-    return predict_image(aerial, trained_model_path)
+    return predict_image(aerial, trained_model_path,pixels_to_ignore)
 
 
 def cheack_coordinates_area_are_in_dtm(coordinates, size, dem):
@@ -60,6 +56,27 @@ def cheack_coordinates_area_are_in_dtm(coordinates, size, dem):
             )
 
 
+def mask_pixels_from_slopes(slopes_mask_in_black_and_white,tree_shape,slope_shape):
+    unique_values, value_counts = np.unique(slopes_mask_in_black_and_white, return_counts=True)
+
+    
+    slope2TreeRow = tree_shape[0] / slope_shape[0]
+    slope2TreeCol = tree_shape[1] / slope_shape[1]
+    
+    tree_mask = np.zeros((tree_shape[0],tree_shape[1]), dtype=bool)
+    masked_pixels_slope = np.argwhere(slopes_mask_in_black_and_white == 0) #guessed 0 is black in rgb
+    for index in masked_pixels_slope:
+        first_row,last_row =math.floor(slope2TreeRow*index[0]),math.ceil((slope2TreeRow)*(index[0]+1)+1) 
+        first_col,last_col =math.floor(slope2TreeCol*index[1]),math.ceil((slope2TreeCol)*(index[1]+1)+1)
+        tree_mask[first_row:last_row, first_col:last_col] = True
+    masked_pixels_tree = np.argwhere(tree_mask == True)
+    print("masked", masked_pixels_tree.shape)
+    #move the pixels of trees
+    return masked_pixels_tree
+
+
+
+
 def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
     # find the area in the dtm that is relevant
     # cut around the area in a SIZE*SIZE matrix
@@ -67,17 +84,25 @@ def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
     dem = rasterio.open(DTM_FILE_PATH)  # turn .tiff file to dem format, each pixel is a height
     rows = dem.height  # number of rows
     cols = dem.width  # number of columns
-    dem_data = dem.read(1).astype("int")  # convert height to int instead of float
 
+    #slow solution - loading all file
+    #dem_data = dem.read(1).astype("int")
     ### assuming that the coordinates[0] is cols (east / west) and coordinates[1] is rows (north / south)
 
     # calculating the center for partial_dtm
     if cheack_coordinates_area_are_in_dtm(coordinates, size, dem):
         print("coordinates are in range")
     print(dem.bounds.left, dem.bounds.top)
+
     col_center = round((coordinates[0] - dem.bounds.left) / meters_per_pixel)
     row_center = -round((coordinates[1] - dem.bounds.top) / meters_per_pixel)
-    partial_dtm = dem_data[row_center - size: row_center + size, col_center - size: col_center + size]
+    
+    window = rasterio.windows.Window.from_slices((row_center-size, row_center+size), (col_center-size, col_center+size))    
+    
+    partial_dtm = dem.read(1,window=window).astype("int")  # convert height to int instead of float
+
+    #partial_dtm = dem_data[row_center - size: row_center + size, col_center - size: col_center + size]
+   
     new_rows = partial_dtm.shape[0]
     new_cols = partial_dtm.shape[1]
 
@@ -92,7 +117,11 @@ def get_w_or_b(e, n, e_center, n_center, m_radius, trees, slopes):
     tree = trees[row_tree][col_tree]
     slope = slopes[row_slope][col_slope]
     # what white is 0??? yes so its need to be
-    return tree or slope
+    if tree or not slope:
+        return 0
+    else:
+        return 255
+    #return tree or slope) #slope is black or tree is 1 -> (zero is black)
 
 
 def get_total_mask_from_masks(e_center, n_center, radius, trees, slopes):  # radius??? diffrent
@@ -103,6 +132,8 @@ def get_total_mask_from_masks(e_center, n_center, radius, trees, slopes):  # rad
         total_mask.append([])
         for col, e in enumerate(range((e_center - m_radius), (e_center + m_radius))):
             total_mask[row].append(get_w_or_b(e, n, e_center, n_center, m_radius, trees, slopes))
+
+
     return np.array(total_mask)
 
 
@@ -126,37 +157,40 @@ def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_sl
     plt.show()
 
 
-def get_viable_landing_in_radius(coordinates, km_radius, gui_screen):
-    image_name, img = get_image_from_utm(coordinates, km_radius)
-    # update progressbar to 10%
-    gui_screen.update_progressbar(10)
-    partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
-    gui_screen.update_progressbar(20)
-    slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
-    slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
-    gui_screen.update_progressbar(30)
-    # plot_heat_map(slopes_mask_in_black_and_white)
-    # This work with image name only when image is in Main dir, else need full path!
-    tree_mask = get_tree_mask_from_image(image_name, trained_model_path)
-    # tree_mask_after_area_filter = Area_filter.area_filter(tree_mask, 20, good=255, bad=0)
-    gui_screen.update_progressbar(75)
+def get_viable_landing_in_radius(coordinates, km_radius):
 
+    image_name, img = get_image_from_utm(coordinates, km_radius)
+    tree_shape = img.shape
+    
+    partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
+    slope_shape = (new_rows, new_cols)
+
+    slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
+    
+    slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
+    # plot_heat_map(slopes_mask_in_black_and_white)
+    # slopes_mask_after_area_filter = Area_filter.find_fields(slopes_mask_in_black_and_white, 20, 20, 0, 255)[1]
+    # This work with image name only when image is in Main dir, else need full path!
+    
+    print(slopes_mask_in_black_and_white.shape)
+    unwanted_pixels = mask_pixels_from_slopes(slopes_mask_in_black_and_white,tree_shape,slope_shape)  #add according to slopes - find all places where slope is 1
+
+
+    tree_mask = get_tree_mask_from_image(image_name, trained_model_path,unwanted_pixels)
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                            slopes_mask_in_black_and_white)
-    gui_screen.update_progressbar(100)
-    plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
-                        total_mask, coordinates)
-
+    # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
+    #                     total_mask, coordinates)
     return img, total_mask
 
 
 if __name__ == '__main__':
     # BoundingBox(left=692125.0, bottom=3614785.0, right=705335.0, top=3623875.0) Yokneam
     # BoundingBox(left=684825.0, bottom=3621765.0, right=689175.0, top=3624175.0) some
-    # BoundingBox(left=666735.0, bottom=3590995.0, right=852765.0, top=3823815.0) top
+    #BoundingBox(left=666735.0, bottom=3590995.0, right=852765.0, top=3823815.0) top
     screen = gui.GUI()
     screen.mainloop()
-    # coordinates = (698812, 3620547, 36, 'N')
-    # # 698342,3618731
-    # km_radius = 0.5
-    # get_viable_landing_in_radius(coordinates, km_radius)
+    #coordinates = (753200, 3689064, 36, 'N')
+    # 698342,3618731
+    #km_radius = 0.2
+    #get_viable_landing_in_radius(coordinates, km_radius)
