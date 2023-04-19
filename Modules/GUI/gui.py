@@ -11,6 +11,7 @@ import cv2
 import threading
 import os
 from PIL import Image
+from tkinter import ttk
 
 # Get the directory path of the current file (module.py)
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -54,7 +55,6 @@ class GUI(tk.Tk):
         self.resizable(True, True)
         self.create_widgets()
 
-
     def create_widgets(self):
         # place the buttons on the window with a nice layout
         # add an entry for entering, E, N, and S, insert the entry values into the search function
@@ -62,23 +62,24 @@ class GUI(tk.Tk):
         self.E = tk.Label(self, text="E: ")
         self.E.pack()
         self.E_entry = tk.Entry(self)
-        self.E_entry.config(background=second_background_color)
+        self.E_entry.config(background=second_background_color, foreground="black", font=FONT, justify=tk.CENTER)
         self.E_entry.pack()
         self.N = tk.Label(self, text="N: ")
         self.N.pack()
         self.N_entry = tk.Entry(self)
-        self.N_entry.config(background=second_background_color)
+        self.N_entry.config(background=second_background_color, foreground="black", font=FONT, justify=tk.CENTER)
         self.N_entry.pack()
         self.Radius = tk.Label(self, text="Radius in km: ")
         self.Radius.pack()
         self.Radius_entry = tk.Entry(self)
-        self.Radius_entry.config(background=second_background_color)
+        self.Radius_entry.config(background=second_background_color, foreground="black", font=FONT, justify=tk.CENTER)
         self.Radius_entry.pack()
 
         # inserting the entry values into the search function
         self.search_button = tk.Button(self, text="חפש", command=self.do)
         # self.search_button = tk.Button(self, text="חפש", command=threading.Thread(target=self.do).start)
         self.search_button.pack()
+        self.add_progressbar()
         labels = [self.E, self.N, self.Radius, self.E_entry, self.N_entry, self.Radius_entry, self.search_button]
 
         gap = 1.5
@@ -87,15 +88,15 @@ class GUI(tk.Tk):
         level = 1
         start_x = 800
         start_y = 20
-        self.E.place(relx=0.45, rely=0.05, anchor=position)
+        self.E.place(relx=0.41, rely=0.05, anchor=position)
         self.E.config(font=FONT, foreground="black", background=background_color)
         self.E_entry.place(relx=0.5, rely=0.05, anchor=position)
         self.E_entry.config(width=entry_width)
-        self.N.place(relx=0.45, rely=0.1, anchor=position)
+        self.N.place(relx=0.41, rely=0.1, anchor=position)
         self.N.config(font=FONT, foreground="black", background=background_color)
         self.N_entry.place(relx=0.5, rely=0.1, anchor=position)
         self.N_entry.config(width=entry_width)
-        self.Radius.place(relx=0.415, rely=0.15, anchor=position)
+        self.Radius.place(relx=0.375, rely=0.15, anchor=position)
         self.Radius.config(font=FONT, foreground="black", background=background_color)
         self.Radius_entry.place(relx=0.5, rely=0.15, anchor=position)
         self.Radius_entry.config(width=entry_width)
@@ -122,7 +123,7 @@ class GUI(tk.Tk):
         coordinates = (int(self.E_value), int(self.N_value), 36, "N")
         print(coordinates, self.Radius_value)
         # run the function
-        image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value))
+        image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
         self.add_result_image(total_mask)
 
@@ -155,6 +156,21 @@ class GUI(tk.Tk):
 
     def get_Radius_value(self):
         return self.Radius_value
+
+    def add_progressbar(self):
+        self.progressbar = ttk.Progressbar(self, orient="horizontal", length=200, mode="determinate",
+                                           style="lightblue.Horizontal.TProgressbar")
+        self.progressbar.place(relx=0.5, rely=0.9, anchor=tk.CENTER)
+        self.progressbar["maximum"] = 100
+        self.progressbar["value"] = 0
+        self.progressbar_label = tk.Label(self, text="0%", font=FONT, foreground="black", background=background_color)
+        self.progressbar_label.place(relx=0.5, rely=0.85, anchor=tk.CENTER)
+
+
+    def update_progressbar(self, value):
+        self.progressbar_label.config(text=f"{value}%")
+        self.progressbar["value"] = value
+        self.progressbar.update()
 
     def add_background_gif(self):
         # Open the GIF image using PIL
