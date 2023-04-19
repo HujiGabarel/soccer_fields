@@ -71,7 +71,7 @@ class GUI(tk.Tk):
         self.Radius_entry.pack()
 
         # inserting the entry values into the search function
-        self.search_button = tk.Button(self, text="חפש", command=self.do)
+        self.search_button = tk.Button(self, text="חפש", command=self.search)
         # self.search_button = tk.Button(self, text="חפש", command=threading.Thread(target=self.do).start)
         self.search_button.pack()
         self.add_progressbar()
@@ -110,14 +110,20 @@ class GUI(tk.Tk):
         self.result_label = tk.Label(self, image=self.result_image)
         self.result_label.place(relx=0.7, rely=0.5, anchor=tk.CENTER)
 
-    def do(self):
+    def search(self):
         # get the entry values
+        self.update_progressbar(0)
         self.E_value = self.E_entry.get()
         self.N_value = self.N_entry.get()
         self.Radius_value = self.Radius_entry.get()
         coordinates = (int(self.E_value), int(self.N_value), 36, "N")
         print(coordinates, self.Radius_value)
         # run the function
+        t = threading.Thread(target=self.run_process, args=(coordinates,))
+        # image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
+        t.start()
+
+    def run_process(self, coordinates):
         image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
         self.add_result_image(total_mask)

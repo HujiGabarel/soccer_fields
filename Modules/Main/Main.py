@@ -196,5 +196,6 @@ if __name__ == '__main__':
     screen.mainloop()
     # coordinates = (753200, 3689064, 36, 'N')
     # 698342,3618731
+    #698812,3620547
     # km_radius = 0.2
     # get_viable_landing_in_radius(coordinates, km_radius)
