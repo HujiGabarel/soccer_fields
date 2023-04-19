@@ -161,7 +161,6 @@ class GUI(tk.Tk):
         self.progressbar_label = tk.Label(self, text="0%", font=FONT, foreground="black", background=background_color)
         self.progressbar_label.place(relx=0.5, rely=0.85, anchor=tk.CENTER)
 
-
     def update_progressbar(self, value):
         self.progressbar_label.config(text=f"{value}%")
         self.progressbar["value"] = value
@@ -195,4 +194,3 @@ class GUI(tk.Tk):
 if __name__ == '__main__':
     gui = GUI()
     gui.mainloop()
-
