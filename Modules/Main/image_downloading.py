@@ -13,7 +13,7 @@ def download_tile(url, channels):
     :return: image
     """
     response = requests.get(url)
-    arr =  np.asarray(bytearray(response.content), dtype=np.uint8)
+    arr = np.asarray(bytearray(response.content), dtype=np.uint8)
     
     if channels == 3:
         return cv2.imdecode(arr, 1)
