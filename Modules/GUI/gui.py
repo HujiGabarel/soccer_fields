@@ -113,24 +113,20 @@ class GUI(tk.Tk):
         self.original_image_array = np.array(self.original_image)
         self.result_image_array = np.array(self.result_image)
         # add the original image and the result image to the window
-        self.canvas = tk.Canvas(self, width=self.x * 3, height=self.y-50, bg="red")
+        self.canvas = tk.Canvas(self, width=self.x, height=self.y - 50, bg="white", highlightcolor="red")
         self.canvas.place(relx=0.5, rely=0.55, anchor=tk.CENTER)
 
         self.add_original_image(self.original_image_array)
 
-        self.add_result_image(self.result_image_array)
-        #self.result_image = ImageTk.PhotoImage(
-            #Image.fromarray(cv2.cvtColor(self.result_image_array, cv2.COLOR_BGR2RGB)).resize((self.x, self.y)))
+        # self.add_result_image(self.result_image_array)
+        self.result_image_1 = Image.fromarray(cv2.cvtColor(self.result_image_array, cv2.COLOR_BGR2RGB)).resize((self.x, self.y))
+        self.result_image = ImageTk.PhotoImage(self.result_image_1)
         self.square_image_array = np.array(Image.open(ws_path))
-        self.square_image = ImageTk.PhotoImage(
-            Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize((self.sx, self.sy)))
-        # self.result_label = tk.Label(self.canvas, image=self.result_image)
-        # self.result_label.place(relx=0.7, rely=0.5, anchor=tk.CENTER)
+        self.square_image_1 = Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize((self.sx, self.sy))
+        self.square_image = ImageTk.PhotoImage(self.square_image_1)
 
-        # self.square_label = tk.Label(self.canvas, image=self.square_image)
-        # self.square_label.place(relx=0.7, rely=0.5, anchor=tk.CENTER)
-        #  add the square image to the canvas and make it appear on the result image
 
+        self.result_image_canvas = self.canvas.create_image(0, 0, image=self.result_image, anchor=tk.NW)
         self.square_image_canvas = self.canvas.create_image(0, 0, image=self.square_image, anchor=tk.NW)
         self.bind("<Left>", self.left_key)
         self.bind("<Right>", self.right_key)
@@ -140,15 +136,52 @@ class GUI(tk.Tk):
         # when pressing the key 1 the square image will rotate 90 degrees clockwise and when pressing 2 it will rotate 90 degrees counter clockwise (the square image is the image of the square that appears on the result image)
         self.bind("1", self.rotate_square_image_clockwise)
         # self.canvas.bind("<B1-Motion>", self.rotate_image)
+        # Create a slider to control the transparency of the image
+        transparency_slider = tk.Scale(self, from_=0, to=100, orient=tk.VERTICAL, length=450, width=15, sliderlength=20, background=background_color, foreground="black", )
+        transparency_slider.set(100)
+        transparency_slider.pack()
+        transparency_slider.place(relx=0.32, rely=0.55, anchor=tk.CENTER)
+        # Call the update_transparency function when the slider is moved
+        transparency_slider.config(command=self.update_transparency)
+        self.update_transparency(100)
+        # add a button which will let the user to choose the size of the square image from a listbox of options
+        self.size_button = tk.Button(self, text="Change Type", command=self.size)
+        self.size_button.pack()
+        self.size_button.place(relx=0.2, rely=0.7, anchor=tk.CENTER)
+        self.size_button.config(background=second_background_color, foreground="black", font=FONT)
+        # when an item from the listbox is selected, the value of the selected item will be saved in the self.selected variable
+        self.selected = tk.StringVar()
+        # change the names to the names of the helicopter types
+        self.selected.set("Small")
+        options = ["Small", "Medium"]
+        self.listbox = tk.OptionMenu(self, self.selected, *options)
+        self.listbox.pack()
+        self.listbox.place(relx=0.2, rely=0.6, anchor=tk.CENTER)
+        self.listbox.config(background=second_background_color, foreground="black", font=FONT)
 
 
-        # self.canvas.create_image(0, 0, image=self.square_image, anchor=tk.NW)
+    def size(self):
+        # change the size of the square image to whatever you want
+        val = self.selected.get()
+        if val == "Small":
+            self.sx = 50
+            self.sy = 20
+        elif val == "Medium":
+            self.sx = 70
+            self.sy = 30
+        self.add_square_image()
 
-   #  import math
+    def update_transparency(self, val):
+        alpha = int((100 - float(val)) * 255 / 100)
+        cop = self.result_image_1.copy()
+        cop.putalpha(alpha)
+        alpha_image = ImageTk.PhotoImage(cop)
+        self.canvas.itemconfig(self.result_image_canvas, image=alpha_image)
+        self.canvas.image = alpha_image
     def rotate_image(self, event):
         # Calculate the angle of rotation based on the change in mouse position
-        dx = event.x - self.x * 3 / 2
-        dy = event.y - (self.y - 50) / 2
+        dx = event.x - self.x / 2
+        dy = event.y - self.y / 2
         angle = -math.atan2(dy, dx) * 180 / math.pi
         # Rotate the image and update it on the canvas
         eww = Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize((self.sx, self.sy))
@@ -159,20 +192,20 @@ class GUI(tk.Tk):
     def rotate_square_image_clockwise(self, event):
         # rotate the square image 45 degrees clockwise
         self.sx, self.sy = self.sy, self.sx
-        self.square_image = ImageTk.PhotoImage(
-            Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize((self.sx, self.sy)))
+        self.square_image_1 = Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize((self.sx, self.sy))
+        self.square_image = ImageTk.PhotoImage(self.square_image_1)
         self.canvas.itemconfig(self.square_image_canvas, image=self.square_image)
     def left_key(self, event):
         # dont let the square image go out of the canvas\
         c1 = self.canvas.coords(self.square_image_canvas)
         if c1[0] > 0:
-            self.canvas.move(self.square_image_canvas, -10, 0)
+            self.canvas.move(self.square_image_canvas, -1, 0)
 
     def right_key(self, event):
         # dont let the square image go out of the canvas
         c1 = self.canvas.coords(self.square_image_canvas)
-        if c1[0] + self.sx < self.x * 3:
-            self.canvas.move(self.square_image_canvas, 10, 0)
+        if c1[0] + self.sx < self.x:
+            self.canvas.move(self.square_image_canvas, 1, 0)
 
 
 
@@ -180,14 +213,14 @@ class GUI(tk.Tk):
         # dont let the square image go out of the canvas
         c1 = self.canvas.coords(self.square_image_canvas)
         if c1[1] > 0:
-            self.canvas.move(self.square_image_canvas, 0, -10)
+            self.canvas.move(self.square_image_canvas, 0, -1)
 
     def down_key(self, event):
         # dont let the square image go out of the canvas
         # get the pixel coordinates of the square image
         c1 = self.canvas.coords(self.square_image_canvas)
         if c1[1] + 30 + 2 * self.sy < self.y:
-            self.canvas.move(self.square_image_canvas, 0, 10)
+            self.canvas.move(self.square_image_canvas, 0, 1)
 
     def search(self):
         # get the entry values
@@ -207,14 +240,24 @@ class GUI(tk.Tk):
         self.add_original_image(image)
         self.add_result_image(total_mask)
 
+    def add_square_image(self):
+        """
+        get the square image in the form of array and put it on the window bellow the buttons, resize it to fit the x but the y should be 200
+        :param image: the square image
+        :return:
+        """
+        self.square_image_1 = Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize(
+            (self.sx, self.sy))
+        self.square_image = ImageTk.PhotoImage(self.square_image_1)
+        self.square_image_canvas = self.canvas.create_image(0, 0, image=self.square_image, anchor=tk.NW)
     def add_original_image(self, image):
         """
         get the original image in the form of array and put it on the window bellow the buttons, resize it to fit the x but the y should be 200
         :param image: the original image
         :return:
         """
-        self.original_image = ImageTk.PhotoImage(
-            Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((self.x, self.y)))
+        self.original_image_1 = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((self.x, self.y))
+        self.original_image = ImageTk.PhotoImage(self.original_image_1)
         # self.original_label = tk.Label(self.canvas, image=self.original_image)
         # self.original_label.place(relx=0.30, rely=0.5, anchor=tk.CENTER)
         self.canvas.create_image(0, 0, image=self.original_image, anchor=tk.NW)
@@ -225,10 +268,13 @@ class GUI(tk.Tk):
         :param image: the result image
         :return:
         """
-        self.result_image = ImageTk.PhotoImage(Image.fromarray(image).resize((self.x, self.y)))
+        self.result_image_1 = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((self.x, self.y))
+        self.result_image = ImageTk.PhotoImage(self.result_image_1)
         # self.result_label = tk.Label(self.canvas, image=self.result_image)
         # self.result_label.place(relx=0.7, rely=0.5, anchor=tk.CENTER)
-        self.canvas.create_image(self.x, 0, image=self.result_image, anchor=tk.NW)
+        self.result_image_canvas = self.canvas.create_image(0, 0, image=self.result_image, anchor=tk.NW)
+        self.add_square_image()
+
 
     def get_E_value(self):
         return self.E_value
