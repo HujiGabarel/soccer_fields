@@ -17,35 +17,41 @@ dir_path = os.path.dirname(os.path.realpath(__file__))
 logo_path_gif = os.path.join(dir_path, 'LOGO.gif')
 logo_path = os.path.join(dir_path, 'logo.png')
 # Construct the absolute path of background.png
-pnotnp_path = os.path.join(dir_path, 'PNP.jpg')
+pnotnp_path = os.path.join(dir_path, 'PNOTNP.jpg')
 # Construct the absolute path of background.png
-pnp_path = os.path.join(dir_path, 'PNOTNP.jpg')
+pnp_path = os.path.join(dir_path, 'PNP.jpg')
 # Construct the absolute path of background.png
-ws_path = os.path.join(dir_path, 'logo.png')
+ws_path = os.path.join(dir_path, 'yasor.jpg')
+# Construct the absolute path of the original image and result image
+original_image_path = logo_path
+result_image_path = pnp_path
 FONT = ('Helvetica', 16, "bold")
 background_color = 'white'
 second_background_color = 'light blue'
-
-
+entry_width = 20
+E_label_location = (0.41, 0.05)
+E_entry_location = (0.5, 0.05)
+N_label_location = (0.41, 0.1)
+N_entry_location = (0.5, 0.1)
+R_label_location = (0.375, 0.15)
+R_entry_location = (0.5, 0.15)
+wx, wy, wsx, wsy = 500, 500, 50, 20
+canvas_location = (0.5, 0.55)
+canvas_width, canvas_highet = wx, wy - 50
+canvas_highlight_color = 'red'
+alpha_func = lambda val: int(float(val) * 255 / 100)
+rotate_key = "1"
 class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.configure(background=background_color)
         self.title("Soccer Field GUI:")
         # put a picture on the window background
-        self.x = 1000
-        self.y = 1000
-        self.sx = 50
-        self.sy = 20
-        flag = False
-        if flag:
-            self.geometry(f"{self.x}x{self.y}")
-        else:
-            # this is the size of the images original and result
-            self.x = 500
-            self.y = 500
-            self.state("zoomed")
-        picture_x_y = 150
+        self.sx = wsx
+        self.sy = wsy
+        self.x = wx
+        self.y = wy
+        self.state("zoomed")
         # self.add_background_gif()
         self.resizable(True, True)
         self.create_widgets()
@@ -67,18 +73,17 @@ class GUI(tk.Tk):
         self.Radius_entry.config(background=second_background_color, foreground="black", font=FONT, justify=tk.CENTER)
         self.Radius_entry.pack()
 
-        entry_width = 20
-        self.E.place(relx=0.41, rely=0.05, anchor=tk.CENTER)
+        self.E.place(relx=E_label_location[0], rely=E_label_location[1], anchor=tk.CENTER)
         self.E.config(font=FONT, foreground="black", background=background_color)
-        self.E_entry.place(relx=0.5, rely=0.05, anchor=tk.CENTER)
+        self.E_entry.place(relx=E_entry_location[0], rely=E_entry_location[1], anchor=tk.CENTER)
         self.E_entry.config(width=entry_width)
-        self.N.place(relx=0.41, rely=0.1, anchor=tk.CENTER)
+        self.N.place(relx=N_label_location[0], rely=N_label_location[1], anchor=tk.CENTER)
         self.N.config(font=FONT, foreground="black", background=background_color)
-        self.N_entry.place(relx=0.5, rely=0.1, anchor=tk.CENTER)
+        self.N_entry.place(relx=N_entry_location[0], rely=N_entry_location[1], anchor=tk.CENTER)
         self.N_entry.config(width=entry_width)
-        self.Radius.place(relx=0.375, rely=0.15, anchor=tk.CENTER)
+        self.Radius.place(relx=R_label_location[0], rely=R_label_location[1], anchor=tk.CENTER)
         self.Radius.config(font=FONT, foreground="black", background=background_color)
-        self.Radius_entry.place(relx=0.5, rely=0.15, anchor=tk.CENTER)
+        self.Radius_entry.place(relx=R_entry_location[0], rely=R_entry_location[1], anchor=tk.CENTER)
         self.Radius_entry.config(width=entry_width)
 
     def create_widgets(self):
@@ -89,62 +94,40 @@ class GUI(tk.Tk):
         self.add_search_button()
         self.add_progressbar()
 
-        self.original_image = Image.open(logo_path)
-        self.result_image = Image.open(pnp_path)
-        # # make self.original_image and self.result_image an array of the image
-        self.original_image_array = np.array(self.original_image)
-        self.result_image_array = np.array(self.result_image)
-        # add the original image and the result image to the window
-        self.canvas = tk.Canvas(self, width=self.x, height=self.y - 50, bg="white", highlightcolor="red")
-        self.canvas.place(relx=0.5, rely=0.55, anchor=tk.CENTER)
+        self.create_images_and_canvas()
 
         self.add_original_image(self.original_image_array)
-
-        # self.add_result_image(self.result_image_array)
-        self.result_image_1 = Image.fromarray(cv2.cvtColor(self.result_image_array, cv2.COLOR_BGR2RGB)).resize(
-            (self.x, self.y))
-        self.result_image = ImageTk.PhotoImage(self.result_image_1)
-
-        self.square_image_array = np.array(Image.open(ws_path))
-        self.square_image_1 = Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize(
-            (self.sx, self.sy))
-        self.square_image = ImageTk.PhotoImage(self.square_image_1)
-
-        self.result_image_canvas = self.canvas.create_image(0, 0, image=self.result_image, anchor=tk.NW)
-        self.square_image_canvas = self.canvas.create_image(0, 0, image=self.square_image, anchor=tk.NW)
-        self.bind("<Left>", self.left_key)
-        self.bind("<Right>", self.right_key)
-        self.bind("<Up>", self.up_key)
-        self.bind("<Down>", self.down_key)
-        self.rot = 0
-        # when pressing the key 1 the square image will rotate 90 degrees clockwise and when pressing 2 it will rotate 90 degrees counter clockwise (the square image is the image of the square that appears on the result image)
-        self.bind("1", self.rotate_square_image_clockwise)
-        # self.canvas.bind("<B1-Motion>", self.rotate_image)
-        # Create a slider to control the transparency of the image
+        self.add_result_image(self.result_image_array)
+        self.bind_keys()
         self.create_slider()
-        # # add a button which will let the user to choose the size of the square image from a listbox of options
         self.create_type_label()
         self.change_type_button()
 
+    def create_images_and_canvas(self):
+        self.original_image = Image.open(original_image_path)
+        self.result_image = Image.open(result_image_path)
+        # # make self.original_image and self.result_image an array of the image
+        self.original_image_array = np.array(self.original_image)
+        self.result_image_array = np.array(self.result_image)
+        self.square_image_array = np.array(Image.open(ws_path))
+        # add the original image and the result image to the window
+        self.canvas = tk.Canvas(self, width=canvas_width, height=canvas_highet, bg="white", highlightcolor=canvas_highlight_color)
+        self.canvas.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
+
     def update_transparency(self, val):
-        alpha = int((100 - float(val)) * 255 / 100)
+        alpha = alpha_func(val)
         cop = self.result_image_1.copy()
         cop.putalpha(alpha)
         alpha_image = ImageTk.PhotoImage(cop)
         self.canvas.itemconfig(self.result_image_canvas, image=alpha_image)
         self.canvas.image = alpha_image
 
-    def rotate_image(self, event):
-        # Calculate the angle of rotation based on the change in mouse position
-        dx = event.x - self.x / 2
-        dy = event.y - self.y / 2
-        angle = -math.atan2(dy, dx) * 180 / math.pi
-        # Rotate the image and update it on the canvas
-        eww = Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize((self.sx, self.sy))
-        self.square_image = ImageTk.PhotoImage(eww.rotate(angle))
-        self.canvas.itemconfig(self.square_image_canvas, image=self.square_image)
-        # self.canvas.image = self.square_image  # keep reference to avoid garbage collection
-
+    def bind_keys(self):
+        self.bind("<Left>", self.left_key)
+        self.bind("<Right>", self.right_key)
+        self.bind("<Up>", self.up_key)
+        self.bind("<Down>", self.down_key)
+        self.bind(rotate_key, self.rotate_square_image_clockwise)
     def rotate_square_image_clockwise(self, event):
         # rotate the square image 45 degrees clockwise
         self.sx, self.sy = self.sy, self.sx
@@ -215,8 +198,6 @@ class GUI(tk.Tk):
         """
         self.original_image_1 = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((self.x, self.y))
         self.original_image = ImageTk.PhotoImage(self.original_image_1)
-        # self.original_label = tk.Label(self.canvas, image=self.original_image)
-        # self.original_label.place(relx=0.30, rely=0.5, anchor=tk.CENTER)
         self.canvas.create_image(0, 0, image=self.original_image, anchor=tk.NW)
 
     def add_result_image(self, image):
@@ -227,8 +208,6 @@ class GUI(tk.Tk):
         """
         self.result_image_1 = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((self.x, self.y))
         self.result_image = ImageTk.PhotoImage(self.result_image_1)
-        # self.result_label = tk.Label(self.canvas, image=self.result_image)
-        # self.result_label.place(relx=0.7, rely=0.5, anchor=tk.CENTER)
         self.result_image_canvas = self.canvas.create_image(0, 0, image=self.result_image, anchor=tk.NW)
         self.add_square_image()
 
