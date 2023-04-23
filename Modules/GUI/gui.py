@@ -35,12 +35,20 @@ N_label_location = (0.41, 0.1)
 N_entry_location = (0.5, 0.1)
 R_label_location = (0.375, 0.15)
 R_entry_location = (0.5, 0.15)
+distance_entry_location = (0.8, 0.3)
 wx, wy, wsx, wsy = 500, 500, 50, 20
 canvas_location = (0.5, 0.55)
 canvas_width, canvas_highet = wx, wy - 50
 canvas_highlight_color = 'red'
 alpha_func = lambda val: int(float(val) * 255 / 100)
 rotate_key = "1"
+distance_str_format = lambda x: f"Distance: {x} m"
+viewport_x = 0
+viewport_y = 0
+viewport_width = canvas_width
+viewport_height = canvas_highet
+start_x, start_y = None, None
+end_x, end_y = None, None
 class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -104,8 +112,28 @@ class GUI(tk.Tk):
         self.create_type_label()
         self.change_type_button()
         self.init_with_values()
+        # self.make_zoom_in()
 
+        # Define a function to set the start point of the line
+    def start(self, event):
+        global start_x, start_y
+        start_x, start_y = event.x, event.y
 
+        # Define a function to update the end point of the line and draw it
+    def draw(self, event):
+        global start_x, start_y, end_x, end_y
+        if start_x and start_y:
+            end_x, end_y = event.x, event.y
+            if self.line != -111:
+                # move the line to the new position
+                self.canvas.coords(self.line, start_x, start_y, end_x, end_y)
+            else:
+                self.line = self.canvas.create_line(start_x, start_y, end_x, end_y, width=5, fill="black", smooth=True)
+            # calculate the distance between the two points
+            self.distance = math.sqrt((start_x - end_x) ** 2 + (start_y - end_y) ** 2)
+            self.distance = self.distance * self.sx / self.x
+            self.distance = round(self.distance, 2)
+            self.entry_distance.config(text=distance_str_format(self.distance))
     def init_with_values(self, E="698812", N="3620547", Radius="0.1"):
         self.E_entry.insert(0, E)
         self.N_entry.insert(0, N)
@@ -120,7 +148,9 @@ class GUI(tk.Tk):
         # add the original image and the result image to the window
         self.canvas = tk.Canvas(self, width=canvas_width, height=canvas_highet, bg="white", highlightcolor=canvas_highlight_color)
         self.canvas.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
-
+        self.entry_distance = tk.Label(self, width=entry_width, justify=tk.CENTER, font=FONT, bg=second_background_color, fg="black")
+        self.entry_distance.place(relx=distance_entry_location[0], rely=distance_entry_location[1], anchor=tk.CENTER)
+        self.entry_distance.config(text="Distance: ")
     def update_transparency(self, val):
         alpha = alpha_func(val)
         cop = self.result_image_1.copy()
@@ -130,11 +160,15 @@ class GUI(tk.Tk):
         self.canvas.image = alpha_image
 
     def bind_keys(self):
+        self.line = -111
         self.bind("<Left>", self.left_key)
         self.bind("<Right>", self.right_key)
         self.bind("<Up>", self.up_key)
         self.bind("<Down>", self.down_key)
         self.bind(rotate_key, self.rotate_square_image_clockwise)
+        # Bind the left mouse button to the start function and the left mouse motion to the draw function
+        self.canvas.bind("<Button-1>", self.start)
+        self.canvas.bind("<B1-Motion>", self.draw)
     def rotate_square_image_clockwise(self, event):
         # rotate the square image 45 degrees clockwise
         self.sx, self.sy = self.sy, self.sx
@@ -228,6 +262,53 @@ class GUI(tk.Tk):
     def get_Radius_value(self):
         return self.Radius_value
 
+    def make_zoom_in(self):
+        # Set the initial viewport size
+        viewport_width = canvas_width
+        viewport_height = canvas_highet
+        # Set the initial viewport position
+
+        # Display the image on the canvas
+        img = self.result_image_1
+        image_item = self.result_image_canvas
+
+        # Define a function to update the viewport and redraw the image
+        def update_viewport():
+            # Calculate the coordinates of the viewport
+            x1 = viewport_x
+            y1 = viewport_y
+            x2 = x1 + viewport_width
+            y2 = y1 + viewport_height
+
+            # Set the canvas viewport
+            self.canvas.configure(scrollregion=(0, 0, img.width, img.height), width=viewport_width, height=viewport_height)
+            self.canvas.xview_moveto(x1 / img.width)
+            self.canvas.yview_moveto(y1 / img.height)
+
+            # Redraw the image in the viewport
+            cropped_img = img.crop((x1, y1, x2, y2))
+            cropped_tk = ImageTk.PhotoImage(cropped_img)
+            self.canvas.itemconfig(image_item, image=cropped_tk)
+
+        # Define a function to zoom in or out on the image
+        def zoom(event):
+            global viewport_x, viewport_y, viewport_width, viewport_height
+            if event.delta < 0:
+                # Zoom out
+                viewport_x -= viewport_width // 4  # Decrease the viewport size by 25%
+                viewport_y -= viewport_height // 4
+                viewport_width *= 2
+                viewport_height *= 2
+            else:
+                # Zoom in
+                viewport_x += viewport_width // 4  # Increase the viewport size by 25%
+                viewport_y += viewport_height // 4
+                viewport_width //= 2
+                viewport_height //= 2
+            update_viewport()
+
+        # Bind the function to a mouse wheel event
+        self.canvas.bind("<MouseWheel>", zoom)
     def add_progressbar(self):
         self.progressbar = ttk.Progressbar(self, orient="horizontal", length=200, mode="determinate",
                                            style="lightblue.Horizontal.TProgressbar")
