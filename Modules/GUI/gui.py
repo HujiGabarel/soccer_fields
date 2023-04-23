@@ -111,8 +111,8 @@ class GUI(tk.Tk):
         self.add_result_image(self.result_image_array)
         self.bind_keys()
         self.create_slider()
-        self.create_type_label()
-        self.change_type_button()
+        # self.create_type_label()
+        # self.change_type_button()
         self.init_with_values()
         # self.make_zoom_in()
 
@@ -264,7 +264,7 @@ class GUI(tk.Tk):
         self.result_image_1 = self.result_image_1.convert(mode='RGB')
         self.result_image = ImageTk.PhotoImage(self.result_image_1)
         self.result_image_canvas = self.canvas.create_image(0, 0, image=self.result_image, anchor=tk.NW)
-        self.add_square_image()
+        # self.add_square_image()
 
     def get_E_value(self):
         return self.E_value
