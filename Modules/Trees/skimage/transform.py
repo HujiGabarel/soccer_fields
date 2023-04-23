@@ -76,9 +76,9 @@ def resize(image, output_shape, order=None, mode='reflect', cval=0, clip=True,
 
     if anti_aliasing is None:
         anti_aliasing = (
-            not input_type == bool and
-            not (np.issubdtype(input_type, np.integer) and order == 0) and
-            any(x < y for x, y in zip(output_shape, input_shape)))
+                not input_type == bool and
+                not (np.issubdtype(input_type, np.integer) and order == 0) and
+                any(x < y for x, y in zip(output_shape, input_shape)))
 
     if input_type == bool and anti_aliasing:
         raise ValueError("anti_aliasing must be False for boolean images")
@@ -103,8 +103,9 @@ def resize(image, output_shape, order=None, mode='reflect', cval=0, clip=True,
                 raise ValueError("Anti-aliasing standard deviation must be "
                                  "greater than or equal to zero")
             elif np.any((anti_aliasing_sigma > 0) & (factors <= 1)):
-                warn("Anti-aliasing standard deviation greater than zero but "
-                     "not down-sampling along all axes")
+                # warn("Anti-aliasing standard deviation greater than zero but "
+                #      "not down-sampling along all axes")
+                pass
         image = ndi.gaussian_filter(image, anti_aliasing_sigma,
                                     cval=cval, mode=ndi_mode)
 
@@ -115,6 +116,121 @@ def resize(image, output_shape, order=None, mode='reflect', cval=0, clip=True,
     _clip_warp_output(img_bounds, out, mode, cval, clip)
 
     return out
+
+
+def _clip_warp_output(input_image, output_image, mode, cval, clip):
+    """Clip output image to range of values of input image.
+    Note that this function modifies the values of `output_image` in-place
+    and it is only modified if ``clip=True``.
+    Parameters
+    ----------
+    input_image : ndarray
+        Input image.
+    output_image : ndarray
+        Output image, which is modified in-place.
+    Other parameters
+    ----------------
+    mode : {'constant', 'edge', 'symmetric', 'reflect', 'wrap'}
+        Points outside the boundaries of the input are filled according
+        to the given mode.  Modes match the behaviour of `numpy.pad`.
+    cval : float
+        Used in conjunction with mode 'constant', the value outside
+        the image boundaries.
+    clip : bool
+        Whether to clip the output to the range of values of the input image.
+        This is enabled by default, since higher order interpolation may
+        produce values outside the given input range.
+    """
+    if clip:
+        min_val = np.min(input_image)
+        if np.isnan(min_val):
+            # NaNs detected, use NaN-safe min/max
+            min_func = np.nanmin
+            max_func = np.nanmax
+            min_val = min_func(input_image)
+        else:
+            min_func = np.min
+            max_func = np.max
+        max_val = max_func(input_image)
+
+        # Check if cval has been used such that it expands the effective input
+        # range
+        preserve_cval = (mode == 'constant'
+                         and not min_val <= cval <= max_val
+                         and min_func(output_image) <= cval <= max_func(output_image))
+
+        # expand min/max range to account for cval
+        if preserve_cval:
+            # cast cval to the same dtype as the input image
+            cval = input_image.dtype.type(cval)
+            min_val = min(min_val, cval)
+            max_val = max(max_val, cval)
+
+        np.clip(output_image, min_val, max_val, out=output_image)
+
+
+def _to_ndimage_mode(mode):
+    """Convert from `numpy.pad` mode name to the corresponding ndimage mode."""
+    mode_translation_dict = dict(constant='constant', edge='nearest',
+                                 symmetric='reflect', reflect='mirror',
+                                 wrap='wrap')
+    if mode not in mode_translation_dict:
+        raise ValueError(
+            f"Unknown mode: '{mode}', or cannot translate mode. The "
+            f"mode should be one of 'constant', 'edge', 'symmetric', "
+            f"'reflect', or 'wrap'. See the documentation of numpy.pad for "
+            f"more info.")
+    return _fix_ndimage_mode(mode_translation_dict[mode])
+
+
+def _fix_ndimage_mode(mode):
+    # SciPy 1.6.0 introduced grid variants of constant and wrap which
+    # have less surprising behavior for images. Use these when available
+    grid_modes = {'constant': 'grid-constant', 'wrap': 'grid-wrap'}
+    return grid_modes.get(mode, mode)
+
+
+def _preprocess_resize_output_shape(image, output_shape):
+    """Validate resize output shape according to input image.
+    Parameters
+    ----------
+    image: ndarray
+        Image to be resized.
+    output_shape: iterable
+        Size of the generated output image `(rows, cols[, ...][, dim])`. If
+        `dim` is not provided, the number of channels is preserved.
+    Returns
+    -------
+    image: ndarray
+        The input image, but with additional singleton dimensions appended in
+        the case where ``len(output_shape) > input.ndim``.
+    output_shape: tuple
+        The output image converted to tuple.
+    Raises
+    ------
+    ValueError:
+        If output_shape length is smaller than the image number of
+        dimensions
+    Notes
+    -----
+    The input image is reshaped if its number of dimensions is not
+    equal to output_shape_length.
+    """
+    output_shape = tuple(output_shape)
+    output_ndim = len(output_shape)
+    input_shape = image.shape
+    if output_ndim > image.ndim:
+        # append dimensions to input_shape
+        input_shape += (1,) * (output_ndim - image.ndim)
+        image = np.reshape(image, input_shape)
+    elif output_ndim == image.ndim - 1:
+        # multichannel case: append shape of last axis
+        output_shape = output_shape + (image.shape[-1],)
+    elif output_ndim < image.ndim:
+        raise ValueError("output_shape length cannot be smaller than the "
+                         "image number of dimensions")
+
+    return image,
 
 
 def _validate_interpolation_order(image_dtype, order):
@@ -194,10 +310,10 @@ __all__ = ['img_as_float32', 'img_as_float64', 'img_as_float',
 # For convenience, for these dtypes we indicate also the possible bit depths
 # (some of them are platform specific). For the details, see:
 # http://www.unix.org/whitepapers/64bit.html
-_integer_types = (np.byte, np.ubyte,          # 8 bits
-                  np.short, np.ushort,        # 16 bits
-                  np.intc, np.uintc,          # 16 or 32 or 64 bits
-                  int, np.int_, np.uint,      # 32 or 64 bits
+_integer_types = (np.byte, np.ubyte,  # 8 bits
+                  np.short, np.ushort,  # 16 bits
+                  np.intc, np.uintc,  # 16 or 32 or 64 bits
+                  int, np.int_, np.uint,  # 32 or 64 bits
                   np.longlong, np.ulonglong)  # 64 bits
 _integer_ranges = {t: (np.iinfo(t).min, np.iinfo(t).max)
                    for t in _integer_types}
@@ -208,8 +324,6 @@ dtype_range = {bool: (False, True),
                np.float16: (-1, 1),
                np.float32: (-1, 1),
                np.float64: (-1, 1)}
-
-
 
 dtype_range.update(_integer_ranges)
 
@@ -279,7 +393,7 @@ def _dtype_bits(kind, bits, itemsize=1):
 
     """
 
-    s = next(i for i in (itemsize, ) + (2, 4, 8) if
+    s = next(i for i in (itemsize,) + (2, 4, 8) if
              bits < (i * 8) or (bits == (i * 8) and kind == 'u'))
 
     return np.dtype(kind + str(s))
@@ -325,21 +439,21 @@ def _scale(a, n, m, copy=True):
         # downscale with precision loss
         if copy:
             b = np.empty(a.shape, _dtype_bits(kind, m))
-            np.floor_divide(a, 2**(n - m), out=b, dtype=a.dtype,
+            np.floor_divide(a, 2 ** (n - m), out=b, dtype=a.dtype,
                             casting='unsafe')
             return b
         else:
-            a //= 2**(n - m)
+            a //= 2 ** (n - m)
             return a
     elif m % n == 0:
         # exact upscale to a multiple of `n` bits
         if copy:
             b = np.empty(a.shape, _dtype_bits(kind, m))
-            np.multiply(a, (2**m - 1) // (2**n - 1), out=b, dtype=b.dtype)
+            np.multiply(a, (2 ** m - 1) // (2 ** n - 1), out=b, dtype=b.dtype)
             return b
         else:
             a = a.astype(_dtype_bits(kind, m, a.dtype.itemsize), copy=False)
-            a *= (2**m - 1) // (2**n - 1)
+            a *= (2 ** m - 1) // (2 ** n - 1)
             return a
     else:
         # upscale to a multiple of `n` bits,
@@ -347,13 +461,13 @@ def _scale(a, n, m, copy=True):
         o = (m // n + 1) * n
         if copy:
             b = np.empty(a.shape, _dtype_bits(kind, o))
-            np.multiply(a, (2**o - 1) // (2**n - 1), out=b, dtype=b.dtype)
-            b //= 2**(o - m)
+            np.multiply(a, (2 ** o - 1) // (2 ** n - 1), out=b, dtype=b.dtype)
+            b //= 2 ** (o - m)
             return b
         else:
             a = a.astype(_dtype_bits(kind, o, a.dtype.itemsize), copy=False)
-            a *= (2**o - 1) // (2**n - 1)
-            a //= 2**(o - m)
+            a *= (2 ** o - 1) // (2 ** n - 1)
+            a //= 2 ** (o - m)
             return a
 
 

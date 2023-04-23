@@ -7,9 +7,9 @@ import dask
 import numpy as np
 from dask import diagnostics
 from scipy import ndimage as ndi
-from skimage import color, transform
+from skimage import color
 from skimage.filters import rank
-from Modules.Trees.skimage import morphology
+from Modules.Trees.skimage import morphology, transform
 from Modules.Trees.detectree import settings, filters, utils
 
 __all__ = ["PixelFeaturesBuilder"]
@@ -43,13 +43,13 @@ class PixelFeaturesBuilder(object):
     """Customize how pixel features are computed."""
 
     def __init__(
-        self,
-        *,
-        sigmas=None,
-        num_orientations=None,
-        neighborhood=None,
-        min_neighborhood_range=None,
-        num_neighborhoods=None
+            self,
+            *,
+            sigmas=None,
+            num_orientations=None,
+            neighborhood=None,
+            min_neighborhood_range=None,
+            num_neighborhoods=None
     ):
         """
         Initialize the pixel feature builder.
@@ -130,9 +130,9 @@ class PixelFeaturesBuilder(object):
         self.num_texture_features = num_orientations * len(sigmas)
         self.num_entropy_features = num_neighborhoods
         self.num_pixel_features = (
-            self.num_color_features
-            + self.num_texture_features
-            + self.num_entropy_features
+                self.num_color_features
+                + self.num_texture_features
+                + self.num_entropy_features
         )
         # self.X = np.zeros((num_tiling_pixels, num_img_features))
 
@@ -169,7 +169,7 @@ class PixelFeaturesBuilder(object):
             A, np.log(np.dot(B, img_xyz_vec.transpose()) + 1)
         ).transpose()
         X[:, :NUM_LAB_CHANNELS] = img_lab_vec
-        X[:, NUM_LAB_CHANNELS : NUM_LAB_CHANNELS + NUM_ILL_CHANNELS] = img_ill_vec
+        X[:, NUM_LAB_CHANNELS: NUM_LAB_CHANNELS + NUM_ILL_CHANNELS] = img_ill_vec
 
         # texture features
         # tpf.compute_texture_features(X_img[:, self.texture_slice],
@@ -183,7 +183,7 @@ class PixelFeaturesBuilder(object):
                 img_filtered = ndi.convolve(img_lab_l, oriented_kernel_arr)
                 img_filtered_vec = img_filtered.flatten()
                 X[
-                    :, self.num_color_features + i * self.num_orientations + j
+                :, self.num_color_features + i * self.num_orientations + j
                 ] = img_filtered_vec
 
         # entropy features
@@ -223,14 +223,14 @@ class PixelFeaturesBuilder(object):
         return self.build_features_from_arr(img_rgb)
 
     def build_features(
-        self,
-        *,
-        split_df=None,
-        img_filepaths=None,
-        img_dir=None,
-        img_filename_pattern=None,
-        method=None,
-        img_cluster=None
+            self,
+            *,
+            split_df=None,
+            img_filepaths=None,
+            img_dir=None,
+            img_filename_pattern=None,
+            method=None,
+            img_cluster=None
     ):
         """
         Build the pixel feature array for a list of images.
