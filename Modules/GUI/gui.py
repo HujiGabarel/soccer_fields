@@ -39,7 +39,11 @@ R_entry_location = (0.5, 0.15)
 distance_entry_location = (0.8, 0.3)
 wx, wy, wsx, wsy = 500, 500, 50, 20
 canvas_location = (0.5, 0.55)
-CANVAS_WIDTH, CANVAS_HEIGHT = 500, 450
+CANVAS_WIDTH, CANVAS_HEIGHT = 500, 500
+SLIDER_WIDTH, SLIDER_LENGTH = 15, 20
+POGRESSBAR_WIDTH, PROGRESSBAR_LENGTH = 15, 200
+POGRESSBAR_LOCATION = (0.5, 0.93)
+POGRESSBAR_LOCATION_LABEL = (0.5, 0.89)
 canvas_highlight_color = 'red'
 alpha_func = lambda val: int(float(val) * 255 / 100)
 rotate_key = "1"
@@ -105,7 +109,6 @@ class GUI(tk.Tk):
         # inserting the entry values into the search function
         self.add_search_button()
         self.add_progressbar()
-
         self.create_images_and_canvas()
         self.add_original_image(self.original_image_array)
         self.add_result_image(self.result_image_array)
@@ -114,6 +117,7 @@ class GUI(tk.Tk):
         # self.create_type_label()
         # self.change_type_button()
         self.init_with_values()
+        self.add_entry_distance()
         # self.make_zoom_in()
 
         # Define a function to set the start point of the line
@@ -132,10 +136,10 @@ class GUI(tk.Tk):
                 # move the line to the new position
                 self.canvas.coords(self.line, start_x, start_y, end_x, end_y)
             else:
-                self.line = self.canvas.create_line(start_x, start_y, end_x, end_y, width=5, fill="black", smooth=True)
+                self.line = self.canvas.create_line(start_x, start_y, end_x, end_y, width=2, fill="black", smooth=True)
             # calculate the distance between the two points
             self.distance = math.sqrt((start_x - end_x) ** 2 + (start_y - end_y) ** 2)
-            self.distance = self.distance * self.sx / self.x
+            self.distance = 2*self.distance * float(self.get_Radius_value()) * 1000 / CANVAS_WIDTH
             self.distance = round(self.distance, 2)
             self.entry_distance.config(text=distance_str_format(self.distance))
 
@@ -155,6 +159,8 @@ class GUI(tk.Tk):
         self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white",
                                 highlightcolor=canvas_highlight_color)
         self.canvas.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
+
+    def add_entry_distance(self):
         self.entry_distance = tk.Label(self, width=entry_width, justify=tk.CENTER, font=FONT,
                                        bg=second_background_color, fg="black")
         self.entry_distance.place(relx=distance_entry_location[0], rely=distance_entry_location[1], anchor=tk.CENTER)
@@ -231,7 +237,8 @@ class GUI(tk.Tk):
         self.add_original_image(image)
         self.add_result_image(total_mask)
         self.background_label.destroy()
-
+        self.update_transparency(50)
+        self.transparency_slider.set(50)
 
     def add_square_image(self):
         """
@@ -325,13 +332,13 @@ class GUI(tk.Tk):
         self.canvas.bind("<MouseWheel>", zoom)
 
     def add_progressbar(self):
-        self.progressbar = ttk.Progressbar(self, orient="horizontal", length=200, mode="determinate",
+        self.progressbar = ttk.Progressbar(self, orient="horizontal", length=PROGRESSBAR_LENGTH, mode="determinate",
                                            style="lightblue.Horizontal.TProgressbar")
-        self.progressbar.place(relx=0.5, rely=0.9, anchor=tk.CENTER)
+        self.progressbar.place(relx=POGRESSBAR_LOCATION[0], rely=POGRESSBAR_LOCATION[1], anchor=tk.CENTER)
         self.progressbar["maximum"] = 100
         self.progressbar["value"] = 0
         self.progressbar_label = tk.Label(self, text="0%", font=FONT, foreground="black", background=background_color)
-        self.progressbar_label.place(relx=0.5, rely=0.85, anchor=tk.CENTER)
+        self.progressbar_label.place(relx=POGRESSBAR_LOCATION_LABEL[0], rely=POGRESSBAR_LOCATION_LABEL[1], anchor=tk.CENTER)
 
     def update_progressbar(self, value):
         self.progressbar_label.config(text=f"{value}%")
@@ -350,19 +357,17 @@ class GUI(tk.Tk):
             frames.append(ImageTk.PhotoImage(resized_frame))
             # add to canves
         # Create a Label widget to display the animated GIF
-        self.background_label = tk.Label(self.canvas)
-        # self.background_label.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
+        self.background_label = tk.Label(self.canvas, image=frames[0], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
         self.background_label.pack()
-        # self.background_label.resize(100, 100)
+
+        # self.canvas.create_window(0, 0, window=self.background_label, anchor=tk.NW)
         # Function to update the Label with the next frame of the animated GIF
         def update_label(frame_idx):
             self.background_label.config(image=frames[frame_idx], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-            # self.background_label.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
             self.after(100, update_label, (frame_idx + 1) % len(frames))
 
         # Start displaying the animated GIF
         update_label(0)
-
 
     def add_search_button(self):
         self.search_button = tk.Button(self, text="חפש", command=self.search)
@@ -371,13 +376,15 @@ class GUI(tk.Tk):
         self.search_button.config(background=second_background_color, foreground="black", font=FONT)
 
     def create_slider(self):
-        transparency_slider = tk.Scale(self, from_=0, to=100, orient=tk.VERTICAL, length=450, width=15, sliderlength=20,
-                                       background=background_color, foreground="black", )
-        transparency_slider.set(100)
-        transparency_slider.pack()
-        transparency_slider.place(relx=0.32, rely=0.55, anchor=tk.CENTER)
+        self.transparency_slider = tk.Scale(self, from_=0, to=100, orient=tk.VERTICAL, length=CANVAS_HEIGHT,
+                                            width=SLIDER_WIDTH,
+                                            sliderlength=SLIDER_LENGTH,
+                                            background=background_color, foreground="black", )
+        self.transparency_slider.set(100)
+        self.transparency_slider.pack()
+        self.transparency_slider.place(relx=0.32, rely=0.55, anchor=tk.CENTER)
         # Call the update_transparency function when the slider is moved
-        transparency_slider.config(command=self.update_transparency)
+        self.transparency_slider.config(command=self.update_transparency)
         self.update_transparency(100)
 
     def change_type_button(self):
