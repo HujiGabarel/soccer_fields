@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import json
-import image_downloading
+import Modules.Main.image_downloading as image_downloading
 import rasterio
 import cv2
 import rasterio as rio
