@@ -10,9 +10,7 @@ from scipy import ndimage as ndi
 from skimage import color, morphology, transform
 from skimage.filters import rank
 
-from Modules.Trees import filters
-from Modules.Trees import settings
-from Modules.Trees import utils
+from Modules.Trees.detectree import settings, filters, utils
 
 __all__ = ["PixelFeaturesBuilder"]
 

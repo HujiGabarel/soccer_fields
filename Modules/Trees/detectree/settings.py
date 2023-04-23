@@ -46,4 +46,4 @@ log_file = False
 log_console = True
 log_level = lg.INFO
 log_name = "detectree"
-log_filename = "detectree"
+log_filename = ""
