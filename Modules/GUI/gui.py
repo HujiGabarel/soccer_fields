@@ -51,6 +51,7 @@ class GUI(tk.Tk):
         self.sy = wsy
         self.x = wx
         self.y = wy
+        self.square_image_1 = None
         self.state("zoomed")
         # self.add_background_gif()
         self.resizable(True, True)
@@ -102,7 +103,13 @@ class GUI(tk.Tk):
         self.create_slider()
         self.create_type_label()
         self.change_type_button()
+        self.init_with_values()
 
+
+    def init_with_values(self, E="698812", N="3620547", Radius="0.1"):
+        self.E_entry.insert(0, E)
+        self.N_entry.insert(0, N)
+        self.Radius_entry.insert(0, Radius)
     def create_images_and_canvas(self):
         self.original_image = Image.open(original_image_path)
         self.result_image = Image.open(result_image_path)
@@ -206,7 +213,8 @@ class GUI(tk.Tk):
         :param image: the result image
         :return:
         """
-        self.result_image_1 = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((self.x, self.y))
+        self.result_image_1 = Image.fromarray(image).resize((self.x, self.y))
+        self.result_image_1 = self.result_image_1.convert(mode='RGB')
         self.result_image = ImageTk.PhotoImage(self.result_image_1)
         self.result_image_canvas = self.canvas.create_image(0, 0, image=self.result_image, anchor=tk.NW)
         self.add_square_image()
