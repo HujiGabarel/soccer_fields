@@ -9,12 +9,13 @@ import threading
 import os
 from PIL import Image
 from tkinter import ttk
+from tkVideoPlayer import TkinterVideo
 
 # Get the directory path of the current file (gui.py)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
 # Construct the absolute path of logo.png
-logo_path_gif = os.path.join(dir_path, 'LOGO.gif')
+logo_path_gif = os.path.join(dir_path, 'logo.gif')
 logo_path = os.path.join(dir_path, 'logo.png')
 # Construct the absolute path of background.png
 pnotnp_path = os.path.join(dir_path, 'PNOTNP.jpg')
@@ -24,7 +25,7 @@ pnp_path = os.path.join(dir_path, 'PNP.jpg')
 ws_path = os.path.join(dir_path, 'yasor.jpg')
 # Construct the absolute path of the original image and result image
 original_image_path = logo_path
-result_image_path = pnp_path
+result_image_path = logo_path
 FONT = ('Helvetica', 16, "bold")
 background_color = 'white'
 second_background_color = 'light blue'
@@ -38,17 +39,19 @@ R_entry_location = (0.5, 0.15)
 distance_entry_location = (0.8, 0.3)
 wx, wy, wsx, wsy = 500, 500, 50, 20
 canvas_location = (0.5, 0.55)
-canvas_width, canvas_highet = wx, wy - 50
+CANVAS_WIDTH, CANVAS_HEIGHT = 500, 450
 canvas_highlight_color = 'red'
 alpha_func = lambda val: int(float(val) * 255 / 100)
 rotate_key = "1"
 distance_str_format = lambda x: f"Distance: {x} m"
 viewport_x = 0
 viewport_y = 0
-viewport_width = canvas_width
-viewport_height = canvas_highet
+viewport_width = CANVAS_WIDTH
+viewport_height = CANVAS_HEIGHT
 start_x, start_y = None, None
 end_x, end_y = None, None
+
+
 class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
@@ -104,7 +107,6 @@ class GUI(tk.Tk):
         self.add_progressbar()
 
         self.create_images_and_canvas()
-
         self.add_original_image(self.original_image_array)
         self.add_result_image(self.result_image_array)
         self.bind_keys()
@@ -115,11 +117,13 @@ class GUI(tk.Tk):
         # self.make_zoom_in()
 
         # Define a function to set the start point of the line
+
     def start(self, event):
         global start_x, start_y
         start_x, start_y = event.x, event.y
 
         # Define a function to update the end point of the line and draw it
+
     def draw(self, event):
         global start_x, start_y, end_x, end_y
         if start_x and start_y:
@@ -134,10 +138,12 @@ class GUI(tk.Tk):
             self.distance = self.distance * self.sx / self.x
             self.distance = round(self.distance, 2)
             self.entry_distance.config(text=distance_str_format(self.distance))
+
     def init_with_values(self, E="698812", N="3620547", Radius="0.1"):
         self.E_entry.insert(0, E)
         self.N_entry.insert(0, N)
         self.Radius_entry.insert(0, Radius)
+
     def create_images_and_canvas(self):
         self.original_image = Image.open(original_image_path)
         self.result_image = Image.open(result_image_path)
@@ -146,11 +152,14 @@ class GUI(tk.Tk):
         self.result_image_array = np.array(self.result_image)
         self.square_image_array = np.array(Image.open(ws_path))
         # add the original image and the result image to the window
-        self.canvas = tk.Canvas(self, width=canvas_width, height=canvas_highet, bg="white", highlightcolor=canvas_highlight_color)
+        self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white",
+                                highlightcolor=canvas_highlight_color)
         self.canvas.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
-        self.entry_distance = tk.Label(self, width=entry_width, justify=tk.CENTER, font=FONT, bg=second_background_color, fg="black")
+        self.entry_distance = tk.Label(self, width=entry_width, justify=tk.CENTER, font=FONT,
+                                       bg=second_background_color, fg="black")
         self.entry_distance.place(relx=distance_entry_location[0], rely=distance_entry_location[1], anchor=tk.CENTER)
         self.entry_distance.config(text="Distance: ")
+
     def update_transparency(self, val):
         alpha = alpha_func(val)
         cop = self.result_image_1.copy()
@@ -169,6 +178,7 @@ class GUI(tk.Tk):
         # Bind the left mouse button to the start function and the left mouse motion to the draw function
         self.canvas.bind("<Button-1>", self.start)
         self.canvas.bind("<B1-Motion>", self.draw)
+
     def rotate_square_image_clockwise(self, event):
         # rotate the square image 45 degrees clockwise
         self.sx, self.sy = self.sy, self.sx
@@ -204,6 +214,7 @@ class GUI(tk.Tk):
 
     def search(self):
         # get the entry values
+        self.add_background_gif()
         self.update_progressbar(0)
         self.E_value = self.E_entry.get()
         self.N_value = self.N_entry.get()
@@ -219,6 +230,8 @@ class GUI(tk.Tk):
         image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
         self.add_result_image(total_mask)
+        self.background_label.destroy()
+
 
     def add_square_image(self):
         """
@@ -264,8 +277,8 @@ class GUI(tk.Tk):
 
     def make_zoom_in(self):
         # Set the initial viewport size
-        viewport_width = canvas_width
-        viewport_height = canvas_highet
+        viewport_width = CANVAS_WIDTH
+        viewport_height = CANVAS_HEIGHT
         # Set the initial viewport position
 
         # Display the image on the canvas
@@ -281,7 +294,8 @@ class GUI(tk.Tk):
             y2 = y1 + viewport_height
 
             # Set the canvas viewport
-            self.canvas.configure(scrollregion=(0, 0, img.width, img.height), width=viewport_width, height=viewport_height)
+            self.canvas.configure(scrollregion=(0, 0, img.width, img.height), width=viewport_width,
+                                  height=viewport_height)
             self.canvas.xview_moveto(x1 / img.width)
             self.canvas.yview_moveto(y1 / img.height)
 
@@ -309,6 +323,7 @@ class GUI(tk.Tk):
 
         # Bind the function to a mouse wheel event
         self.canvas.bind("<MouseWheel>", zoom)
+
     def add_progressbar(self):
         self.progressbar = ttk.Progressbar(self, orient="horizontal", length=200, mode="determinate",
                                            style="lightblue.Horizontal.TProgressbar")
@@ -326,25 +341,28 @@ class GUI(tk.Tk):
     def add_background_gif(self):
         # Open the GIF image using PIL
         image = Image.open(logo_path_gif)  # Replace "animation.gif" with the filename or file path of your GIF image
+        # chagne image background to white
         # Create a list to store individual frames of the GIF image
         frames = []
         # Loop through each frame in the GIF image and append it to the frames list
         for frame in ImageSequence.Iterator(image):
-            resized_frame = frame.resize((150, 150))
+            resized_frame = frame.resize((self.x, self.y))
             frames.append(ImageTk.PhotoImage(resized_frame))
+            # add to canves
         # Create a Label widget to display the animated GIF
-        self.background_label = tk.Label(self)
-        self.background_label.place(x=1800, y=300, anchor=tk.CENTER)
+        self.background_label = tk.Label(self.canvas)
+        # self.background_label.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
         self.background_label.pack()
-
         # self.background_label.resize(100, 100)
         # Function to update the Label with the next frame of the animated GIF
         def update_label(frame_idx):
-            self.background_label.config(image=frames[frame_idx])
+            self.background_label.config(image=frames[frame_idx], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
+            # self.background_label.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
             self.after(100, update_label, (frame_idx + 1) % len(frames))
 
         # Start displaying the animated GIF
         update_label(0)
+
 
     def add_search_button(self):
         self.search_button = tk.Button(self, text="חפש", command=self.search)
@@ -362,24 +380,25 @@ class GUI(tk.Tk):
         transparency_slider.config(command=self.update_transparency)
         self.update_transparency(100)
 
-
     def change_type_button(self):
         self.size_button = tk.Button(self, text="Change Type", command=self.update_size)
         self.size_button.pack()
         self.size_button.place(relx=0.2, rely=0.7, anchor=tk.CENTER)
         self.size_button.config(background=second_background_color, foreground="black", font=FONT)
+
     def create_type_label(self):
-        self.type_label = tk.Label(self, text="יסעור", font=FONT, foreground="black", background=second_background_color)
+        self.type_label = tk.Label(self, text="יסעור", font=FONT, foreground="black",
+                                   background=second_background_color)
         self.type_label.place(relx=0.2, rely=0.6, anchor=tk.CENTER)
 
     def update_size(self):
         # change the size of the square image to fit the helicopter type
         if self.type_label["text"] == "יסעור":
-            self.type_label["text"]="ינשוף"
+            self.type_label["text"] = "ינשוף"
             self.sx = 50
             self.sy = 20
         elif self.type_label["text"] == "ינשוף":
-            self.type_label["text"]="יסעור"
+            self.type_label["text"] = "יסעור"
             self.sx = 70
             self.sy = 200
         self.add_square_image()
