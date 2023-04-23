@@ -1,21 +1,43 @@
 import openpyxl
 
-def save_to_excel(helipadList, filename):
-    workbook = openpyxl.Workbook()
-    worksheet = workbook.active
-    worksheet.title = "Helipads"
 
-    # Write the helipad data to the worksheet
-    worksheet.cell(row=1, column=1, value="X")
-    worksheet.cell(row=1, column=2, value="Y")
-    worksheet.cell(row=1, column=3, value="Size")
+def save_to_excel(filename, helipadList):
+    # Load the existing workbook or create a new one if the file doesn't exist
+    try:
+        workbook = openpyxl.load_workbook(filename)
+    except FileNotFoundError:
+        workbook = openpyxl.Workbook()
+
+    # Select the worksheet in the workbook or create a new one if it doesn't exist
+    worksheet_name = "Sheet"
+    if worksheet_name not in workbook.sheetnames:
+        workbook.create_sheet(worksheet_name)
+    worksheet = workbook[worksheet_name]
+
+    # Write the column names to the first row of the worksheet
+    column_names = ["X Coordinate", "Y Coordinate", "Size"]
+    for i, column_name in enumerate(column_names):
+        worksheet.cell(row=1, column=i+1, value=column_name)
+
+    # Get the existing helipad coordinates from the worksheet
+    existing_helipad_coords = set()
+    for row in worksheet.iter_rows(min_row=2, values_only=True):
+        existing_helipad_coords.add((row[0], row[1]))
+
+    # Write the new helipad data to the worksheet only if it doesn't exist already
     for i, helipad in enumerate(helipadList):
-        worksheet.cell(row=i+2, column=1, value=helipad[0][0])
-        worksheet.cell(row=i+2, column=2, value=helipad[0][1])
-        worksheet.cell(row=i+2, column=3, value=helipad[1])
+        coords = helipad[0]
+        size = helipad[1]
+        if coords not in existing_helipad_coords:
+            last_row = worksheet.max_row
+            worksheet.cell(row=last_row+1, column=1, value=coords[0])
+            worksheet.cell(row=last_row+1, column=2, value=coords[1])
+            worksheet.cell(row=last_row+1, column=3, value=size)
+            existing_helipad_coords.add(coords)
 
     # Save the workbook
-    workbook.save(filename=filename)
+    workbook.save(filename)
+
 
 
 
@@ -53,6 +75,8 @@ def MidOfHeliPad(topLeftX, topLeftY, botRightX, botRightY):
 
 
 
+
+
 def main():
     # Example inputs
     satellitePicture = [[1, 0, 0, 1, 1],
@@ -60,11 +84,10 @@ def main():
                         [1, 1, 1, 0, 1],
                         [0, 1, 1, 1, 1],
                         [0, 0, 1, 1, 1]]
-    heliPadList = [(0, 1, 2, 2), (3, 3, 4, 4)]
+    heliPadList = [(0, 2, 2, 2), (1, 1, 4, 4),(0, 2, 2, 2), (1, 1, 4, 4),(0, 2, 2, 4), (0, 0, 4, 4)]
     topLeftCords = (10, 10)
 
     # Call the mat2cords function
-    # need to change topLeftCords to center cordinates
     helipadList = mat2cords(satellitePicture, heliPadList, topLeftCords)
 
     # Print the output of the mat2cords function
@@ -73,9 +96,12 @@ def main():
         print(helipad)
 
     # Call the save_to_excel function
-    save_to_excel(helipadList, "helipads.xlsx")
+    filename = "helipads.xlsx"
+    try:
+        save_to_excel(filename, helipadList)
+        print(f"Helipads saved to {filename}")
+    except Exception as e:
+        print(f"Error saving helipads to {filename}: {e}")
 
 if __name__ == '__main__':
     main()
-
-
