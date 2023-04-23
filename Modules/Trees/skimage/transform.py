@@ -230,7 +230,7 @@ def _preprocess_resize_output_shape(image, output_shape):
         raise ValueError("output_shape length cannot be smaller than the "
                          "image number of dimensions")
 
-    return image,
+    return image, output_shape
 
 
 def _validate_interpolation_order(image_dtype, order):
@@ -397,6 +397,144 @@ def _dtype_bits(kind, bits, itemsize=1):
              bits < (i * 8) or (bits == (i * 8) and kind == 'u'))
 
     return np.dtype(kind + str(s))
+
+
+def downscale_local_mean(image, factors, cval=0, clip=True):
+    """Down-sample N-dimensional image by local averaging.
+    The image is padded with `cval` if it is not perfectly divisible by the
+    integer factors.
+    In contrast to interpolation in `skimage.transform.resize` and
+    `skimage.transform.rescale` this function calculates the local mean of
+    elements in each block of size `factors` in the input image.
+    Parameters
+    ----------
+    image : ndarray
+        N-dimensional input image.
+    factors : array_like
+        Array containing down-sampling integer factor along each axis.
+    cval : float, optional
+        Constant padding value if image is not perfectly divisible by the
+        integer factors.
+    clip : bool, optional
+        Unused, but kept here for API consistency with the other transforms
+        in this module. (The local mean will never fall outside the range
+        of values in the input image, assuming the provided `cval` also
+        falls within that range.)
+    Returns
+    -------
+    image : ndarray
+        Down-sampled image with same number of dimensions as input image.
+        For integer inputs, the output dtype will be ``float64``.
+        See :func:`numpy.mean` for details.
+    Examples
+    --------
+    """
+    return block_reduce(image, factors, np.mean, cval)
+
+
+def block_reduce(image, block_size=2, func=np.sum, cval=0, func_kwargs=None):
+    """Downsample image by applying function `func` to local blocks.
+    This function is useful for max and mean pooling, for example.
+    Parameters
+    ----------
+    image : ndarray
+        N-dimensional input image.
+    block_size : array_like or int
+        Array containing down-sampling integer factor along each axis.
+        Default block_size is 2.
+    func : callable
+        Function object which is used to calculate the return value for each
+        local block. This function must implement an ``axis`` parameter.
+        Primary functions are ``numpy.sum``, ``numpy.min``, ``numpy.max``,
+        ``numpy.mean`` and ``numpy.median``.  See also `func_kwargs`.
+    cval : float
+        Constant padding value if image is not perfectly divisible by the
+        block size.
+    func_kwargs : dict
+        Keyword arguments passed to `func`. Notably useful for passing dtype
+        argument to ``np.mean``. Takes dictionary of inputs, e.g.:
+        ``func_kwargs={'dtype': np.float16})``.
+    Returns
+    -------
+    image : ndarray
+        Down-sampled image with same number of dimensions as input image.
+    Examples
+    --------
+
+    """
+
+    if np.isscalar(block_size):
+        block_size = (block_size,) * image.ndim
+    elif len(block_size) != image.ndim:
+        raise ValueError("`block_size` must be a scalar or have "
+                         "the same length as `image.shape`")
+
+    if func_kwargs is None:
+        func_kwargs = {}
+
+    pad_width = []
+    for i in range(len(block_size)):
+        if block_size[i] < 1:
+            raise ValueError("Down-sampling factors must be >= 1. Use "
+                             "`skimage.transform.resize` to up-sample an "
+                             "image.")
+        if image.shape[i] % block_size[i] != 0:
+            after_width = block_size[i] - (image.shape[i] % block_size[i])
+        else:
+            after_width = 0
+        pad_width.append((0, after_width))
+
+    image = np.pad(image, pad_width=pad_width, mode='constant',
+                   constant_values=cval)
+
+    blocked = view_as_blocks(image, block_size)
+
+    return func(blocked, axis=tuple(range(image.ndim, blocked.ndim)),
+                **func_kwargs)
+
+
+from numpy.lib.stride_tricks import as_strided
+
+
+def view_as_blocks(arr_in, block_shape):
+    """Block view of the input n-dimensional array (using re-striding).
+    Blocks are non-overlapping views of the input array.
+    Parameters
+    ----------
+    arr_in : ndarray
+        N-d input array.
+    block_shape : tuple
+        The shape of the block. Each dimension must divide evenly into the
+        corresponding dimensions of `arr_in`.
+    Returns
+    -------
+    arr_out : ndarray
+        Block view of the input array.
+    Examples
+    --------
+    """
+    if not isinstance(block_shape, tuple):
+        raise TypeError('block needs to be a tuple')
+
+    block_shape = np.array(block_shape)
+    if (block_shape <= 0).any():
+        raise ValueError("'block_shape' elements must be strictly positive")
+
+    if block_shape.size != arr_in.ndim:
+        raise ValueError("'block_shape' must have the same length "
+                         "as 'arr_in.shape'")
+
+    arr_shape = np.array(arr_in.shape)
+    if (arr_shape % block_shape).sum() != 0:
+        raise ValueError("'block_shape' is not compatible with 'arr_in'")
+
+    # -- restride the array to build the block view
+    new_shape = tuple(arr_shape // block_shape) + tuple(block_shape)
+    new_strides = tuple(arr_in.strides * block_shape) + arr_in.strides
+
+    arr_out = as_strided(arr_in, shape=new_shape, strides=new_strides)
+
+    return arr_out
 
 
 def _scale(a, n, m, copy=True):
