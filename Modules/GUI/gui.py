@@ -44,11 +44,11 @@ wx, wy, wsx, wsy = 500, 500, 50, 20
 CANVAS_LOCATION = (0.5, 0.58)
 CANVAS_WIDTH, CANVAS_HEIGHT = 500, 500
 SLIDER_WIDTH, SLIDER_LENGTH = 15, 20
-SLIDER_LOCATION = (0.32,CANVAS_LOCATION[1])
+SLIDER_LOCATION = (0.32, CANVAS_LOCATION[1])
 POGRESSBAR_WIDTH, PROGRESSBAR_LENGTH = 15, 200
 POGRESSBAR_LOCATION = (0.5, 0.96)
 POGRESSBAR_LOCATION_LABEL = (0.5, 0.92)
-SEARCH_BUTTON_LOCATION= (0.5, 0.22)
+SEARCH_BUTTON_LOCATION = (0.5, 0.22)
 SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT = 70, 70
 CELL_WIDTH, CELL_HEIGHT = 250, 50
 canvas_highlight_color = 'red'
@@ -137,9 +137,7 @@ class GUI(tk.Tk):
         self.Radius_entry.pack()
         self.Radius_entry.place(relx=R_entry_location[0], rely=R_entry_location[1], anchor=tk.CENTER)
         self.Radius_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
-                            justify=tk.CENTER, bd=0, highlightthickness=0)
-
-
+                                 justify=tk.CENTER, bd=0, highlightthickness=0)
 
     def create_inputs_cells(self):
         self.add_E_cell()
@@ -308,6 +306,7 @@ class GUI(tk.Tk):
 
     def search(self):
         # get the entry values
+
         self.add_background_gif()
         self.update_progressbar(0)
         self.E_value = self.E_entry.get()
@@ -421,8 +420,21 @@ class GUI(tk.Tk):
         self.canvas.bind("<MouseWheel>", zoom)
 
     def add_progressbar(self):
+
+        # define the style
+        pb_style = ttk.Style()
+        # ('winnative', 'clam', 'alt', 'default', 'classic', 'vista', 'xpnative')
+        pb_style.theme_use("default")
+        pb_style.layout('text.Horizontal.TProgressbar',
+                        [('Horizontal.Progressbar.trough',
+                          {'children': [('Horizontal.Progressbar.pbar',
+                                         {'side': 'left', 'sticky': 'ns'})],
+                           'sticky': 'nswe'}),
+                         ('Horizontal.Progressbar.label', {'sticky': 'nswe'})])
+        pb_style.configure('text.Horizontal.TProgressbar', anchor='center',
+                           background=second_background_color,)
         self.progressbar = ttk.Progressbar(self, orient="horizontal", length=PROGRESSBAR_LENGTH, mode="determinate",
-                                           style="lightblue.Horizontal.TProgressbar")
+                                           style="text.Horizontal.TProgressbar")
         self.progressbar.place(relx=POGRESSBAR_LOCATION[0], rely=POGRESSBAR_LOCATION[1], anchor=tk.CENTER)
         self.progressbar["maximum"] = 100
         self.progressbar["value"] = 0
@@ -436,6 +448,8 @@ class GUI(tk.Tk):
         self.progressbar.update()
 
     def add_background_gif(self):
+        # TO DO:
+        # fix bug with the gif
         # Open the GIF image using PIL
         image = Image.open(logo_path_gif)  # Replace "animation.gif" with the filename or file path of your GIF image
         # chagne image background to white
@@ -464,7 +478,7 @@ class GUI(tk.Tk):
         self.search_image = Image.open(search_path)
         self.search_image = self.search_image.resize((SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT))
         self.search_image = ImageTk.PhotoImage(self.search_image)
-        self.search_button = tk.Button(self, image=self.search_image, command=self.search,bg=background_color, bd=0,
+        self.search_button = tk.Button(self, image=self.search_image, command=self.search, bg=background_color, bd=0,
                                        highlightthickness=0, activebackground=background_color)
         # self.search_button = tk.Button(self, text="חפש", command=self.search)
         self.search_button.pack()
