@@ -9,7 +9,7 @@ import threading
 import os
 from PIL import Image
 from tkinter import ttk
-from tkVideoPlayer import TkinterVideo
+# from tkVideoPlayer import TkinterVideo
 
 # Get the directory path of the current file (gui.py)
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -25,8 +25,9 @@ pnp_path = os.path.join(dir_path, 'PNP.jpg')
 ws_path = os.path.join(dir_path, 'yasor.jpg')
 # Construct the absolute path of the original image and result image
 original_image_path = logo_path
-result_image_path = logo_path
+result_image_path = pnp_path
 FONT = ('Helvetica', 16, "bold")
+FONT_SMALL = ('Helvetica', 8, "bold")
 background_color = 'white'
 second_background_color = 'light blue'
 entry_width = 20
@@ -47,7 +48,7 @@ POGRESSBAR_LOCATION_LABEL = (0.5, 0.89)
 canvas_highlight_color = 'red'
 alpha_func = lambda val: int(float(val) * 255 / 100)
 rotate_key = "1"
-distance_str_format = lambda x: f"Distance: {x} m"
+distance_str_format = lambda x: f"{x} m"
 viewport_x = 0
 viewport_y = 0
 viewport_width = CANVAS_WIDTH
@@ -66,6 +67,11 @@ class GUI(tk.Tk):
         self.sy = wsy
         self.x = wx
         self.y = wy
+        self.canvas_distance = {}
+        self.entry_distance_labels = {}
+        self.E_value = 0
+        self.N_value = 0
+        self.Radius_value = 0
         self.square_image_1 = None
         self.state("zoomed")
         # self.add_background_gif()
@@ -117,13 +123,37 @@ class GUI(tk.Tk):
         # self.create_type_label()
         # self.change_type_button()
         self.init_with_values()
-        self.add_entry_distance()
-        # self.make_zoom_in()
+        # when right click on the line in the canvas, delete the line
+        self.canvas.bind("<Button-3>", self.delete_line)
 
         # Define a function to set the start point of the line
 
+
+    def delete_line(self, event):
+        x, y = event.x, event.y
+        distances_from_point = {}
+        for line in self.canvas_distance:
+            # check what line is clicked, and delete it
+            # the line that is clicked is the line that is closest to the point that is clicked
+            # the distance between the point and the line is the shortest distance between the point and a point on the line
+            start_x, start_y, end_x, end_y = self.canvas_distance[line]
+            # calculate the distance between the point and the line
+            distance = abs((end_y - start_y) * x - (end_x - start_x) * y + end_x * start_y - end_y * start_x) / \
+                          math.sqrt((end_y - start_y) ** 2 + (end_x - start_x) ** 2)
+            distances_from_point[line] = distance
+        # find the line that is closest to the point that is clicked
+        closest_line = min(distances_from_point, key=distances_from_point.get)
+        # delete the line
+        self.canvas.delete(closest_line)
+        # delete the line from the dictionary
+        self.entry_distance_labels[closest_line].place_forget()
+        # place the entry distance label on the canvas above the line that in position (x1,y1) and (x2,y2)
+        del self.canvas_distance[closest_line]
+
+
     def start(self, event):
         global start_x, start_y
+        self.line = -111
         start_x, start_y = event.x, event.y
 
         # Define a function to update the end point of the line and draw it
@@ -133,15 +163,19 @@ class GUI(tk.Tk):
         if start_x and start_y:
             end_x, end_y = event.x, event.y
             if self.line != -111:
-                # move the line to the new position
                 self.canvas.coords(self.line, start_x, start_y, end_x, end_y)
+                self.canvas_distance[self.line] = [start_x, start_y, end_x, end_y]
             else:
-                self.line = self.canvas.create_line(start_x, start_y, end_x, end_y, width=2, fill="black", smooth=True)
+                self.line = self.canvas.create_line(start_x, start_y, end_x, end_y, width=3, fill="black", smooth=True)
+                self.canvas_distance[self.line] = [start_x, start_y, end_x, end_y]
             # calculate the distance between the two points
+            print(start_x, start_y, end_x, end_y)
             self.distance = math.sqrt((start_x - end_x) ** 2 + (start_y - end_y) ** 2)
-            self.distance = 2*self.distance * float(self.get_Radius_value()) * 1000 / CANVAS_WIDTH
+            float_R = 1 if float(self.get_Radius_value()) == 0 else float(self.get_Radius_value())
+            self.distance = 2 * self.distance * float_R * 1000 / CANVAS_WIDTH
             self.distance = round(self.distance, 2)
-            self.entry_distance.config(text=distance_str_format(self.distance))
+            self.add_entry_distance()
+            # self.entry_distance_labels[self.line].config(text=distance_str_format(self.distance))
 
     def init_with_values(self, E="698812", N="3620547", Radius="0.1"):
         self.E_entry.insert(0, E)
@@ -161,10 +195,23 @@ class GUI(tk.Tk):
         self.canvas.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
 
     def add_entry_distance(self):
-        self.entry_distance = tk.Label(self, width=entry_width, justify=tk.CENTER, font=FONT,
+        if self.line == -111:
+            return None
+        if self.line in self.entry_distance_labels:
+            # place the entry distance label on the canvas above the line that in position (x1,y1) and (x2,y2)
+            # (x1,y1) is self.canvas_distance[self.line][0], self.canvas_distance[self.line][1]
+            # (x2,y2) is self.canvas_distance[self.line][2], self.canvas_distance[self.line][3]
+            self.entry_distance_labels[self.line].place(relx=(self.canvas_distance[self.line][0] + self.canvas_distance[self.line][2]) / 2 / CANVAS_WIDTH, rely=(self.canvas_distance[self.line][1] + self.canvas_distance[self.line][3]) / 2 / CANVAS_HEIGHT, anchor=tk.CENTER)
+            self.entry_distance_labels[self.line].config(text=distance_str_format(self.distance))
+            return None
+        self.entry_distance = tk.Label(self.canvas, width=8, height=1, justify=tk.CENTER, font=FONT_SMALL,
                                        bg=second_background_color, fg="black")
         self.entry_distance.place(relx=distance_entry_location[0], rely=distance_entry_location[1], anchor=tk.CENTER)
-        self.entry_distance.config(text="Distance: ")
+        # self.entry_distance.config(text="Distance: ")
+        self.entry_distance_labels[self.line] = self.entry_distance
+        # remove the entry distance label from the canvas
+
+        self.entry_distance_labels[self.line].config(text=distance_str_format(self.distance))
 
     def update_transparency(self, val):
         alpha = alpha_func(val)
