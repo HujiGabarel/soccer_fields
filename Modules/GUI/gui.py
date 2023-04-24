@@ -9,11 +9,12 @@ import threading
 import os
 from PIL import Image
 from tkinter import ttk
+
 # from tkVideoPlayer import TkinterVideo
 
 # Get the directory path of the current file (gui.py)
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
+search_path = os.path.join(dir_path, 'search.png')
 # Construct the absolute path of logo.png
 logo_path_gif = os.path.join(dir_path, 'logo.gif')
 logo_path = os.path.join(dir_path, 'logo.png')
@@ -25,7 +26,7 @@ pnp_path = os.path.join(dir_path, 'PNP.jpg')
 ws_path = os.path.join(dir_path, 'yasor.jpg')
 # Construct the absolute path of the original image and result image
 original_image_path = logo_path
-result_image_path = pnp_path
+result_image_path = logo_path
 FONT = ('Helvetica', 16, "bold")
 FONT_SMALL = ('Helvetica', 8, "bold")
 background_color = 'white'
@@ -45,6 +46,7 @@ SLIDER_WIDTH, SLIDER_LENGTH = 15, 20
 POGRESSBAR_WIDTH, PROGRESSBAR_LENGTH = 15, 200
 POGRESSBAR_LOCATION = (0.5, 0.93)
 POGRESSBAR_LOCATION_LABEL = (0.5, 0.89)
+SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT = 180, 40
 canvas_highlight_color = 'red'
 alpha_func = lambda val: int(float(val) * 255 / 100)
 rotate_key = "1"
@@ -128,7 +130,6 @@ class GUI(tk.Tk):
 
         # Define a function to set the start point of the line
 
-
     def delete_line(self, event):
         x, y = event.x, event.y
         distances_from_point = {}
@@ -139,7 +140,7 @@ class GUI(tk.Tk):
             start_x, start_y, end_x, end_y = self.canvas_distance[line]
             # calculate the distance between the point and the line
             distance = abs((end_y - start_y) * x - (end_x - start_x) * y + end_x * start_y - end_y * start_x) / \
-                          math.sqrt((end_y - start_y) ** 2 + (end_x - start_x) ** 2)
+                       math.sqrt((end_y - start_y) ** 2 + (end_x - start_x) ** 2)
             distances_from_point[line] = distance
         # find the line that is closest to the point that is clicked
         closest_line = min(distances_from_point, key=distances_from_point.get)
@@ -149,7 +150,6 @@ class GUI(tk.Tk):
         self.entry_distance_labels[closest_line].place_forget()
         # place the entry distance label on the canvas above the line that in position (x1,y1) and (x2,y2)
         del self.canvas_distance[closest_line]
-
 
     def start(self, event):
         global start_x, start_y
@@ -201,11 +201,16 @@ class GUI(tk.Tk):
             # place the entry distance label on the canvas above the line that in position (x1,y1) and (x2,y2)
             # (x1,y1) is self.canvas_distance[self.line][0], self.canvas_distance[self.line][1]
             # (x2,y2) is self.canvas_distance[self.line][2], self.canvas_distance[self.line][3]
-            self.entry_distance_labels[self.line].place(relx=(self.canvas_distance[self.line][0] + self.canvas_distance[self.line][2]) / 2 / CANVAS_WIDTH, rely=(self.canvas_distance[self.line][1] + self.canvas_distance[self.line][3]) / 2 / CANVAS_HEIGHT, anchor=tk.CENTER)
+            self.entry_distance_labels[self.line].place(
+                relx=(self.canvas_distance[self.line][0] + self.canvas_distance[self.line][2]) / 2 / CANVAS_WIDTH,
+                rely=(self.canvas_distance[self.line][1] + self.canvas_distance[self.line][3]) / 2 / CANVAS_HEIGHT,
+                anchor=tk.CENTER)
             self.entry_distance_labels[self.line].config(text=distance_str_format(self.distance))
             return None
-        self.entry_distance = tk.Label(self.canvas, width=8, height=1, justify=tk.CENTER, font=FONT_SMALL,
-                                       bg=second_background_color, fg="black")
+        # place the entry distance label on the canvas above the line that in position (x1,y1) and (x2,y2)
+        # without background only text
+        self.entry_distance = tk.Label(self.canvas, width=6, height=1, justify=tk.CENTER, font=FONT_SMALL, bg="white")
+
         self.entry_distance.place(relx=distance_entry_location[0], rely=distance_entry_location[1], anchor=tk.CENTER)
         # self.entry_distance.config(text="Distance: ")
         self.entry_distance_labels[self.line] = self.entry_distance
@@ -385,7 +390,8 @@ class GUI(tk.Tk):
         self.progressbar["maximum"] = 100
         self.progressbar["value"] = 0
         self.progressbar_label = tk.Label(self, text="0%", font=FONT, foreground="black", background=background_color)
-        self.progressbar_label.place(relx=POGRESSBAR_LOCATION_LABEL[0], rely=POGRESSBAR_LOCATION_LABEL[1], anchor=tk.CENTER)
+        self.progressbar_label.place(relx=POGRESSBAR_LOCATION_LABEL[0], rely=POGRESSBAR_LOCATION_LABEL[1],
+                                     anchor=tk.CENTER)
 
     def update_progressbar(self, value):
         self.progressbar_label.config(text=f"{value}%")
@@ -417,10 +423,15 @@ class GUI(tk.Tk):
         update_label(0)
 
     def add_search_button(self):
-        self.search_button = tk.Button(self, text="חפש", command=self.search)
+        # add image
+        self.search_image = Image.open(search_path)
+        self.search_image = self.search_image.resize((SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT))
+        self.search_image = ImageTk.PhotoImage(self.search_image)
+        self.search_button = tk.Button(self, image=self.search_image, command=self.search)
+        # self.search_button = tk.Button(self, text="חפש", command=self.search)
         self.search_button.pack()
         self.search_button.place(relx=0.5, rely=0.2, anchor=tk.CENTER)
-        self.search_button.config(background=second_background_color, foreground="black", font=FONT)
+        self.search_button.config(background=background_color, activebackground=background_color, borderwidth=0)
 
     def create_slider(self):
         self.transparency_slider = tk.Scale(self, from_=0, to=100, orient=tk.VERTICAL, length=CANVAS_HEIGHT,
