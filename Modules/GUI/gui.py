@@ -14,7 +14,8 @@ from tkinter import ttk
 
 # Get the directory path of the current file (gui.py)
 dir_path = os.path.dirname(os.path.realpath(__file__))
-search_path = os.path.join(dir_path, 'search.png')
+search_path = os.path.join(dir_path, 'heli_logo.jpeg')
+cell_path = os.path.join(dir_path, 'cell2.png')
 # Construct the absolute path of logo.png
 logo_path_gif = os.path.join(dir_path, 'logo.gif')
 logo_path = os.path.join(dir_path, 'logo.png')
@@ -30,7 +31,7 @@ result_image_path = logo_path
 FONT = ('Helvetica', 16, "bold")
 FONT_SMALL = ('Helvetica', 8, "bold")
 background_color = 'white'
-second_background_color = 'light blue'
+second_background_color = '#7EB8E3'
 entry_width = 20
 E_label_location = (0.41, 0.05)
 E_entry_location = (0.5, 0.05)
@@ -40,13 +41,16 @@ R_label_location = (0.375, 0.15)
 R_entry_location = (0.5, 0.15)
 distance_entry_location = (0.8, 0.3)
 wx, wy, wsx, wsy = 500, 500, 50, 20
-canvas_location = (0.5, 0.55)
+CANVAS_LOCATION = (0.5, 0.58)
 CANVAS_WIDTH, CANVAS_HEIGHT = 500, 500
 SLIDER_WIDTH, SLIDER_LENGTH = 15, 20
+SLIDER_LOCATION = (0.33,CANVAS_LOCATION[1])
 POGRESSBAR_WIDTH, PROGRESSBAR_LENGTH = 15, 200
-POGRESSBAR_LOCATION = (0.5, 0.93)
-POGRESSBAR_LOCATION_LABEL = (0.5, 0.89)
-SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT = 180, 40
+POGRESSBAR_LOCATION = (0.5, 0.96)
+POGRESSBAR_LOCATION_LABEL = (0.5, 0.92)
+SEARCH_BUTTON_LOCATION= (0.5, 0.22)
+SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT = 70, 70
+CELL_WIDTH, CELL_HEIGHT = 250, 50
 canvas_highlight_color = 'red'
 alpha_func = lambda val: int(float(val) * 255 / 100)
 rotate_key = "1"
@@ -80,35 +84,68 @@ class GUI(tk.Tk):
         self.resizable(True, True)
         self.create_widgets()
 
-    def create_inputs_cells(self):
+    def add_E_cell(self):
         self.E = tk.Label(self, text="E: ")
         self.E.pack()
-        self.E_entry = tk.Entry(self)
-        self.E_entry.config(background=second_background_color, foreground="black", font=FONT, justify=tk.CENTER)
-        self.E_entry.pack()
-        self.N = tk.Label(self, text="N: ")
-        self.N.pack()
-        self.N_entry = tk.Entry(self)
-        self.N_entry.config(background=second_background_color, foreground="black", font=FONT, justify=tk.CENTER)
-        self.N_entry.pack()
-        self.Radius = tk.Label(self, text="Radius in km: ")
-        self.Radius.pack()
-        self.Radius_entry = tk.Entry(self)
-        self.Radius_entry.config(background=second_background_color, foreground="black", font=FONT, justify=tk.CENTER)
-        self.Radius_entry.pack()
-
         self.E.place(relx=E_label_location[0], rely=E_label_location[1], anchor=tk.CENTER)
         self.E.config(font=FONT, foreground="black", background=background_color)
+        # add entry image
+        self.cell_image = Image.open(cell_path)
+        self.cell_image = self.cell_image.resize((CELL_WIDTH, CELL_HEIGHT), Image.ANTIALIAS)
+        self.cell_image = ImageTk.PhotoImage(self.cell_image)
+        cell_label = tk.Label(self, image=self.cell_image, bg=background_color, bd=0, highlightthickness=0)
+        cell_label.place(relx=E_entry_location[0], rely=E_entry_location[1], anchor=tk.CENTER)
+        self.E_entry = tk.Entry(self)
+        self.E_entry.pack()
         self.E_entry.place(relx=E_entry_location[0], rely=E_entry_location[1], anchor=tk.CENTER)
-        self.E_entry.config(width=entry_width)
+
+        self.E_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
+                            justify=tk.CENTER, bd=0, highlightthickness=0)
+
+    def add_N_cell(self):
+        # add label for entry it
+        self.N = tk.Label(self, text="N: ")
+        self.N.pack()
         self.N.place(relx=N_label_location[0], rely=N_label_location[1], anchor=tk.CENTER)
         self.N.config(font=FONT, foreground="black", background=background_color)
+        # add entry image
+        self.cell_image_N = Image.open(cell_path)
+        self.cell_image_N = self.cell_image_N.resize((CELL_WIDTH, CELL_HEIGHT), Image.ANTIALIAS)
+        self.cell_image_N = ImageTk.PhotoImage(self.cell_image_N)
+        cell_label = tk.Label(self, image=self.cell_image_N, bg=background_color, bd=0, highlightthickness=0)
+        cell_label.place(relx=N_entry_location[0], rely=N_entry_location[1], anchor=tk.CENTER)
+        # add entry
+        self.N_entry = tk.Entry(self)
+        self.N_entry.pack()
         self.N_entry.place(relx=N_entry_location[0], rely=N_entry_location[1], anchor=tk.CENTER)
-        self.N_entry.config(width=entry_width)
+        self.N_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
+                            justify=tk.CENTER, bd=0, highlightthickness=0)
+
+    def add_R_cell(self):
+        self.Radius = tk.Label(self, text="Radius in km: ")
+        self.Radius.pack()
         self.Radius.place(relx=R_label_location[0], rely=R_label_location[1], anchor=tk.CENTER)
         self.Radius.config(font=FONT, foreground="black", background=background_color)
+        # add entry image
+        self.cell_image_R = Image.open(cell_path)
+        self.cell_image_R = self.cell_image_R.resize((CELL_WIDTH, CELL_HEIGHT), Image.ANTIALIAS)
+        self.cell_image_R = ImageTk.PhotoImage(self.cell_image_R)
+        cell_label = tk.Label(self, image=self.cell_image_R, bg=background_color, bd=0, highlightthickness=0)
+        cell_label.place(relx=R_entry_location[0], rely=R_entry_location[1], anchor=tk.CENTER)
+        # add entry
+        self.Radius_entry = tk.Entry(self)
+        self.Radius_entry.pack()
         self.Radius_entry.place(relx=R_entry_location[0], rely=R_entry_location[1], anchor=tk.CENTER)
-        self.Radius_entry.config(width=entry_width)
+        self.Radius_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
+                            justify=tk.CENTER, bd=0, highlightthickness=0)
+
+
+
+    def create_inputs_cells(self):
+        self.add_E_cell()
+
+        self.add_N_cell()
+        self.add_R_cell()
 
     def create_widgets(self):
         # place the buttons on the window with a nice layout
@@ -192,7 +229,7 @@ class GUI(tk.Tk):
         # add the original image and the result image to the window
         self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white",
                                 highlightcolor=canvas_highlight_color)
-        self.canvas.place(relx=canvas_location[0], rely=canvas_location[1], anchor=tk.CENTER)
+        self.canvas.place(relx=CANVAS_LOCATION[0], rely=CANVAS_LOCATION[1], anchor=tk.CENTER)
 
     def add_entry_distance(self):
         if self.line == -111:
@@ -427,10 +464,11 @@ class GUI(tk.Tk):
         self.search_image = Image.open(search_path)
         self.search_image = self.search_image.resize((SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT))
         self.search_image = ImageTk.PhotoImage(self.search_image)
-        self.search_button = tk.Button(self, image=self.search_image, command=self.search)
+        self.search_button = tk.Button(self, image=self.search_image, command=self.search,bg=background_color, bd=0,
+                                       highlightthickness=0, activebackground=background_color)
         # self.search_button = tk.Button(self, text="חפש", command=self.search)
         self.search_button.pack()
-        self.search_button.place(relx=0.5, rely=0.2, anchor=tk.CENTER)
+        self.search_button.place(relx=SEARCH_BUTTON_LOCATION[0], rely=SEARCH_BUTTON_LOCATION[1], anchor=tk.CENTER)
         self.search_button.config(background=background_color, activebackground=background_color, borderwidth=0)
 
     def create_slider(self):
@@ -440,7 +478,7 @@ class GUI(tk.Tk):
                                             background=background_color, foreground="black", )
         self.transparency_slider.set(100)
         self.transparency_slider.pack()
-        self.transparency_slider.place(relx=0.32, rely=0.55, anchor=tk.CENTER)
+        self.transparency_slider.place(relx=SLIDER_LOCATION[0], rely=SLIDER_LOCATION[1], anchor=tk.CENTER)
         # Call the update_transparency function when the slider is moved
         self.transparency_slider.config(command=self.update_transparency)
         self.update_transparency(100)
