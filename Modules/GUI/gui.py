@@ -44,7 +44,7 @@ wx, wy, wsx, wsy = 500, 500, 50, 20
 CANVAS_LOCATION = (0.5, 0.58)
 CANVAS_WIDTH, CANVAS_HEIGHT = 500, 500
 SLIDER_WIDTH, SLIDER_LENGTH = 15, 20
-SLIDER_LOCATION = (0.33,CANVAS_LOCATION[1])
+SLIDER_LOCATION = (0.32,CANVAS_LOCATION[1])
 POGRESSBAR_WIDTH, PROGRESSBAR_LENGTH = 15, 200
 POGRESSBAR_LOCATION = (0.5, 0.96)
 POGRESSBAR_LOCATION_LABEL = (0.5, 0.92)
@@ -206,7 +206,6 @@ class GUI(tk.Tk):
                 self.line = self.canvas.create_line(start_x, start_y, end_x, end_y, width=3, fill="black", smooth=True)
                 self.canvas_distance[self.line] = [start_x, start_y, end_x, end_y]
             # calculate the distance between the two points
-            print(start_x, start_y, end_x, end_y)
             self.distance = math.sqrt((start_x - end_x) ** 2 + (start_y - end_y) ** 2)
             float_R = 1 if float(self.get_Radius_value()) == 0 else float(self.get_Radius_value())
             self.distance = 2 * self.distance * float_R * 1000 / CANVAS_WIDTH
@@ -315,6 +314,7 @@ class GUI(tk.Tk):
         self.N_value = self.N_entry.get()
         self.Radius_value = self.Radius_entry.get()
         coordinates = (int(self.E_value), int(self.N_value), 36, "N")
+        # need to add logs of this in main
         print(coordinates, self.Radius_value)
         # run the function
         t = threading.Thread(target=self.run_process, args=(coordinates,))
