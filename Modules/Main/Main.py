@@ -17,6 +17,7 @@ from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_
 from Modules.GUI import gui
 import random
 import math
+import openpyxl
 
 # TODO: remove after debug
 import time
@@ -155,6 +156,8 @@ def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_sl
 
 
 def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
+    st = time.time()
+
     image_name, img = get_image_from_utm(coordinates, km_radius)
     tree_shape = img.shape
     screen_gui.update_progressbar(10)
@@ -172,7 +175,6 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     # slopes_mask_after_area_filter = Area_filter.find_fields(slopes_mask_in_black_and_white, 20, 20, 0, 255)[1]
     # This work with image name only when image is in Main dir, else need full path!
 
-    print(slopes_mask_in_black_and_white.shape)
     unwanted_pixels = mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape,
                                               slope_shape)  # add according to slopes - find all places where slope is 1
     screen_gui.update_progressbar(36)
@@ -183,9 +185,35 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                            slopes_mask_in_black_and_white)
     screen_gui.update_progressbar(100)
+    # count number of 255 in slopes_mask_in_black_and_white
+    count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
+    slopy = round(100 * count_slopes_good / slopes_mask_in_black_and_white.size, 2)
+    # print("slopy:", slopy, "%", "time:", round(time.time() - st, 2), "sec", "area:", round((2 * km_radius) ** 2, 3),
+    #       "km^2")
+    print("slopy%, area [km^2], time [sec]", slopy, (2 * km_radius) ** 2, time.time() - st)
+    # write to excel
+    area = (2 * km_radius) ** 2
+    total_time = time.time() - st
+    save_result_to_excel(slopy, area, total_time)
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask, coordinates)
     return img, total_mask
+
+
+def save_result_to_excel(slopy, area, total_time):
+    workbook = openpyxl.load_workbook("results.xlsx")
+    worksheet = workbook.active
+    worksheet.title = "result"
+    worksheet.cell(row=1, column=1, value="slopy%")
+    worksheet.cell(row=1, column=2, value="area [km^2]")
+    worksheet.cell(row=1, column=3, value="time [sec]")
+    # add to filename
+    last_row = worksheet.max_row
+    worksheet.cell(row=last_row+1,column=1,value=slopy)
+    worksheet.cell(row=last_row+1,column=2,value=area)
+    worksheet.cell(row=last_row+1,column=3,value=total_time)
+
+    workbook.save("results.xlsx")
 
 
 if __name__ == '__main__':
@@ -196,6 +224,6 @@ if __name__ == '__main__':
     screen.mainloop()
     # coordinates = (753200, 3689064, 36, 'N')
     # 698342,3618731
-    #698812,3620547
+    # 698812,3620547
     # km_radius = 0.2
     # get_viable_landing_in_radius(coordinates, km_radius)
