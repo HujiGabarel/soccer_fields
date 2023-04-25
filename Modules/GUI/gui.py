@@ -9,7 +9,6 @@ import threading
 import os
 from PIL import Image
 from tkinter import ttk
-
 # from tkVideoPlayer import TkinterVideo
 
 # Get the directory path of the current file (gui.py)
@@ -306,8 +305,10 @@ class GUI(tk.Tk):
 
     def search(self):
         # get the entry values
+        # estimate runtime
 
-        self.add_background_gif()
+
+        # self.add_background_gif()
         self.update_progressbar(0)
         self.E_value = self.E_entry.get()
         self.N_value = self.N_entry.get()
@@ -324,7 +325,7 @@ class GUI(tk.Tk):
         image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
         self.add_result_image(total_mask)
-        self.background_label.destroy()
+        # self.background_label.destroy()
         self.update_transparency(50)
         self.transparency_slider.set(50)
 
