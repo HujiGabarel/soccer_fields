@@ -188,15 +188,14 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     # count number of 255 in slopes_mask_in_black_and_white
     count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
     slopy = round(100 * count_slopes_good / slopes_mask_in_black_and_white.size, 2)
-    # print("slopy:", slopy, "%", "time:", round(time.time() - st, 2), "sec", "area:", round((2 * km_radius) ** 2, 3),
-    #       "km^2")
-    print("slopy%, area [km^2], time [sec]", slopy, (2 * km_radius) ** 2, time.time() - st)
-    # write to excel
     area = (2 * km_radius) ** 2
     total_time = time.time() - st
+    # write to excel
     save_result_to_excel(slopy, area, total_time)
-    # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
-    #                     total_mask, coordinates)
+    plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
+                        total_mask, coordinates)
+    print(slopy, area, total_time)
+    print("Finish")
     return img, total_mask
 
 
@@ -209,9 +208,9 @@ def save_result_to_excel(slopy, area, total_time):
     worksheet.cell(row=1, column=3, value="time [sec]")
     # add to filename
     last_row = worksheet.max_row
-    worksheet.cell(row=last_row+1,column=1,value=slopy)
-    worksheet.cell(row=last_row+1,column=2,value=area)
-    worksheet.cell(row=last_row+1,column=3,value=total_time)
+    worksheet.cell(row=last_row + 1, column=1, value=slopy)
+    worksheet.cell(row=last_row + 1, column=2, value=area)
+    worksheet.cell(row=last_row + 1, column=3, value=total_time)
 
     workbook.save("results.xlsx")
 
@@ -226,4 +225,5 @@ if __name__ == '__main__':
     # 698342,3618731
     # 698812,3620547
     # km_radius = 0.2
+    #740000,3726000
     # get_viable_landing_in_radius(coordinates, km_radius)

@@ -83,7 +83,8 @@ if __name__ == '__main__':
     # in 10 meter resolution the maximum height differences is about 1.5 meters
     DTM_FILE_PATH = "../../DTM_data/Yokneam.tif"
     resolution = 10
-    maximal_slope = resolution * math.tan(8 * math.pi / 180)
+    max_angle = 8
+    maximal_slope = resolution * math.tan(max_angle * math.pi / 180)
     dem = rasterio.open(DTM_FILE_PATH)
     rows = dem.height
     cols = dem.width
