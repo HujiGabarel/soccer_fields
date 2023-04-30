@@ -2,7 +2,6 @@ import os
 
 from joblib import dump, load
 from Modules.Trees.classifier import Classifier
-import detectree as dtr
 import matplotlib.pyplot as plt
 import rasterio as rio
 from rasterio import plot

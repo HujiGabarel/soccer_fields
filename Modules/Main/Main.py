@@ -225,5 +225,5 @@ if __name__ == '__main__':
     # 698342,3618731
     # 698812,3620547
     # km_radius = 0.2
-    #740000,3726000
+    # 740000,3726000
     # get_viable_landing_in_radius(coordinates, km_radius)
