@@ -157,6 +157,7 @@ def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_sl
 
 def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     st = time.time()
+    cputime_start = time.process_time()
 
     image_name, img = get_image_from_utm(coordinates, km_radius)
     tree_shape = img.shape
@@ -190,8 +191,9 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     slopy = round(100 * count_slopes_good / slopes_mask_in_black_and_white.size, 2)
     area = (2 * km_radius) ** 2
     total_time = time.time() - st
+    cpu_total_time = time.process_time() - cputime_start
     # write to excel
-    save_result_to_excel(slopy, area, total_time)
+    save_result_to_excel(slopy, area, total_time,cpu_total_time)
     plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
                         total_mask, coordinates)
     print(slopy, area, total_time)
@@ -199,18 +201,22 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     return img, total_mask
 
 
-def save_result_to_excel(slopy, area, total_time):
+def save_result_to_excel(slopy, area, total_time,cpu_total_time):
     workbook = openpyxl.load_workbook("results.xlsx")
     worksheet = workbook.active
     worksheet.title = "result"
     worksheet.cell(row=1, column=1, value="slopy%")
     worksheet.cell(row=1, column=2, value="area [km^2]")
-    worksheet.cell(row=1, column=3, value="time [sec]")
+    worksheet.cell(row=1, column=3, value="total time [sec]")
+    worksheet.cell(row=1, column=4, value="cpu total time [sec]")
     # add to filename
     last_row = worksheet.max_row
     worksheet.cell(row=last_row + 1, column=1, value=slopy)
     worksheet.cell(row=last_row + 1, column=2, value=area)
     worksheet.cell(row=last_row + 1, column=3, value=total_time)
+    worksheet.cell(row=last_row + 1, column=4, value=cpu_total_time)
+
+
 
     workbook.save("results.xlsx")
 
