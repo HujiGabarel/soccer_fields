@@ -18,6 +18,7 @@ from Modules.GUI import gui
 import random
 import math
 import openpyxl
+from Modules.AREA_FILTER.Filterspecks import FilterSpecks
 
 # TODO: remove after debug
 import time
@@ -186,6 +187,16 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                            slopes_mask_in_black_and_white)
     screen_gui.update_progressbar(100)
+    data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
+    plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
+                        total_mask, coordinates)
+    filter_area_size = 600
+    total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
+    print("Finish")
+    return img, total_mask_filtered
+
+
+def data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start):
     # count number of 255 in slopes_mask_in_black_and_white
     count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
     slopy = round(100 * count_slopes_good / slopes_mask_in_black_and_white.size, 2)
@@ -193,15 +204,11 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     total_time = time.time() - st
     cpu_total_time = time.process_time() - cputime_start
     # write to excel
-    save_result_to_excel(slopy, area, total_time,cpu_total_time)
-    plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
-                        total_mask, coordinates)
     print(slopy, area, total_time)
-    print("Finish")
-    return img, total_mask
+    save_result_to_excel(slopy, area, total_time, cpu_total_time)
 
 
-def save_result_to_excel(slopy, area, total_time,cpu_total_time):
+def save_result_to_excel(slopy, area, total_time, cpu_total_time):
     workbook = openpyxl.load_workbook("results.xlsx")
     worksheet = workbook.active
     worksheet.title = "result"
@@ -215,8 +222,6 @@ def save_result_to_excel(slopy, area, total_time,cpu_total_time):
     worksheet.cell(row=last_row + 1, column=2, value=area)
     worksheet.cell(row=last_row + 1, column=3, value=total_time)
     worksheet.cell(row=last_row + 1, column=4, value=cpu_total_time)
-
-
 
     workbook.save("results.xlsx")
 

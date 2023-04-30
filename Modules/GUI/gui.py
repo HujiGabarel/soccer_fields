@@ -67,6 +67,7 @@ class GUI(tk.Tk):
         super().__init__()
         self.configure(background=background_color)
         self.title("Soccer Field GUI:")
+
         # put a picture on the window background
         self.sx = wsx
         self.sy = wsy
@@ -79,13 +80,12 @@ class GUI(tk.Tk):
         self.Radius_value = 0
         self.square_image_1 = None
         self.state("zoomed")
-        # self.add_background_gif()
         self.resizable(True, True)
         self.create_widgets()
 
     def add_E_cell(self):
         self.E = tk.Label(self, text="E: ")
-        self.E.pack()
+        # self.E.grid(row=E_label_location[0], column=E_label_location[1], sticky=tk.NW)
         self.E.place(relx=E_label_location[0], rely=E_label_location[1], anchor=tk.CENTER)
         self.E.config(font=FONT, foreground="black", background=background_color)
         # add entry image
@@ -93,10 +93,11 @@ class GUI(tk.Tk):
         self.cell_image = self.cell_image.resize((CELL_WIDTH, CELL_HEIGHT), Image.ANTIALIAS)
         self.cell_image = ImageTk.PhotoImage(self.cell_image)
         cell_label = tk.Label(self, image=self.cell_image, bg=background_color, bd=0, highlightthickness=0)
+        # cell_label.grid(row=E_entry_location[0], column=E_entry_location[1], sticky=tk.NW)
         cell_label.place(relx=E_entry_location[0], rely=E_entry_location[1], anchor=tk.CENTER)
         self.E_entry = tk.Entry(self)
-        self.E_entry.pack()
         self.E_entry.place(relx=E_entry_location[0], rely=E_entry_location[1], anchor=tk.CENTER)
+        # self.E_entry.grid(row=E_entry_location[0], column=E_entry_location[1], sticky=tk.NW)
 
         self.E_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
                             justify=tk.CENTER, bd=0, highlightthickness=0)
@@ -104,7 +105,6 @@ class GUI(tk.Tk):
     def add_N_cell(self):
         # add label for entry it
         self.N = tk.Label(self, text="N: ")
-        self.N.pack()
         self.N.place(relx=N_label_location[0], rely=N_label_location[1], anchor=tk.CENTER)
         self.N.config(font=FONT, foreground="black", background=background_color)
         # add entry image
@@ -115,14 +115,12 @@ class GUI(tk.Tk):
         cell_label.place(relx=N_entry_location[0], rely=N_entry_location[1], anchor=tk.CENTER)
         # add entry
         self.N_entry = tk.Entry(self)
-        self.N_entry.pack()
         self.N_entry.place(relx=N_entry_location[0], rely=N_entry_location[1], anchor=tk.CENTER)
         self.N_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
                             justify=tk.CENTER, bd=0, highlightthickness=0)
 
     def add_R_cell(self):
         self.Radius = tk.Label(self, text="Radius in km: ")
-        self.Radius.pack()
         self.Radius.place(relx=R_label_location[0], rely=R_label_location[1], anchor=tk.CENTER)
         self.Radius.config(font=FONT, foreground="black", background=background_color)
         # add entry image
@@ -133,7 +131,6 @@ class GUI(tk.Tk):
         cell_label.place(relx=R_entry_location[0], rely=R_entry_location[1], anchor=tk.CENTER)
         # add entry
         self.Radius_entry = tk.Entry(self)
-        self.Radius_entry.pack()
         self.Radius_entry.place(relx=R_entry_location[0], rely=R_entry_location[1], anchor=tk.CENTER)
         self.Radius_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
                                  justify=tk.CENTER, bd=0, highlightthickness=0)
@@ -482,7 +479,6 @@ class GUI(tk.Tk):
         self.search_button = tk.Button(self, image=self.search_image, command=self.search, bg=background_color, bd=0,
                                        highlightthickness=0, activebackground=background_color)
         # self.search_button = tk.Button(self, text="חפש", command=self.search)
-        self.search_button.pack()
         self.search_button.place(relx=SEARCH_BUTTON_LOCATION[0], rely=SEARCH_BUTTON_LOCATION[1], anchor=tk.CENTER)
         self.search_button.config(background=background_color, activebackground=background_color, borderwidth=0)
 
@@ -492,7 +488,6 @@ class GUI(tk.Tk):
                                             sliderlength=SLIDER_LENGTH,
                                             background=background_color, foreground="black", )
         self.transparency_slider.set(100)
-        self.transparency_slider.pack()
         self.transparency_slider.place(relx=SLIDER_LOCATION[0], rely=SLIDER_LOCATION[1], anchor=tk.CENTER)
         # Call the update_transparency function when the slider is moved
         self.transparency_slider.config(command=self.update_transparency)
@@ -500,7 +495,6 @@ class GUI(tk.Tk):
 
     def change_type_button(self):
         self.size_button = tk.Button(self, text="Change Type", command=self.update_size)
-        self.size_button.pack()
         self.size_button.place(relx=0.2, rely=0.7, anchor=tk.CENTER)
         self.size_button.config(background=second_background_color, foreground="black", font=FONT)
 
