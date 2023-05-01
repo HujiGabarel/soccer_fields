@@ -8,7 +8,9 @@ import cv2
 import threading
 import os
 from PIL import Image
+import time
 from tkinter import ttk
+
 # from tkVideoPlayer import TkinterVideo
 
 # Get the directory path of the current file (gui.py)
@@ -304,7 +306,6 @@ class GUI(tk.Tk):
         # get the entry values
         # estimate runtime
 
-
         # self.add_background_gif()
         self.update_progressbar(0)
         self.E_value = self.E_entry.get()
@@ -314,9 +315,13 @@ class GUI(tk.Tk):
         # need to add logs of this in main
         print(coordinates, self.Radius_value)
         # run the function
+        # self.run_progressbar()
+
         t = threading.Thread(target=self.run_process, args=(coordinates,))
         # image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         t.start()
+        progress_thread = threading.Thread(target=self.run_progressbar())
+        progress_thread.start()
 
     def run_process(self, coordinates):
         image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
@@ -430,7 +435,7 @@ class GUI(tk.Tk):
                            'sticky': 'nswe'}),
                          ('Horizontal.Progressbar.label', {'sticky': 'nswe'})])
         pb_style.configure('text.Horizontal.TProgressbar', anchor='center',
-                           background=second_background_color,)
+                           background=second_background_color, )
         self.progressbar = ttk.Progressbar(self, orient="horizontal", length=PROGRESSBAR_LENGTH, mode="determinate",
                                            style="text.Horizontal.TProgressbar")
         self.progressbar.place(relx=POGRESSBAR_LOCATION[0], rely=POGRESSBAR_LOCATION[1], anchor=tk.CENTER)
@@ -444,6 +449,16 @@ class GUI(tk.Tk):
         self.progressbar_label.config(text=f"{value}%")
         self.progressbar["value"] = value
         self.progressbar.update()
+
+    def run_progressbar(self):
+        time_for_km_area = 100 # sec
+        time_for_iteration = (time_for_km_area * (2 * (float(self.Radius_value)) ** 2) / 100)
+        while self.progressbar['value'] < 99:
+            current_value = self.progressbar['value']
+            self.update_progressbar(current_value + 1)
+            time.sleep(time_for_iteration)  # 70 sec per km^2, total time = 0.1 * (2R)^2, itreatiiom time=
+        else:
+            print('Progresbar complete!')
 
     def add_background_gif(self):
         # TO DO:

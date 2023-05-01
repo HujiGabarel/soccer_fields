@@ -162,16 +162,12 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
 
     image_name, img = get_image_from_utm(coordinates, km_radius)
     tree_shape = img.shape
-    screen_gui.update_progressbar(10)
     partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
     slope_shape = (new_rows, new_cols)
-    screen_gui.update_progressbar(21)
 
     slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
-    screen_gui.update_progressbar(25)
 
     slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
-    screen_gui.update_progressbar(33)
 
     # plot_heat_map(slopes_mask_in_black_and_white)
     # slopes_mask_after_area_filter = Area_filter.find_fields(slopes_mask_in_black_and_white, 20, 20, 0, 255)[1]
@@ -179,20 +175,19 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
 
     unwanted_pixels = mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape,
                                               slope_shape)  # add according to slopes - find all places where slope is 1
-    screen_gui.update_progressbar(36)
 
     tree_mask = get_tree_mask_from_image(image_name, trained_model_path, unwanted_pixels)
-    screen_gui.update_progressbar(83)
 
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                            slopes_mask_in_black_and_white)
-    screen_gui.update_progressbar(100)
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
-    plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
-                        total_mask, coordinates)
+    # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
+    #                     total_mask, coordinates)
     filter_area_size = 600
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     print("Finish")
+    screen_gui.update_progressbar(100)
+
     return img, total_mask_filtered
 
 
