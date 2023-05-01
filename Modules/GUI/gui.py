@@ -260,11 +260,11 @@ class GUI(tk.Tk):
 
     def bind_keys(self):
         self.line = -111
-        self.bind("<Left>", self.left_key)
-        self.bind("<Right>", self.right_key)
-        self.bind("<Up>", self.up_key)
-        self.bind("<Down>", self.down_key)
-        self.bind(rotate_key, self.rotate_square_image_clockwise)
+        # self.bind("<Left>", self.left_key)
+        # self.bind("<Right>", self.right_key)
+        # self.bind("<Up>", self.up_key)
+        # self.bind("<Down>", self.down_key)
+        # self.bind(rotate_key, self.rotate_square_image_clockwise)
         # Bind the left mouse button to the start function and the left mouse motion to the draw function
         self.canvas.bind("<Button-1>", self.start)
         self.canvas.bind("<B1-Motion>", self.draw)
@@ -451,14 +451,20 @@ class GUI(tk.Tk):
         self.progressbar.update()
 
     def run_progressbar(self):
-        time_for_km_area = 100 # sec
-        time_for_iteration = (time_for_km_area * (2 * (float(self.Radius_value)) ** 2) / 100)
+        time_for_km_area = 100  # sec
+        self.time_for_iteration = (time_for_km_area * (2 * (float(self.Radius_value)) ** 2) / 100)
         while self.progressbar['value'] < 99:
             current_value = self.progressbar['value']
             self.update_progressbar(current_value + 1)
-            time.sleep(time_for_iteration)  # 70 sec per km^2, total time = 0.1 * (2R)^2, itreatiiom time=
+            print(self.time_for_iteration,self.progressbar['value'])
+            time.sleep(self.time_for_iteration)  # 70 sec per km^2, total time = 0.1 * (2R)^2, itreatiiom time=
         else:
             print('Progresbar complete!')
+
+    def set_time_for_iteration(self, slopy):
+        time_for_flat_km_area = 190
+        # self.time_for_iteration = np.sqrt((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) * ((time_for_flat_km_area * slopy / 100))/100)
+        self.time_for_iteration=((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2))+(time_for_flat_km_area * (slopy / 100)**2))/(2*100)
 
     def add_background_gif(self):
         # TO DO:

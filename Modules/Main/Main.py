@@ -168,7 +168,9 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
 
     slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
-
+    count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
+    slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
+    screen_gui.set_time_for_iteration(slopy)
     # plot_heat_map(slopes_mask_in_black_and_white)
     # slopes_mask_after_area_filter = Area_filter.find_fields(slopes_mask_in_black_and_white, 20, 20, 0, 255)[1]
     # This work with image name only when image is in Main dir, else need full path!
