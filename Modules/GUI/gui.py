@@ -306,7 +306,7 @@ class GUI(tk.Tk):
         # get the entry values
         # estimate runtime
 
-        # self.add_background_gif()
+        self.add_background_gif()
         self.update_progressbar(0)
         self.E_value = self.E_entry.get()
         self.N_value = self.N_entry.get()
@@ -327,7 +327,8 @@ class GUI(tk.Tk):
         image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
         self.add_result_image(total_mask)
-        # self.background_label.destroy()
+        self.stop_gif= True
+        self.background_label.destroy()
         self.update_transparency(50)
         self.transparency_slider.set(50)
 
@@ -456,7 +457,7 @@ class GUI(tk.Tk):
         while self.progressbar['value'] < 99:
             current_value = self.progressbar['value']
             self.update_progressbar(current_value + 1)
-            print(self.time_for_iteration,self.progressbar['value'])
+            print(self.time_for_iteration, self.progressbar['value'])
             time.sleep(self.time_for_iteration)  # 70 sec per km^2, total time = 0.1 * (2R)^2, itreatiiom time=
         else:
             print('Progresbar complete!')
@@ -464,7 +465,8 @@ class GUI(tk.Tk):
     def set_time_for_iteration(self, slopy):
         time_for_flat_km_area = 190
         # self.time_for_iteration = np.sqrt((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) * ((time_for_flat_km_area * slopy / 100))/100)
-        self.time_for_iteration=((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2))+(time_for_flat_km_area * (slopy / 100)**2))/(2*100)
+        self.time_for_iteration = ((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) + (
+                    time_for_flat_km_area * (slopy / 100) ** 2)) / (2 * 100)
 
     def add_background_gif(self):
         # TO DO:
@@ -480,14 +482,17 @@ class GUI(tk.Tk):
             frames.append(ImageTk.PhotoImage(resized_frame))
             # add to canves
         # Create a Label widget to display the animated GIF
-        self.background_label = tk.Label(self.canvas, image=frames[0], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-        self.background_label.pack()
+        self.background_label = tk.Label(self, image=frames[0], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
+        self.background_label.place(relx=CANVAS_LOCATION[0], rely=CANVAS_LOCATION[1],anchor=tk.CENTER)
 
         # self.canvas.create_window(0, 0, window=self.background_label, anchor=tk.NW)
         # Function to update the Label with the next frame of the animated GIF
+        self.stop_gif= False
         def update_label(frame_idx):
-            self.background_label.config(image=frames[frame_idx], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-            self.after(100, update_label, (frame_idx + 1) % len(frames))
+            if self.stop_gif:
+                return
+            self.background_label.configure(image=frames[frame_idx], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
+            self.after(10, update_label, (frame_idx + 1) % len(frames))
 
         # Start displaying the animated GIF
         update_label(0)
