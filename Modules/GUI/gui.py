@@ -305,8 +305,9 @@ class GUI(tk.Tk):
     def search(self):
         # get the entry values
         # estimate runtime
-
-        self.add_background_gif()
+        # self.add_background_gif()
+        background_thread = threading.Thread(target=self.add_background_gif())
+        background_thread.start()
         self.update_progressbar(0)
         self.E_value = self.E_entry.get()
         self.N_value = self.N_entry.get()
