@@ -109,31 +109,30 @@ def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
     return partial_dtm, new_rows, new_cols
 
 
-def get_w_or_b(e, n, e_center, n_center, m_radius, trees, slopes):
-    row_tree = round((n - n_center + m_radius) / (2 * m_radius) * trees.shape[0])
-    col_tree = round((e - e_center + m_radius) / (2 * m_radius) * trees.shape[1])
-    row_slope = round((n - n_center + m_radius) / (2 * m_radius) * slopes.shape[0]) - 1
-    col_slope = round((e - e_center + m_radius) / (2 * m_radius) * slopes.shape[1]) - 1
-    tree = trees[row_tree][col_tree]
-    slope = slopes[row_slope][col_slope]
-    # what white is 0??? yes so its need to be
-    if tree or not slope:
-        return 0
-    else:
-        return 255
-    # return tree or slope) #slope is black or tree is 1 -> (zero is black)
+
+def get_w_or_b(e_vals, n_vals, e_center, n_center, m_radius, trees, slopes):
+    row_tree = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * trees.shape[0]).astype(int)
+    col_tree = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * trees.shape[1]).astype(int)
+    row_slope = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * slopes.shape[0]).astype(int) - 1
+    col_slope = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * slopes.shape[1]).astype(int) - 1
+    tree = trees[row_tree, col_tree]
+    slope = slopes[row_slope, col_slope]
+    mask = np.logical_and(np.logical_not(tree), slope)
+    return np.where(mask, 255, 0)
 
 
-def get_total_mask_from_masks(e_center, n_center, radius, trees, slopes):  # radius??? diffrent
-    # return tree_mask * heights_mask
-    total_mask = []
+def get_total_mask_from_masks(e_center, n_center, radius, trees, slopes):
     m_radius = int(radius * 1000)
-    for row, n in enumerate(range((n_center - m_radius), (n_center + m_radius))):
-        total_mask.append([])
-        for col, e in enumerate(range((e_center - m_radius), (e_center + m_radius))):
-            total_mask[row].append(get_w_or_b(e, n, e_center, n_center, m_radius, trees, slopes))
+    e_vals = np.arange(e_center - m_radius, e_center + m_radius)
+    n_vals = np.arange(n_center - m_radius, n_center + m_radius)
 
-    return np.array(total_mask)
+    # Create 2D arrays of e and n values for indexing
+    ee, nn = np.meshgrid(e_vals, n_vals, indexing='ij')
+
+    # Calculate the total mask using vectorized numpy indexing
+    total_mask = get_w_or_b(nn, ee, n_center, e_center, m_radius, trees, slopes)
+
+    return total_mask
 
 
 def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_slope, total_mask, coordinates):
@@ -230,8 +229,9 @@ if __name__ == '__main__':
     screen = gui.GUI()
     screen.mainloop()
     # coordinates = (753200, 3689064, 36, 'N')
-    # 698342,3618731
-    # 698812,3620547
-    # km_radius = 0.2
-    # 740000,3726000
+    # km_radius = 0.3
+    # #
+    # # 698342,3618731
+    # # 698812,3620547
+    # # 740000,3726000
     # get_viable_landing_in_radius(coordinates, km_radius)
