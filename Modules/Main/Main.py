@@ -12,11 +12,10 @@ import rasterio
 import cv2
 import rasterio as rio
 from rasterio import plot
+import math
 from Modules.Trees.predict_with_trained_model import predict_image
 from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
 from Modules.GUI import gui
-import random
-import math
 
 # TODO: remove after debug
 import time
@@ -26,6 +25,28 @@ import time
 DTM_FILE_PATH = "../../DTM_data/top.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
+#TODO: should it be in Area_filter?
+def detect_fields_in_image(mask,height,width,val_to_find):
+    if height > mask.shape[0] or width > mask.shape[1]:
+        return []
+    
+    spots = []
+    wanted_spot = np.full((height,width),fill_value=val_to_find) 
+    rows, cols = np.where(np.all(np.lib.stride_tricks.sliding_window_view(mask, (height, width)) == wanted_spot, axis=(2, 3))) #axis(2,3) takes size of window
+    for  row,col in zip(rows,cols):
+        box = ((row,col),(row+height,col+width))
+        spots.append(box)
+
+    return spots
+
+def find_fields(mask,side1,side2,val_to_find):
+    #return list of boxes - [((row_tl,col_tl),(row_br,col_br)),...]
+    
+    spots = detect_fields_in_image(mask,side1,side2,val_to_find)
+    if side1 != side2: #check transposed rectangle
+        spots = detect_fields_in_image(mask,side2,side1,val_to_find)
+    
+    return spots
 
 # TODO: decide about length
 def get_image_from_utm(coordinates, km_radius):
@@ -169,7 +190,6 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     screen_gui.update_progressbar(33)
 
     # plot_heat_map(slopes_mask_in_black_and_white)
-    # slopes_mask_after_area_filter = Area_filter.find_fields(slopes_mask_in_black_and_white, 20, 20, 0, 255)[1]
     # This work with image name only when image is in Main dir, else need full path!
 
     print(slopes_mask_in_black_and_white.shape)
@@ -185,6 +205,8 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     screen_gui.update_progressbar(100)
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask, coordinates)
+    #print(detect_fields_in_image(total_mask,20,20,255))
+
     return img, total_mask
 
 
