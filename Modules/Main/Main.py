@@ -149,10 +149,10 @@ def get_total_mask_from_masks(e_center, n_center, radius, trees, slopes):
     n_vals = np.arange(n_center - m_radius, n_center + m_radius)
 
     # Create 2D arrays of e and n values for indexing
-    ee, nn = np.meshgrid(e_vals, n_vals, indexing='ij')
+    ee, nn = np.meshgrid(e_vals, n_vals, indexing='xy')
 
     # Calculate the total mask using vectorized numpy indexing
-    total_mask = get_white_or_black(nn, ee, n_center, e_center, m_radius, trees, slopes)
+    total_mask = get_white_or_black(ee, nn, e_center, n_center, m_radius, trees, slopes)
 
     return total_mask
 
@@ -203,13 +203,14 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui=0):
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                            slopes_mask_in_black_and_white)
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
-    # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
-    #                     total_mask, coordinates)
+
     print(detect_fields_in_image(total_mask,20,20,255))
 
-    filter_area_size = 600
+    filter_area_size = 800
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     print("Finish")
+    plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
+                        total_mask_filtered, coordinates)
     # screen_gui.update_progressbar(100)
 
     return img, total_mask_filtered
@@ -251,8 +252,8 @@ if __name__ == '__main__':
     # BoundingBox(left=666735.0, bottom=3590995.0, right=852765.0, top=3823815.0) top
     # screen = gui.GUI()
     # screen.mainloop()
-    coordinates = (753200, 3689064, 36, 'N')
-    km_radius = 0.3
+    coordinates = (698812, 3620547, 36, 'N')
+    km_radius = 0.2
     # #
     # # 698342,3618731
     # # 698812,3620547
