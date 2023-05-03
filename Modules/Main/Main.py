@@ -132,7 +132,7 @@ def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
 
 
 
-def get_w_or_b(e_vals, n_vals, e_center, n_center, m_radius, trees, slopes):
+def get_white_or_black(e_vals, n_vals, e_center, n_center, m_radius, trees, slopes):
     row_tree = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * trees.shape[0]).astype(int)
     col_tree = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * trees.shape[1]).astype(int)
     row_slope = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * slopes.shape[0]).astype(int) - 1
@@ -152,7 +152,7 @@ def get_total_mask_from_masks(e_center, n_center, radius, trees, slopes):
     ee, nn = np.meshgrid(e_vals, n_vals, indexing='ij')
 
     # Calculate the total mask using vectorized numpy indexing
-    total_mask = get_w_or_b(nn, ee, n_center, e_center, m_radius, trees, slopes)
+    total_mask = get_white_or_black(nn, ee, n_center, e_center, m_radius, trees, slopes)
 
     return total_mask
 
@@ -177,7 +177,7 @@ def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_sl
     plt.show()
 
 
-def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
+def get_viable_landing_in_radius(coordinates, km_radius, screen_gui=0):
     st = time.time()
     cputime_start = time.process_time()
 
@@ -191,7 +191,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
     count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
     slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
-    screen_gui.set_time_for_iteration(slopy)
+    # screen_gui.set_time_for_iteration(slopy)
     # plot_heat_map(slopes_mask_in_black_and_white)
     # This work with image name only when image is in Main dir, else need full path!
 
@@ -210,7 +210,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     filter_area_size = 600
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     print("Finish")
-    screen_gui.update_progressbar(100)
+    # screen_gui.update_progressbar(100)
 
     return img, total_mask_filtered
 
@@ -249,12 +249,12 @@ if __name__ == '__main__':
     # BoundingBox(left=692125.0, bottom=3614785.0, right=705335.0, top=3623875.0) Yokneam
     # BoundingBox(left=684825.0, bottom=3621765.0, right=689175.0, top=3624175.0) some
     # BoundingBox(left=666735.0, bottom=3590995.0, right=852765.0, top=3823815.0) top
-    screen = gui.GUI()
-    screen.mainloop()
-    # coordinates = (753200, 3689064, 36, 'N')
-    # km_radius = 0.3
+    # screen = gui.GUI()
+    # screen.mainloop()
+    coordinates = (753200, 3689064, 36, 'N')
+    km_radius = 0.3
     # #
     # # 698342,3618731
     # # 698812,3620547
     # # 740000,3726000
-    # get_viable_landing_in_radius(coordinates, km_radius)
+    get_viable_landing_in_radius(coordinates, km_radius)
