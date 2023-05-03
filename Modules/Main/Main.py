@@ -24,7 +24,6 @@ from Modules.AREA_FILTER.Filterspecks import FilterSpecks
 # TODO: remove after debug
 import time
 
-# import Area_filter
 
 DTM_FILE_PATH = "../../DTM_data/top.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
@@ -206,9 +205,8 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask, coordinates)
-    #print(detect_fields_in_image(total_mask,20,20,255))
+    print(detect_fields_in_image(total_mask,20,20,255))
 
-    return img, total_mask
     filter_area_size = 600
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     print("Finish")
