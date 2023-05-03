@@ -3,10 +3,9 @@ import cv2
 
 # Create a binary matrix
 def FilterSpecks(matPicture , size):
-        gray_image = (matPicture * 255).astype(np.uint8)
-
         # Save the black and white image to a file
-        cv2.imwrite("bw_image.png", gray_image)
+        # matPicture = (matPicture * 255).astype(np.uint8)
+        cv2.imwrite("bw_image.png", matPicture)
 
         # Wait for a key event to close the image window
         cv2.waitKey(0)
@@ -29,9 +28,11 @@ def FilterSpecks(matPicture , size):
                 if areas[i] >= size:  # keep
                         result[labels == i + 1] = 255
 
-        cv2.imshow("Binary", binary_map)
-        cv2.imshow("Result", result)
+        # cv2.imshow("Binary", binary_map)
+        cv2.imwrite("Binary.png", binary_map)
         cv2.waitKey(0)
+        # cv2.imshow("Result", result)
+
         cv2.destroyAllWindows()
 
         cv2.imwrite("Filterd_result.png", result)
@@ -47,4 +48,17 @@ def FilterSpecks(matPicture , size):
         binary_matrix = (thresholded_img > 0).astype(np.uint8)
 
 
-        return binary_matrix
+        return result
+
+if __name__ == '__main__':
+    matPicture = np.array([[1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                            [0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
+                            [0, 0, 0, 1, 1, 0, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 0, 0, 0, 0, 0],
+                            [0, 1, 1, 1, 1, 0, 1, 1, 1, 0],
+                            [0, 1, 1, 1, 1, 1, 1, 1, 1, 0]])
+    # produce a binary matrix by 255
+    # matPicture = (matPicture / 255).astype(np.uint8)
+    print(matPicture)
+    size = 8
+    FilterSpecks(matPicture, size)

@@ -12,21 +12,44 @@ import rasterio
 import cv2
 import rasterio as rio
 from rasterio import plot
+import math
 from Modules.Trees.predict_with_trained_model import predict_image
 from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
 from Modules.GUI import gui
 import random
 import math
 import openpyxl
+from Modules.AREA_FILTER.Filterspecks import FilterSpecks
 
 # TODO: remove after debug
 import time
 
-# import Area_filter
 
 DTM_FILE_PATH = "../../DTM_data/top.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
+#TODO: should it be in Area_filter?
+def detect_fields_in_image(mask,height,width,val_to_find):
+    if height > mask.shape[0] or width > mask.shape[1]:
+        return []
+    
+    spots = []
+    wanted_spot = np.full((height,width),fill_value=val_to_find) 
+    rows, cols = np.where(np.all(np.lib.stride_tricks.sliding_window_view(mask, (height, width)) == wanted_spot, axis=(2, 3))) #axis(2,3) takes size of window
+    for  row,col in zip(rows,cols):
+        box = ((row,col),(row+height-1,col+width-1))
+        spots.append(box)
+
+    return spots
+
+def find_fields(mask,side1,side2,val_to_find):
+    #return list of boxes - [((row_tl,col_tl),(row_br,col_br)),...]
+    
+    spots = detect_fields_in_image(mask,side1,side2,val_to_find)
+    if side1 != side2: #check transposed rectangle
+        spots = detect_fields_in_image(mask,side2,side1,val_to_find)
+    
+    return spots
 
 # TODO: decide about length
 def get_image_from_utm(coordinates, km_radius):
@@ -108,31 +131,30 @@ def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
     return partial_dtm, new_rows, new_cols
 
 
-def get_w_or_b(e, n, e_center, n_center, m_radius, trees, slopes):
-    row_tree = round((n - n_center + m_radius) / (2 * m_radius) * trees.shape[0])
-    col_tree = round((e - e_center + m_radius) / (2 * m_radius) * trees.shape[1])
-    row_slope = round((n - n_center + m_radius) / (2 * m_radius) * slopes.shape[0]) - 1
-    col_slope = round((e - e_center + m_radius) / (2 * m_radius) * slopes.shape[1]) - 1
-    tree = trees[row_tree][col_tree]
-    slope = slopes[row_slope][col_slope]
-    # what white is 0??? yes so its need to be
-    if tree or not slope:
-        return 0
-    else:
-        return 255
-    # return tree or slope) #slope is black or tree is 1 -> (zero is black)
+
+def get_w_or_b(e_vals, n_vals, e_center, n_center, m_radius, trees, slopes):
+    row_tree = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * trees.shape[0]).astype(int)
+    col_tree = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * trees.shape[1]).astype(int)
+    row_slope = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * slopes.shape[0]).astype(int) - 1
+    col_slope = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * slopes.shape[1]).astype(int) - 1
+    tree = trees[row_tree, col_tree]
+    slope = slopes[row_slope, col_slope]
+    mask = np.logical_and(np.logical_not(tree), slope)
+    return np.where(mask, 255, 0)
 
 
-def get_total_mask_from_masks(e_center, n_center, radius, trees, slopes):  # radius??? diffrent
-    # return tree_mask * heights_mask
-    total_mask = []
+def get_total_mask_from_masks(e_center, n_center, radius, trees, slopes):
     m_radius = int(radius * 1000)
-    for row, n in enumerate(range((n_center - m_radius), (n_center + m_radius))):
-        total_mask.append([])
-        for col, e in enumerate(range((e_center - m_radius), (e_center + m_radius))):
-            total_mask[row].append(get_w_or_b(e, n, e_center, n_center, m_radius, trees, slopes))
+    e_vals = np.arange(e_center - m_radius, e_center + m_radius)
+    n_vals = np.arange(n_center - m_radius, n_center + m_radius)
 
-    return np.array(total_mask)
+    # Create 2D arrays of e and n values for indexing
+    ee, nn = np.meshgrid(e_vals, n_vals, indexing='ij')
+
+    # Calculate the total mask using vectorized numpy indexing
+    total_mask = get_w_or_b(nn, ee, n_center, e_center, m_radius, trees, slopes)
+
+    return total_mask
 
 
 def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_slope, total_mask, coordinates):
@@ -161,31 +183,39 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
 
     image_name, img = get_image_from_utm(coordinates, km_radius)
     tree_shape = img.shape
-    screen_gui.update_progressbar(10)
     partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
     slope_shape = (new_rows, new_cols)
-    screen_gui.update_progressbar(21)
 
     slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
-    screen_gui.update_progressbar(25)
 
     slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
-    screen_gui.update_progressbar(33)
-
+    count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
+    slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
+    screen_gui.set_time_for_iteration(slopy)
     # plot_heat_map(slopes_mask_in_black_and_white)
-    # slopes_mask_after_area_filter = Area_filter.find_fields(slopes_mask_in_black_and_white, 20, 20, 0, 255)[1]
     # This work with image name only when image is in Main dir, else need full path!
 
     unwanted_pixels = mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape,
                                               slope_shape)  # add according to slopes - find all places where slope is 1
-    screen_gui.update_progressbar(36)
 
     tree_mask = get_tree_mask_from_image(image_name, trained_model_path, unwanted_pixels)
-    screen_gui.update_progressbar(83)
 
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                            slopes_mask_in_black_and_white)
+    data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
+    # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
+    #                     total_mask, coordinates)
+    print(detect_fields_in_image(total_mask,20,20,255))
+
+    filter_area_size = 600
+    total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
+    print("Finish")
     screen_gui.update_progressbar(100)
+
+    return img, total_mask_filtered
+
+
+def data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start):
     # count number of 255 in slopes_mask_in_black_and_white
     count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
     slopy = round(100 * count_slopes_good / slopes_mask_in_black_and_white.size, 2)
@@ -193,15 +223,11 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     total_time = time.time() - st
     cpu_total_time = time.process_time() - cputime_start
     # write to excel
-    save_result_to_excel(slopy, area, total_time,cpu_total_time)
-    plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
-                        total_mask, coordinates)
     print(slopy, area, total_time)
-    print("Finish")
-    return img, total_mask
+    save_result_to_excel(slopy, area, total_time, cpu_total_time)
 
 
-def save_result_to_excel(slopy, area, total_time,cpu_total_time):
+def save_result_to_excel(slopy, area, total_time, cpu_total_time):
     workbook = openpyxl.load_workbook("results.xlsx")
     worksheet = workbook.active
     worksheet.title = "result"
@@ -216,8 +242,6 @@ def save_result_to_excel(slopy, area, total_time,cpu_total_time):
     worksheet.cell(row=last_row + 1, column=3, value=total_time)
     worksheet.cell(row=last_row + 1, column=4, value=cpu_total_time)
 
-
-
     workbook.save("results.xlsx")
 
 
@@ -228,8 +252,9 @@ if __name__ == '__main__':
     screen = gui.GUI()
     screen.mainloop()
     # coordinates = (753200, 3689064, 36, 'N')
-    # 698342,3618731
-    # 698812,3620547
-    # km_radius = 0.2
-    # 740000,3726000
+    # km_radius = 0.3
+    # #
+    # # 698342,3618731
+    # # 698812,3620547
+    # # 740000,3726000
     # get_viable_landing_in_radius(coordinates, km_radius)
