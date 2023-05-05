@@ -10,47 +10,10 @@ import os
 from PIL import Image
 from tkinter import ttk
 import time
-# TODO: arrange code, what variables are needed,
-#  caps for everything that is location, meaningful names for everything
-# TODO: text for the distances will appear nicely
-# TODO: test the GUI with the new search function, run it a few times
+from Modules.GUI.settings import *
 
 
-# Get the directory path of the current file (gui.py)
-dir_path = os.path.dirname(os.path.realpath(__file__))
-search_path = os.path.join(dir_path, 'heli_logo.jpeg')
-cell_path = os.path.join(dir_path, 'cell2.png')
-# Construct the absolute path of logo.png
-logo_path_gif = os.path.join(dir_path, 'logo.gif')
-logo_path = os.path.join(dir_path, 'logo.png')
-# Construct the absolute path of background.png
-pnotnp_path = os.path.join(dir_path, 'PNOTNP.jpg')
-# Construct the absolute path of background.png
-pnp_path = os.path.join(dir_path, 'PNP.jpg')
-# Construct the absolute path of background.png
-HELICOPTER_IMAGE_PATH = os.path.join(dir_path, 'yasor.jpg')
-# Construct the absolute path of the original image and result image
-ORIGINAL_IMAGE_PATH = logo_path
-RESULT_IMAGE_PATH = logo_path
-FONT = ('Helvetica', 16, "bold")
-FONT_SMALL = ('Helvetica', 8, "bold")
-BACKGROUND_COLOR = 'white'
-SECOND_BACKGROUND_COLOR = '#7EB8E3'
-FOREGROUND_COLOR = 'black'
-# distance text color that will stand out on the background, (not white) and not black
-DISTANCE_TEXT_COLOR =  '#7EB8E3'
-ENTRY_WIDTH = 20
-E_LABEL_LOCATION = (0.41, 0.05)
-E_ENTRY_LOCATION = (0.5, 0.05)
-N_LABEL_LOCATION = (0.41, 0.1)
-N_ENTRY_LOCATION = (0.5, 0.1)
-R_LABEL_LOCATION = (0.375, 0.15)
-R_ENTRY_LOCATION = (0.5, 0.15)
-DISTANCE_ENTRY_LOCATION = (0.8, 0.3)
-TWO_POINTS_DISTANCE = lambda x, y, START_X, START_Y, END_X, END_Y : abs((END_Y - START_Y) * x - (END_X - START_X) * y + END_X * START_Y - END_Y * START_X) / \
-                       math.sqrt((END_Y - START_Y) ** 2 + (END_X - START_X) ** 2)
 def distance_text_location_func(points):
-
     x = (points[0] + points[2]) // 2
     y = (points[1] + points[3]) // 2
     padding = 25
@@ -65,33 +28,6 @@ def distance_text_location_func(points):
             max_distance = TWO_POINTS_DISTANCE(point[0], point[1], START_X, START_Y, END_X, END_Y)
     x_gap, y_gap = max_point[0] - x, max_point[1] - y
     return (x + x_gap, y + y_gap)
-DISTANCE_TEXT_LOCATION_FUNC = distance_text_location_func
-LINE_WIDTH = 5
-LINE_COLOR = 'red'
-DISTANCE_LABEL_COLOR = 'white'
-DISTANCE_LABEL_WIDTH = 6
-DISTANCE_LABEL_HEIGHT = 1
-WINDOW_X, WINDOW_Y, WINDOW_SQUARE_X, WINDOW_SQUARE_Y = 500, 500, 50, 20
-CANVAS_LOCATION = (0.5, 0.58)
-CANVAS_WIDTH, CANVAS_HEIGHT = 500, 500
-SLIDER_WIDTH, SLIDER_LENGTH = 15, 20
-SLIDER_LOCATION = (0.32, CANVAS_LOCATION[1])
-POGRESSBAR_WIDTH, PROGRESSBAR_LENGTH = 15, 200
-POGRESSBAR_LOCATION = (0.5, 0.96)
-POGRESSBAR_LOCATION_LABEL = (0.5, 0.92)
-SEARCH_BUTTON_LOCATION = (0.5, 0.22)
-SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT = 70, 70
-CELL_WIDTH, CELL_HEIGHT = 250, 50
-CANVAS_HIGHLIGHT_COLOR = "red"
-TRANSPARENCY_FUNCTION = lambda val: int(float(val) * 255 / 100)
-ROTATION_KEY = "1"
-DISTANCE_STR_FORMAT = lambda x: f"{x} m"
-VIEWPORT_X = 0
-VIEWPORT_Y = 0
-VIEWPORT_WIDTH = CANVAS_WIDTH
-VIEWPORT_HEIGHT = CANVAS_HEIGHT
-START_X, START_Y = None, None
-END_X, END_Y = None, None
 
 
 class GUI(tk.Tk):
@@ -114,6 +50,11 @@ class GUI(tk.Tk):
         self.resizable(True, True)
         self.create_widgets()
         # self.add_background_gif()
+
+    def init_with_values(self, E="698812", N="3620547", Radius="0.1"):
+        self.E_entry.insert(0, E)
+        self.N_entry.insert(0, N)
+        self.Radius_entry.insert(0, Radius)
 
     def add_E_cell(self):
         self.E = tk.Label(self, text="E: ")
@@ -167,7 +108,8 @@ class GUI(tk.Tk):
         self.Radius_entry = tk.Entry(self)
         self.Radius_entry.pack()
         self.Radius_entry.place(relx=R_ENTRY_LOCATION[0], rely=R_ENTRY_LOCATION[1], anchor=tk.CENTER)
-        self.Radius_entry.config(width=ENTRY_WIDTH - 50, background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR, font=FONT,
+        self.Radius_entry.config(width=ENTRY_WIDTH - 50, background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR,
+                                 font=FONT,
                                  justify=tk.CENTER, bd=0, highlightthickness=0)
 
     def create_inputs_cells(self):
@@ -194,6 +136,65 @@ class GUI(tk.Tk):
 
         # Define a function to set the start point of the line
 
+    def search(self):
+        # get the entry values
+        # estimate runtime
+
+        # self.add_background_gif()
+        self.update_progressbar(0)
+        self.E_value = self.E_entry.get()
+        self.N_value = self.N_entry.get()
+        self.Radius_value = self.Radius_entry.get()
+        coordinates = (int(self.E_value), int(self.N_value), 36, "N")
+        # need to add logs of this in main
+        print(coordinates, self.Radius_value)
+        # run the function
+        t = threading.Thread(target=self.run_process, args=(coordinates,))
+        # image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
+        t.start()
+        progress_thread = threading.Thread(target=self.run_progressbar())
+        progress_thread.start()
+
+    def run_process(self, coordinates):
+        image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
+        self.add_original_image(image)
+        self.add_result_image(total_mask)
+        # self.background_label.destroy()
+        for distance in self.entry_distance_labels:
+            self.canvas.delete(self.entry_distance_labels[distance])
+        self.entry_distance_labels = {}
+        for line in self.canvas_distance.keys():
+            self.canvas.delete(line)
+        self.canvas_distance = {}
+        self.update_transparency(50)
+        self.transparency_slider.set(50)
+
+    def start(self, event):
+        global START_X, START_Y
+        self.line = -111
+        START_X, START_Y = event.x, event.y
+
+        # Define a function to update the end point of the line and draw it
+
+    def draw(self, event):
+        global START_X, START_Y, END_X, END_Y
+        if START_X and START_Y:
+            END_X, END_Y = event.x, event.y
+            if self.line != -111:
+                self.canvas.coords(self.line, START_X, START_Y, END_X, END_Y)
+                self.canvas_distance[self.line] = [START_X, START_Y, END_X, END_Y]
+            else:
+                self.line = self.canvas.create_line(START_X, START_Y, END_X, END_Y, width=LINE_WIDTH, fill=LINE_COLOR,
+                                                    smooth=True)
+                self.canvas_distance[self.line] = [START_X, START_Y, END_X, END_Y]
+            # calculate the distance between the two points
+            self.distance = math.sqrt((START_X - END_X) ** 2 + (START_Y - END_Y) ** 2)
+            float_R = 1 if float(self.get_Radius_value()) == 0 else float(self.get_Radius_value())
+            self.distance = 2 * self.distance * float_R * 1000 / CANVAS_WIDTH
+            self.distance = round(self.distance, 2)
+            self.add_entry_distance()
+            # self.entry_distance_labels[self.line].config(text=DISTANCE_STR_FORMAT(self.distance))
+
     def delete_line(self, event):
         x, y = event.x, event.y
         distances_from_point = {}
@@ -218,35 +219,22 @@ class GUI(tk.Tk):
         del self.canvas_distance[closest_line]
         del self.entry_distance_labels[closest_line]
 
-    def start(self, event):
-        global START_X, START_Y
-        self.line = -111
-        START_X, START_Y = event.x, event.y
-
-        # Define a function to update the end point of the line and draw it
-
-    def draw(self, event):
-        global START_X, START_Y, END_X, END_Y
-        if START_X and START_Y:
-            END_X, END_Y = event.x, event.y
-            if self.line != -111:
-                self.canvas.coords(self.line, START_X, START_Y, END_X, END_Y)
-                self.canvas_distance[self.line] = [START_X, START_Y, END_X, END_Y]
-            else:
-                self.line = self.canvas.create_line(START_X, START_Y, END_X, END_Y, width=LINE_WIDTH, fill=LINE_COLOR, smooth=True)
-                self.canvas_distance[self.line] = [START_X, START_Y, END_X, END_Y]
-            # calculate the distance between the two points
-            self.distance = math.sqrt((START_X - END_X) ** 2 + (START_Y - END_Y) ** 2)
-            float_R = 1 if float(self.get_Radius_value()) == 0 else float(self.get_Radius_value())
-            self.distance = 2 * self.distance * float_R * 1000 / CANVAS_WIDTH
-            self.distance = round(self.distance, 2)
-            self.add_entry_distance()
-            # self.entry_distance_labels[self.line].config(text=DISTANCE_STR_FORMAT(self.distance))
-
-    def init_with_values(self, E="698812", N="3620547", Radius="0.1"):
-        self.E_entry.insert(0, E)
-        self.N_entry.insert(0, N)
-        self.Radius_entry.insert(0, Radius)
+    def add_entry_distance(self):
+        if self.line == -111:
+            return None
+        if self.line in self.entry_distance_labels:
+            # place the entry distance label on the canvas above the line that in position (x1,y1) and (x2,y2)
+            # (x1,y1) is self.canvas_distance[self.line][0], self.canvas_distance[self.line][1]
+            # (x2,y2) is self.canvas_distance[self.line][2], self.canvas_distance[self.line][3]
+            X, Y = distance_text_location_func(self.canvas_distance[self.line])
+            self.canvas.delete(self.entry_distance_labels[self.line])
+            self.entry_distance_labels[self.line] = self.canvas.create_text((X, Y),
+                                                                            text=DISTANCE_STR_FORMAT(self.distance),
+                                                                            font=FONT_SMALL, fill=DISTANCE_TEXT_COLOR)
+            return None
+        self.entry_distance_labels[self.line] = self.canvas.create_text(DISTANCE_ENTRY_LOCATION,
+                                                                        text=DISTANCE_STR_FORMAT(self.distance),
+                                                                        font=FONT_SMALL, fill=DISTANCE_TEXT_COLOR)
 
     def create_images_and_canvas(self):
         self.original_image = Image.open(ORIGINAL_IMAGE_PATH)
@@ -259,20 +247,6 @@ class GUI(tk.Tk):
         self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white",
                                 highlightcolor=CANVAS_HIGHLIGHT_COLOR)
         self.canvas.place(relx=CANVAS_LOCATION[0], rely=CANVAS_LOCATION[1], anchor=tk.CENTER)
-
-    def add_entry_distance(self):
-        if self.line == -111:
-            return None
-        if self.line in self.entry_distance_labels:
-            # place the entry distance label on the canvas above the line that in position (x1,y1) and (x2,y2)
-            # (x1,y1) is self.canvas_distance[self.line][0], self.canvas_distance[self.line][1]
-            # (x2,y2) is self.canvas_distance[self.line][2], self.canvas_distance[self.line][3]
-            X, Y = DISTANCE_TEXT_LOCATION_FUNC(self.canvas_distance[self.line])
-            self.canvas.delete(self.entry_distance_labels[self.line])
-            self.entry_distance_labels[self.line] = self.canvas.create_text((X, Y), text=DISTANCE_STR_FORMAT(self.distance), font=FONT_SMALL, fill=DISTANCE_TEXT_COLOR)
-            return None
-        self.entry_distance_labels[self.line] = self.canvas.create_text(DISTANCE_ENTRY_LOCATION, text=DISTANCE_STR_FORMAT(self.distance), font=FONT_SMALL, fill=DISTANCE_TEXT_COLOR)
-
 
     def update_transparency(self, val):
         alpha = TRANSPARENCY_FUNCTION(val)
@@ -327,40 +301,6 @@ class GUI(tk.Tk):
         if c1[1] + 30 + 2 * self.square_y < self.y:
             self.canvas.move(self.square_image_canvas, 0, 1)
 
-    def search(self):
-        # get the entry values
-        # estimate runtime
-
-
-        # self.add_background_gif()
-        self.update_progressbar(0)
-        self.E_value = self.E_entry.get()
-        self.N_value = self.N_entry.get()
-        self.Radius_value = self.Radius_entry.get()
-        coordinates = (int(self.E_value), int(self.N_value), 36, "N")
-        # need to add logs of this in main
-        print(coordinates, self.Radius_value)
-        # run the function
-        t = threading.Thread(target=self.run_process, args=(coordinates,))
-        # image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
-        t.start()
-        progress_thread = threading.Thread(target=self.run_progressbar())
-        progress_thread.start()
-
-    def run_process(self, coordinates):
-        image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
-        self.add_original_image(image)
-        self.add_result_image(total_mask)
-        # self.background_label.destroy()
-        for distance in self.entry_distance_labels:
-            self.canvas.delete(self.entry_distance_labels[distance])
-        self.entry_distance_labels = {}
-        for line in self.canvas_distance.keys():
-            self.canvas.delete(line)
-        self.canvas_distance = {}
-        self.update_transparency(50)
-        self.transparency_slider.set(50)
-
     def add_square_image(self):
         """
         get the square image in the form of array and put it on the window bellow the buttons, resize it to fit the x but the y should be 200
@@ -393,15 +333,6 @@ class GUI(tk.Tk):
         self.result_image = ImageTk.PhotoImage(self.result_image_1)
         self.result_image_canvas = self.canvas.create_image(0, 0, image=self.result_image, anchor=tk.NW)
         # self.add_square_image()
-
-    def get_E_value(self):
-        return self.E_value
-
-    def get_N_value(self):
-        return self.N_value
-
-    def get_Radius_value(self):
-        return self.Radius_value
 
     def make_zoom_in(self):
         # Set the initial viewport size
@@ -465,13 +396,14 @@ class GUI(tk.Tk):
                            'sticky': 'nswe'}),
                          ('Horizontal.Progressbar.label', {'sticky': 'nswe'})])
         pb_style.configure('text.Horizontal.TProgressbar', anchor='center',
-                           background=SECOND_BACKGROUND_COLOR,)
+                           background=SECOND_BACKGROUND_COLOR, )
         self.progressbar = ttk.Progressbar(self, orient="horizontal", length=PROGRESSBAR_LENGTH, mode="determinate",
                                            style="text.Horizontal.TProgressbar")
         self.progressbar.place(relx=POGRESSBAR_LOCATION[0], rely=POGRESSBAR_LOCATION[1], anchor=tk.CENTER)
         self.progressbar["maximum"] = 100
         self.progressbar["value"] = 0
-        self.progressbar_label = tk.Label(self, text="0%", font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        self.progressbar_label = tk.Label(self, text="0%", font=FONT, foreground=FOREGROUND_COLOR,
+                                          background=BACKGROUND_COLOR)
         self.progressbar_label.place(relx=POGRESSBAR_LOCATION_LABEL[0], rely=POGRESSBAR_LOCATION_LABEL[1],
                                      anchor=tk.CENTER)
 
@@ -479,6 +411,7 @@ class GUI(tk.Tk):
         self.progressbar_label.config(text=f"{value}%")
         self.progressbar["value"] = value
         self.progressbar.update()
+
     def run_progressbar(self):
         time_for_km_area = 100  # sec
         self.time_for_iteration = (time_for_km_area * (2 * (float(self.Radius_value)) ** 2) / 100)
@@ -492,9 +425,11 @@ class GUI(tk.Tk):
 
     def set_time_for_iteration(self, slopy):
         time_for_flat_km_area = 190
-        # self.time_for_iteration = np.sqrt((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) * ((time_for_flat_km_area * slopy / 100))/100)
-        self.time_for_iteration = ((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) + (
-                    time_for_flat_km_area * (slopy / 100) ** 2)) / (2 * 100)
+        new_area = (2 * (float(self.Radius_value)) ** 2) * (slopy / 100)
+        self.time_for_iteration = new_area * time_for_flat_km_area / 100
+        # self.time_for_iteration = ((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) + (
+        #         time_for_flat_km_area * (slopy / 100) ** 3)) / (2 * 100)
+
     def add_background_gif(self):
         # TO DO:
         # fix bug with the gif
@@ -568,6 +503,8 @@ class GUI(tk.Tk):
             self.square_y = 200
         self.add_square_image()
 
+    def get_Radius_value(self):
+        return self.Radius_value
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
