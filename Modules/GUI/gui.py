@@ -230,11 +230,11 @@ class GUI(tk.Tk):
             self.canvas.delete(self.entry_distance_labels[self.line])
             self.entry_distance_labels[self.line] = self.canvas.create_text((X, Y),
                                                                             text=DISTANCE_STR_FORMAT(self.distance),
-                                                                            font=FONT_SMALL, fill=DISTANCE_TEXT_COLOR)
+                                                                            font=DISTANCE_FONT, fill=DISTANCE_TEXT_COLOR)
             return None
         self.entry_distance_labels[self.line] = self.canvas.create_text(DISTANCE_ENTRY_LOCATION,
                                                                         text=DISTANCE_STR_FORMAT(self.distance),
-                                                                        font=FONT_SMALL, fill=DISTANCE_TEXT_COLOR)
+                                                                        font=DISTANCE_FONT, fill=DISTANCE_TEXT_COLOR)
 
     def create_images_and_canvas(self):
         self.original_image = Image.open(ORIGINAL_IMAGE_PATH)
@@ -328,9 +328,11 @@ class GUI(tk.Tk):
         :param image: the result image
         :return:
         """
+
         self.result_image_1 = Image.fromarray(image).resize((self.x, self.y))
         self.result_image_1 = self.result_image_1.convert(mode='RGB')
         self.result_image = ImageTk.PhotoImage(self.result_image_1)
+
         self.result_image_canvas = self.canvas.create_image(0, 0, image=self.result_image, anchor=tk.NW)
         # self.add_square_image()
 
@@ -505,6 +507,7 @@ class GUI(tk.Tk):
 
     def get_Radius_value(self):
         return self.Radius_value
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
