@@ -8,9 +8,7 @@ import cv2
 import threading
 import os
 from PIL import Image
-import time
 from tkinter import ttk
-
 # from tkVideoPlayer import TkinterVideo
 
 # Get the directory path of the current file (gui.py)
@@ -69,7 +67,6 @@ class GUI(tk.Tk):
         super().__init__()
         self.configure(background=background_color)
         self.title("Soccer Field GUI:")
-
         # put a picture on the window background
         self.sx = wsx
         self.sy = wsy
@@ -82,12 +79,13 @@ class GUI(tk.Tk):
         self.Radius_value = 0
         self.square_image_1 = None
         self.state("zoomed")
+        # self.add_background_gif()
         self.resizable(True, True)
         self.create_widgets()
 
     def add_E_cell(self):
         self.E = tk.Label(self, text="E: ")
-        # self.E.grid(row=E_label_location[0], column=E_label_location[1], sticky=tk.NW)
+        self.E.pack()
         self.E.place(relx=E_label_location[0], rely=E_label_location[1], anchor=tk.CENTER)
         self.E.config(font=FONT, foreground="black", background=background_color)
         # add entry image
@@ -95,11 +93,10 @@ class GUI(tk.Tk):
         self.cell_image = self.cell_image.resize((CELL_WIDTH, CELL_HEIGHT), Image.ANTIALIAS)
         self.cell_image = ImageTk.PhotoImage(self.cell_image)
         cell_label = tk.Label(self, image=self.cell_image, bg=background_color, bd=0, highlightthickness=0)
-        # cell_label.grid(row=E_entry_location[0], column=E_entry_location[1], sticky=tk.NW)
         cell_label.place(relx=E_entry_location[0], rely=E_entry_location[1], anchor=tk.CENTER)
         self.E_entry = tk.Entry(self)
+        self.E_entry.pack()
         self.E_entry.place(relx=E_entry_location[0], rely=E_entry_location[1], anchor=tk.CENTER)
-        # self.E_entry.grid(row=E_entry_location[0], column=E_entry_location[1], sticky=tk.NW)
 
         self.E_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
                             justify=tk.CENTER, bd=0, highlightthickness=0)
@@ -107,6 +104,7 @@ class GUI(tk.Tk):
     def add_N_cell(self):
         # add label for entry it
         self.N = tk.Label(self, text="N: ")
+        self.N.pack()
         self.N.place(relx=N_label_location[0], rely=N_label_location[1], anchor=tk.CENTER)
         self.N.config(font=FONT, foreground="black", background=background_color)
         # add entry image
@@ -117,12 +115,14 @@ class GUI(tk.Tk):
         cell_label.place(relx=N_entry_location[0], rely=N_entry_location[1], anchor=tk.CENTER)
         # add entry
         self.N_entry = tk.Entry(self)
+        self.N_entry.pack()
         self.N_entry.place(relx=N_entry_location[0], rely=N_entry_location[1], anchor=tk.CENTER)
         self.N_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
                             justify=tk.CENTER, bd=0, highlightthickness=0)
 
     def add_R_cell(self):
         self.Radius = tk.Label(self, text="Radius in km: ")
+        self.Radius.pack()
         self.Radius.place(relx=R_label_location[0], rely=R_label_location[1], anchor=tk.CENTER)
         self.Radius.config(font=FONT, foreground="black", background=background_color)
         # add entry image
@@ -133,6 +133,7 @@ class GUI(tk.Tk):
         cell_label.place(relx=R_entry_location[0], rely=R_entry_location[1], anchor=tk.CENTER)
         # add entry
         self.Radius_entry = tk.Entry(self)
+        self.Radius_entry.pack()
         self.Radius_entry.place(relx=R_entry_location[0], rely=R_entry_location[1], anchor=tk.CENTER)
         self.Radius_entry.config(width=entry_width - 50, background=background_color, foreground="black", font=FONT,
                                  justify=tk.CENTER, bd=0, highlightthickness=0)
@@ -260,11 +261,11 @@ class GUI(tk.Tk):
 
     def bind_keys(self):
         self.line = -111
-        # self.bind("<Left>", self.left_key)
-        # self.bind("<Right>", self.right_key)
-        # self.bind("<Up>", self.up_key)
-        # self.bind("<Down>", self.down_key)
-        # self.bind(rotate_key, self.rotate_square_image_clockwise)
+        self.bind("<Left>", self.left_key)
+        self.bind("<Right>", self.right_key)
+        self.bind("<Up>", self.up_key)
+        self.bind("<Down>", self.down_key)
+        self.bind(rotate_key, self.rotate_square_image_clockwise)
         # Bind the left mouse button to the start function and the left mouse motion to the draw function
         self.canvas.bind("<Button-1>", self.start)
         self.canvas.bind("<B1-Motion>", self.draw)
@@ -305,9 +306,9 @@ class GUI(tk.Tk):
     def search(self):
         # get the entry values
         # estimate runtime
+
+
         # self.add_background_gif()
-        background_thread = threading.Thread(target=self.add_background_gif())
-        background_thread.start()
         self.update_progressbar(0)
         self.E_value = self.E_entry.get()
         self.N_value = self.N_entry.get()
@@ -316,20 +317,15 @@ class GUI(tk.Tk):
         # need to add logs of this in main
         print(coordinates, self.Radius_value)
         # run the function
-        # self.run_progressbar()
-
         t = threading.Thread(target=self.run_process, args=(coordinates,))
         # image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         t.start()
-        progress_thread = threading.Thread(target=self.run_progressbar())
-        progress_thread.start()
 
     def run_process(self, coordinates):
         image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
         self.add_result_image(total_mask)
-        self.stop_gif= True
-        self.background_label.destroy()
+        # self.background_label.destroy()
         self.update_transparency(50)
         self.transparency_slider.set(50)
 
@@ -437,7 +433,7 @@ class GUI(tk.Tk):
                            'sticky': 'nswe'}),
                          ('Horizontal.Progressbar.label', {'sticky': 'nswe'})])
         pb_style.configure('text.Horizontal.TProgressbar', anchor='center',
-                           background=second_background_color, )
+                           background=second_background_color,)
         self.progressbar = ttk.Progressbar(self, orient="horizontal", length=PROGRESSBAR_LENGTH, mode="determinate",
                                            style="text.Horizontal.TProgressbar")
         self.progressbar.place(relx=POGRESSBAR_LOCATION[0], rely=POGRESSBAR_LOCATION[1], anchor=tk.CENTER)
@@ -451,23 +447,6 @@ class GUI(tk.Tk):
         self.progressbar_label.config(text=f"{value}%")
         self.progressbar["value"] = value
         self.progressbar.update()
-
-    def run_progressbar(self):
-        time_for_km_area = 100  # sec
-        self.time_for_iteration = (time_for_km_area * (2 * (float(self.Radius_value)) ** 2) / 100)
-        while self.progressbar['value'] < 99:
-            current_value = self.progressbar['value']
-            self.update_progressbar(current_value + 1)
-            print(self.time_for_iteration, self.progressbar['value'])
-            time.sleep(self.time_for_iteration)  # 70 sec per km^2, total time = 0.1 * (2R)^2, itreatiiom time=
-        else:
-            print('Progresbar complete!')
-
-    def set_time_for_iteration(self, slopy):
-        time_for_flat_km_area = 190
-        # self.time_for_iteration = np.sqrt((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) * ((time_for_flat_km_area * slopy / 100))/100)
-        self.time_for_iteration = ((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) + (
-                    time_for_flat_km_area * (slopy / 100) ** 2)) / (2 * 100)
 
     def add_background_gif(self):
         # TO DO:
@@ -483,17 +462,14 @@ class GUI(tk.Tk):
             frames.append(ImageTk.PhotoImage(resized_frame))
             # add to canves
         # Create a Label widget to display the animated GIF
-        self.background_label = tk.Label(self, image=frames[0], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-        self.background_label.place(relx=CANVAS_LOCATION[0], rely=CANVAS_LOCATION[1],anchor=tk.CENTER)
+        self.background_label = tk.Label(self.canvas, image=frames[0], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
+        self.background_label.pack()
 
         # self.canvas.create_window(0, 0, window=self.background_label, anchor=tk.NW)
         # Function to update the Label with the next frame of the animated GIF
-        self.stop_gif= False
         def update_label(frame_idx):
-            if self.stop_gif:
-                return
-            self.background_label.configure(image=frames[frame_idx], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-            self.after(10, update_label, (frame_idx + 1) % len(frames))
+            self.background_label.config(image=frames[frame_idx], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
+            self.after(100, update_label, (frame_idx + 1) % len(frames))
 
         # Start displaying the animated GIF
         update_label(0)
@@ -506,6 +482,7 @@ class GUI(tk.Tk):
         self.search_button = tk.Button(self, image=self.search_image, command=self.search, bg=background_color, bd=0,
                                        highlightthickness=0, activebackground=background_color)
         # self.search_button = tk.Button(self, text="חפש", command=self.search)
+        self.search_button.pack()
         self.search_button.place(relx=SEARCH_BUTTON_LOCATION[0], rely=SEARCH_BUTTON_LOCATION[1], anchor=tk.CENTER)
         self.search_button.config(background=background_color, activebackground=background_color, borderwidth=0)
 
@@ -515,6 +492,7 @@ class GUI(tk.Tk):
                                             sliderlength=SLIDER_LENGTH,
                                             background=background_color, foreground="black", )
         self.transparency_slider.set(100)
+        self.transparency_slider.pack()
         self.transparency_slider.place(relx=SLIDER_LOCATION[0], rely=SLIDER_LOCATION[1], anchor=tk.CENTER)
         # Call the update_transparency function when the slider is moved
         self.transparency_slider.config(command=self.update_transparency)
@@ -522,6 +500,7 @@ class GUI(tk.Tk):
 
     def change_type_button(self):
         self.size_button = tk.Button(self, text="Change Type", command=self.update_size)
+        self.size_button.pack()
         self.size_button.place(relx=0.2, rely=0.7, anchor=tk.CENTER)
         self.size_button.config(background=second_background_color, foreground="black", font=FONT)
 
