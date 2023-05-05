@@ -175,8 +175,10 @@ def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_sl
     saved_image_name = str(int(coordinates[0])) + "," + str(int(coordinates[1])) + " RESULT"
     plt.savefig(os.path.join("results_images", saved_image_name))
     plt.show()
-
-
+def update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white):
+    count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
+    slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
+    screen_gui.set_time_for_iteration(slopy)
 def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     st = time.time()
     cputime_start = time.process_time()
@@ -189,9 +191,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
 
     slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
-    count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
-    slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
-    screen_gui.set_time_for_iteration(slopy)
+    update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white)
     # plot_heat_map(slopes_mask_in_black_and_white)
     # This work with image name only when image is in Main dir, else need full path!
 
@@ -209,8 +209,8 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     filter_area_size = 800
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     print("Finish")
-    plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
-                        total_mask_filtered, coordinates)
+    # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
+    #                     total_mask_filtered, coordinates)
     screen_gui.update_progressbar(100)
 
     return img, total_mask_filtered
