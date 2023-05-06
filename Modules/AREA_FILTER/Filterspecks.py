@@ -1,6 +1,8 @@
 import numpy as np
 import cv2
 
+
+
 # Create a binary matrix
 def FilterSpecks(matPicture , size):
         # Save the black and white image to a file

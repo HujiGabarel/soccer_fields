@@ -16,7 +16,6 @@ import math
 from Modules.Trees.predict_with_trained_model import predict_image
 from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
 from Modules.GUI import gui
-import random
 import math
 import openpyxl
 from Modules.AREA_FILTER.Filterspecks import FilterSpecks
@@ -28,6 +27,49 @@ import time
 DTM_FILE_PATH = "../../DTM_data/top.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
+#TODO: where to put
+def detect_fields(matrix,shape,val_to_find):
+    
+    VALUE_REPLACEMENT = 1
+    if val_to_find == VALUE_REPLACEMENT:
+        VALUE_REPLACEMENT += 1
+
+    matrix[matrix != val_to_find] = VALUE_REPLACEMENT
+    matrix[matrix == val_to_find] = 0
+
+    wanted_sum = 0
+    
+    t1 = time.time()
+    summed = matrix.cumsum(axis=0).cumsum(axis=1)
+    t3 =time.time()
+    print((t3-t1)*(10**3),"ms")
+
+    results = []
+    short_side = min(shape[0],shape[1])
+    for i in range(matrix.shape[0]-short_side+1):
+        for j in range(matrix.shape[1]-short_side+1):
+            next_row_A = i+shape[0]-1
+            next_col_A = j+shape[1]-1
+            #for detecting rectangle (2 options) -TODO: handle both cases
+            next_row_B = i + shape[1]-1
+            next_row_B = j + shape[0]-1
+            
+            tl,bl,br = 0,0,0
+            if i !=0 :
+                br = summed[i-1][next_col_A]
+            if j != 0:
+                bl = summed[next_row_A][j-1] 
+            if i != 0 and j !=0:
+                tl = summed[i-1][j-1]
+
+            val = summed[next_row_A][next_col_A] + tl - bl - br
+            if val == wanted_sum:
+                results.append((i,j),(i+next_row_A-1,j+next_col_A-1))
+    t2 = time.time()
+    print((t3-t1)*(10**3),"ms")
+    return results
+
+"""
 #TODO: should it be in Area_filter?
 def detect_fields_in_image(mask,height,width,val_to_find):
     if height > mask.shape[0] or width > mask.shape[1]:
@@ -50,6 +92,7 @@ def find_fields(mask,side1,side2,val_to_find):
         spots = detect_fields_in_image(mask,side2,side1,val_to_find)
     
     return spots
+"""
 
 # TODO: decide about length
 def get_image_from_utm(coordinates, km_radius):
@@ -205,8 +248,13 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask, coordinates)
-    print(detect_fields_in_image(total_mask,20,20,255))
-
+    t1 =time.time()
+    print(total_mask.shape)
+    a = detect_fields(total_mask,(40,50),255)
+    t2 = time.time()
+    #b=detect_fields_in_image(total_mask,40,50,255)
+    #print(len(a),len(b))
+    print("calculating",(t2-t1)*(10**3),"ms")
     filter_area_size = 600
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     print("Finish")
@@ -250,11 +298,11 @@ if __name__ == '__main__':
     # BoundingBox(left=684825.0, bottom=3621765.0, right=689175.0, top=3624175.0) some
     # BoundingBox(left=666735.0, bottom=3590995.0, right=852765.0, top=3823815.0) top
     screen = gui.GUI()
-    screen.mainloop()
-    # coordinates = (753200, 3689064, 36, 'N')
-    # km_radius = 0.3
+    #screen.mainloop()
+    coordinates = (705956, 3619061, 36, 'N')
+    km_radius = 0.3
     # #
     # # 698342,3618731
     # # 698812,3620547
     # # 740000,3726000
-    # get_viable_landing_in_radius(coordinates, km_radius)
+    get_viable_landing_in_radius(coordinates, km_radius,screen)
