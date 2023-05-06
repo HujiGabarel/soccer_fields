@@ -175,7 +175,7 @@ def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
 
 
 
-def get_w_or_b(e_vals, n_vals, e_center, n_center, m_radius, trees, slopes):
+def get_white_or_black(e_vals, n_vals, e_center, n_center, m_radius, trees, slopes):
     row_tree = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * trees.shape[0]).astype(int)
     col_tree = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * trees.shape[1]).astype(int)
     row_slope = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * slopes.shape[0]).astype(int) - 1
@@ -192,10 +192,10 @@ def get_total_mask_from_masks(e_center, n_center, radius, trees, slopes):
     n_vals = np.arange(n_center - m_radius, n_center + m_radius)
 
     # Create 2D arrays of e and n values for indexing
-    ee, nn = np.meshgrid(e_vals, n_vals, indexing='ij')
+    ee, nn = np.meshgrid(e_vals, n_vals, indexing='xy')
 
     # Calculate the total mask using vectorized numpy indexing
-    total_mask = get_w_or_b(nn, ee, n_center, e_center, m_radius, trees, slopes)
+    total_mask = get_white_or_black(ee, nn, e_center, n_center, m_radius, trees, slopes)
 
     return total_mask
 
@@ -218,8 +218,10 @@ def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_sl
     saved_image_name = str(int(coordinates[0])) + "," + str(int(coordinates[1])) + " RESULT"
     plt.savefig(os.path.join("results_images", saved_image_name))
     plt.show()
-
-
+def update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white):
+    count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
+    slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
+    screen_gui.set_time_for_iteration(slopy)
 def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     st = time.time()
     cputime_start = time.process_time()
@@ -232,9 +234,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
 
     slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
-    count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
-    slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
-    screen_gui.set_time_for_iteration(slopy)
+    update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white)
     # plot_heat_map(slopes_mask_in_black_and_white)
     # This work with image name only when image is in Main dir, else need full path!
 
@@ -245,9 +245,8 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
 
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                            slopes_mask_in_black_and_white)
+
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
-    # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
-    #                     total_mask, coordinates)
     t1 =time.time()
     print(total_mask.shape)
     a = detect_fields(total_mask,(40,50),255)
@@ -258,6 +257,8 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     filter_area_size = 600
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     print("Finish")
+    # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
+    #                     total_mask_filtered, coordinates)
     screen_gui.update_progressbar(100)
 
     return img, total_mask_filtered
@@ -298,11 +299,11 @@ if __name__ == '__main__':
     # BoundingBox(left=684825.0, bottom=3621765.0, right=689175.0, top=3624175.0) some
     # BoundingBox(left=666735.0, bottom=3590995.0, right=852765.0, top=3823815.0) top
     screen = gui.GUI()
-    #screen.mainloop()
-    coordinates = (705956, 3619061, 36, 'N')
-    km_radius = 0.3
+    screen.mainloop()
+    # coordinates = (698812, 3620547, 36, 'N')
+    # km_radius = 0.2
     # #
     # # 698342,3618731
     # # 698812,3620547
     # # 740000,3726000
-    get_viable_landing_in_radius(coordinates, km_radius,screen)
+    #get_viable_landing_in_radius(coordinates, km_radius,screen)
