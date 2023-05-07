@@ -8,8 +8,7 @@ import numpy as np
 import rasterio as rio
 from dask import diagnostics
 from sklearn import ensemble
-
-from Modules.Trees.detectree import settings, pixel_response, pixel_features, utils
+from Modules.Trees.detectree import pixel_features, pixel_response, settings, utils
 
 __all__ = ["ClassifierTrainer", "Classifier"]
 

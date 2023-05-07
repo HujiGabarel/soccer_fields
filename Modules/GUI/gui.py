@@ -19,15 +19,16 @@ def distance_text_location_func(points):
     padding = 25
     x_1, y_1 = x - padding, y - padding
     x_2, y_2 = x + padding, y + padding
-    points_list = [(x_1, y_1), (x_2, y_1)]
-    max_distance = 0
-    max_point = None
-    for point in points_list:
-        if max_point is None or max_distance < TWO_POINTS_DISTANCE(point[0], point[1], START_X, START_Y, END_X, END_Y):
-            max_point = point
-            max_distance = TWO_POINTS_DISTANCE(point[0], point[1], START_X, START_Y, END_X, END_Y)
+    points_list = [(x_1, y_1), (x_2, y_2), (x_1, y_2), (x_2, y_1)]
+    max_point = max(points_list,
+                    key=lambda point: TWO_POINTS_DISTANCE(point[0], point[1], START_X, START_Y, END_X, END_Y))
+    max_distance = TWO_POINTS_DISTANCE(max_point[0], max_point[1], START_X, START_Y, END_X, END_Y)
+    far_points = [point for point in points_list if
+                  max_distance < TWO_POINTS_DISTANCE(point[0], point[1], START_X, START_Y, END_X, END_Y) + 2]
+    max_point = max(far_points,
+                    key=lambda point: min(point[0], point[1], CANVAS_WIDTH - point[0], CANVAS_HEIGHT - point[1]))
     x_gap, y_gap = max_point[0] - x, max_point[1] - y
-    return (x + x_gap, y + y_gap)
+    return x + x_gap, y + y_gap
 
 
 class GUI(tk.Tk):
@@ -42,6 +43,8 @@ class GUI(tk.Tk):
         self.y = WINDOW_Y
         self.canvas_distance = {}
         self.entry_distance_labels = {}
+        self.mask_dictionary = {}
+
         self.E_value = 0
         self.N_value = 0
         self.Radius_value = 0
@@ -51,7 +54,7 @@ class GUI(tk.Tk):
         self.create_widgets()
         # self.add_background_gif()
 
-    def init_with_values(self, E="698812", N="3620547", Radius="0.1"):
+    def init_with_values(self, E="698812", N="3620547", Radius="0.2"):
         self.E_entry.insert(0, E)
         self.N_entry.insert(0, N)
         self.Radius_entry.insert(0, Radius)
@@ -132,9 +135,87 @@ class GUI(tk.Tk):
         self.create_slider()
         # self.create_type_label()
         # self.change_type_button()
+        # self.add_masks_check_points()
+
         self.init_with_values()
 
         # Define a function to set the start point of the line
+
+    def add_masks_check_points(self):
+        # check points are the boxes that are checked in the check boxes
+        self.trees_check_point = tk.IntVar()
+        self.trees_check_point.set(1)
+        self.trees_check_box = tk.Checkbutton(self, text="Trees", variable=self.trees_check_point,
+                                              command=self.check_box_changed)
+        self.trees_check_box.pack()
+        self.trees_check_box.place(relx=TREES_CHECK_BOX_LOCATION[0], rely=TREES_CHECK_BOX_LOCATION[1], anchor=tk.CENTER)
+        self.trees_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        self.buildings_check_point = tk.IntVar()
+        # self.buildings_check_point.set(1)
+        self.buildings_check_box = tk.Checkbutton(self, text="Buildings", variable=self.buildings_check_point,
+                                                  command=self.check_box_changed)
+        self.buildings_check_box.pack()
+        self.buildings_check_box.place(relx=BUILDINGS_CHECK_BOX_LOCATION[0], rely=BUILDINGS_CHECK_BOX_LOCATION[1],
+                                       anchor=tk.CENTER)
+        self.buildings_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        self.electricity_check_point = tk.IntVar()
+        # self.electricity_check_point.set(1)
+        self.electricity_check_box = tk.Checkbutton(self, text="Electricity", variable=self.electricity_check_point,
+                                                    command=self.check_box_changed)
+        self.electricity_check_box.pack()
+        self.electricity_check_box.place(relx=ELECTRICITY_CHECK_BOX_LOCATION[0],
+                                         rely=ELECTRICITY_CHECK_BOX_LOCATION[1], anchor=tk.CENTER)
+        self.electricity_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        self.slope_check_point = tk.IntVar()
+        self.slope_check_point.set(1)
+        self.slope_check_box = tk.Checkbutton(self, text="Slope", variable=self.slope_check_point,
+                                              command=self.check_box_changed)
+        self.slope_check_box.pack()
+        self.slope_check_box.place(relx=SLOPES_CHECK_BOX_LOCATION[0], rely=SLOPES_CHECK_BOX_LOCATION[1],
+                                   anchor=tk.CENTER)
+        self.slope_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+
+    def check_box_changed(self):
+        key_for_check_point = ""
+        if self.buildings_check_point.get() == 1:
+            key_for_check_point += "Buildings"
+        if self.electricity_check_point.get() == 1:
+            key_for_check_point += "&Electricity"
+        if self.slope_check_point.get() == 1:
+            key_for_check_point += "&Slopes"
+        if self.trees_check_point.get() == 1:
+            key_for_check_point += "&Trees"
+        if key_for_check_point[0] == "&":
+            key_for_check_point = key_for_check_point[1:]
+        self.add_original_image(self.saved_og_image)
+        self.add_result_image(self.mask_dictionary[key_for_check_point])
+        for distance in self.entry_distance_labels:
+            self.canvas.delete(self.entry_distance_labels[distance])
+        self.entry_distance_labels = {}
+        for line in self.canvas_distance.keys():
+            self.canvas.delete(line)
+        canvas_distance_copy = self.canvas_distance.copy()
+        self.canvas_distance = {}
+        self.entry_distance_labels = {}
+        for line in canvas_distance_copy:
+            self.line = -111
+            P = canvas_distance_copy[line]
+            self.draw_line(P[0], P[1], P[2], P[3])
+
+    def draw_line(self, START_X, START_Y, END_X, END_Y):
+        if self.line != -111:
+            self.canvas.coords(self.line, START_X, START_Y, END_X, END_Y)
+            self.canvas_distance[self.line] = [START_X, START_Y, END_X, END_Y]
+        else:
+            self.line = self.canvas.create_line(START_X, START_Y, END_X, END_Y, width=LINE_WIDTH, fill=LINE_COLOR,
+                                                smooth=True)
+            self.canvas_distance[self.line] = [START_X, START_Y, END_X, END_Y]
+        # calculate the distance between the two points
+        self.distance = math.sqrt((START_X - END_X) ** 2 + (START_Y - END_Y) ** 2)
+        float_R = 1 if float(self.get_Radius_value()) == 0 else float(self.get_Radius_value())
+        self.distance = 2 * self.distance * float_R * 1000 / CANVAS_WIDTH
+        self.distance = round(self.distance, 2)
+        self.add_entry_distance()
 
     def search(self):
         # get the entry values
@@ -158,14 +239,8 @@ class GUI(tk.Tk):
     def run_process(self, coordinates):
         image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
-        self.add_result_image(total_mask)
+        self.add_result_image(total_mask["Slopes&Trees"])
         # self.background_label.destroy()
-        for distance in self.entry_distance_labels:
-            self.canvas.delete(self.entry_distance_labels[distance])
-        self.entry_distance_labels = {}
-        for line in self.canvas_distance.keys():
-            self.canvas.delete(line)
-        self.canvas_distance = {}
         self.update_transparency(50)
         self.transparency_slider.set(50)
 
@@ -230,7 +305,8 @@ class GUI(tk.Tk):
             self.canvas.delete(self.entry_distance_labels[self.line])
             self.entry_distance_labels[self.line] = self.canvas.create_text((X, Y),
                                                                             text=DISTANCE_STR_FORMAT(self.distance),
-                                                                            font=DISTANCE_FONT, fill=DISTANCE_TEXT_COLOR)
+                                                                            font=DISTANCE_FONT,
+                                                                            fill=DISTANCE_TEXT_COLOR)
             return None
         self.entry_distance_labels[self.line] = self.canvas.create_text(DISTANCE_ENTRY_LOCATION,
                                                                         text=DISTANCE_STR_FORMAT(self.distance),

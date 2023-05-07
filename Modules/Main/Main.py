@@ -24,32 +24,35 @@ from Modules.AREA_FILTER.Filterspecks import FilterSpecks
 # TODO: remove after debug
 import time
 
-
 DTM_FILE_PATH = "../../DTM_data/top.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
-#TODO: should it be in Area_filter?
-def detect_fields_in_image(mask,height,width,val_to_find):
+
+# TODO: should it be in Area_filter?
+def detect_fields_in_image(mask, height, width, val_to_find):
     if height > mask.shape[0] or width > mask.shape[1]:
         return []
-    
+
     spots = []
-    wanted_spot = np.full((height,width),fill_value=val_to_find) 
-    rows, cols = np.where(np.all(np.lib.stride_tricks.sliding_window_view(mask, (height, width)) == wanted_spot, axis=(2, 3))) #axis(2,3) takes size of window
-    for  row,col in zip(rows,cols):
-        box = ((row,col),(row+height-1,col+width-1))
+    wanted_spot = np.full((height, width), fill_value=val_to_find)
+    rows, cols = np.where(np.all(np.lib.stride_tricks.sliding_window_view(mask, (height, width)) == wanted_spot,
+                                 axis=(2, 3)))  # axis(2,3) takes size of window
+    for row, col in zip(rows, cols):
+        box = ((row, col), (row + height - 1, col + width - 1))
         spots.append(box)
 
     return spots
 
-def find_fields(mask,side1,side2,val_to_find):
-    #return list of boxes - [((row_tl,col_tl),(row_br,col_br)),...]
-    
-    spots = detect_fields_in_image(mask,side1,side2,val_to_find)
-    if side1 != side2: #check transposed rectangle
-        spots = detect_fields_in_image(mask,side2,side1,val_to_find)
-    
+
+def find_fields(mask, side1, side2, val_to_find):
+    # return list of boxes - [((row_tl,col_tl),(row_br,col_br)),...]
+
+    spots = detect_fields_in_image(mask, side1, side2, val_to_find)
+    if side1 != side2:  # check transposed rectangle
+        spots = detect_fields_in_image(mask, side2, side1, val_to_find)
+
     return spots
+
 
 # TODO: decide about length
 def get_image_from_utm(coordinates, km_radius):
@@ -57,9 +60,10 @@ def get_image_from_utm(coordinates, km_radius):
         prefs = json.loads(f.read())
 
     lat, long = image_downloading.convert_to_lat_long(coordinates)
+    print(lat, long)
     img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'],
                                            length=2 * km_radius)
-
+    print("image downloaded")
     # timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     name = f'images_from_argcis/img_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, img)
@@ -72,7 +76,7 @@ def get_tree_mask_from_image(aerial, trained_model_path, pixels_to_ignore=[]):
     return predict_image(aerial, trained_model_path, pixels_to_ignore)
 
 
-def cheack_coordinates_area_are_in_dtm(coordinates, size, dem):
+def check_coordinates_area_are_in_dtm(coordinates, size, dem):
     return ((dem.bounds.left < (coordinates[0] + size) < dem.bounds.right) and
             (dem.bounds.left < (coordinates[0] - size) < dem.bounds.right) and
             (dem.bounds.bottom < (coordinates[1] + size) < dem.bounds.top) and
@@ -111,7 +115,7 @@ def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
     ### assuming that the coordinates[0] is cols (east / west) and coordinates[1] is rows (north / south)
 
     # calculating the center for partial_dtm
-    if cheack_coordinates_area_are_in_dtm(coordinates, size, dem):
+    if check_coordinates_area_are_in_dtm(coordinates, size, dem):
         print("coordinates are in range")
     print(dem.bounds.left, dem.bounds.top)
 
@@ -129,7 +133,6 @@ def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
     new_cols = partial_dtm.shape[1]
 
     return partial_dtm, new_rows, new_cols
-
 
 
 def get_white_or_black(e_vals, n_vals, e_center, n_center, m_radius, trees, slopes):
@@ -175,10 +178,14 @@ def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_sl
     saved_image_name = str(int(coordinates[0])) + "," + str(int(coordinates[1])) + " RESULT"
     plt.savefig(os.path.join("results_images", saved_image_name))
     plt.show()
+
+
 def update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white):
     count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
     slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
     screen_gui.set_time_for_iteration(slopy)
+
+
 def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     st = time.time()
     cputime_start = time.process_time()
@@ -204,7 +211,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
                                            slopes_mask_in_black_and_white)
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
 
-    print(detect_fields_in_image(total_mask,20,20,255))
+    # print(detect_fields_in_image(total_mask,20,20,255))
 
     filter_area_size = 800
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
@@ -212,8 +219,9 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask_filtered, coordinates)
     screen_gui.update_progressbar(100)
-
-    return img, total_mask_filtered
+    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": tree_mask,
+                        "Slopes&Trees": total_mask_filtered}
+    return img, masks_dictionary
 
 
 def data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start):

@@ -59,6 +59,15 @@ VIEWPORT_WIDTH = CANVAS_WIDTH
 VIEWPORT_HEIGHT = CANVAS_HEIGHT
 START_X, START_Y = None, None
 END_X, END_Y = None, None
+# MASKS_KEYS = ["Slopes", "Buildings", "Trees", "Electricity", "Buildings&Slopes", "Slopes&Trees", "Electricity&Slopes",
+#               "Electricity&Trees", "Buildings&Trees", "Buildings&Electricity", "Buildings&Slopes&Trees",
+#               "Buildings&Electricity&Slopes", "Electricity&Slopes&Trees", "Buildings&Electricity&Trees",
+#               "Buildings&Electricity&Slopes&Trees"]
+MASKS_KEYS=["Slopes","Trees","Slopes&Trees"]
+TREES_CHECK_BOX_LOCATION = (0.8, 0.3)
+SLOPES_CHECK_BOX_LOCATION = (0.8, 0.35)
+ELECTRICITY_CHECK_BOX_LOCATION = (0.8, 0.4)
+BUILDINGS_CHECK_BOX_LOCATION = (0.8, 0.45)
 
 
 TWO_POINTS_DISTANCE = lambda x, y, START_X, START_Y, END_X, END_Y: abs(
