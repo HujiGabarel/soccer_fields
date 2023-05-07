@@ -589,3 +589,4 @@ class GUI(tk.Tk):
 if __name__ == '__main__':
     gui = GUI()
     gui.mainloop()
+    print("Done!")
