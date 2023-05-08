@@ -15,7 +15,7 @@ from rasterio import plot
 import math
 from Modules.Trees.predict_with_trained_model import predict_image
 from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
-from Modules.Building.predict import detect_building, convert_building_to_black_white
+from Modules.Building.predict import detect_building, convert_building_to_black_white,convert_building_to_tree_style
 from Modules.GUI import gui
 from Modules.AreaFilter.Filterspecks import FilterSpecks;
 from Modules.AreaFilter.RectangleFilter import detect_rectangles;
@@ -179,37 +179,38 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
 
     building_res = detect_building(image_name)
     building_shape = building_res.shape
-    building_mask_black_and_white = convert_building_to_black_white(building_res) #TODO: set threshold
-    #print(building_black_and_white)
-
+    #building_mask_black_and_white = convert_building_to_black_white(building_res) #TODO: set threshold
+    building_mask_tree_style = convert_building_to_tree_style(building_res)
     unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape,
                                               slope_shape)  # add according to slopes - find all places where slope is 1
     
-    unwanted_pixels_building = mask_pixels_from_slopes(building_mask_black_and_white,tree_shape,building_shape) #TODO: add mask pixels from building also fo
+    #unwanted_pixels_building = mask_pixels_from_slopes(building_mask_black_and_white,tree_shape,building_shape) #TODO: add mask pixels from building also fo
     #unwanted_pixels = np.unique(np.concatenate(unwanted_pixels_slope,unwanted_pixels_building))
     unwanted_pixels = unwanted_pixels_slope
 
     tree_mask = get_tree_mask_from_image(image_name, trained_model_path, unwanted_pixels)
+    #TODO: do it before performing trees
+    tree_mask = np.logical_or(building_mask_tree_style,tree_mask)
 
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                            slopes_mask_in_black_and_white)
 
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
     t1 =time.time()
-    a = detect_rectangles(total_mask,(50,50),255)
+    landing_spots = detect_rectangles(total_mask,(50,50),255)
     t2 =time.time()
     print("calculating",(t2-t1)*(10**3),"ms")
+    print("spots found: {}".format(len(landing_spots)))
     filter_area_size = 600
-
-    # print(detect_fields_in_image(total_mask,20,20,255))
 
     filter_area_size = 800
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
+
     print("Finish")
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask_filtered, coordinates)
     screen_gui.update_progressbar(100)
-    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": tree_mask,"Buildings" : building_mask_black_and_white,
+    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": tree_mask,
                         "Slopes&Trees": total_mask_filtered}
     return img, masks_dictionary
 

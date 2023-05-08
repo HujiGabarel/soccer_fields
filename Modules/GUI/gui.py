@@ -240,7 +240,6 @@ class GUI(tk.Tk):
         image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
         self.add_result_image(total_mask["Slopes&Trees"])
-        self.add_result_image(total_mask["Buildings"])
 
         # self.background_label.destroy()
         self.update_transparency(50)
