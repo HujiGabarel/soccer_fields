@@ -185,10 +185,11 @@ class GUI(tk.Tk):
             key_for_check_point += "&Slopes"
         if self.trees_check_point.get() == 1:
             key_for_check_point += "&Trees"
-        if key_for_check_point[0] == "&":
+        if len(key_for_check_point) != 0 and key_for_check_point[0] == "&":
             key_for_check_point = key_for_check_point[1:]
         self.add_original_image(self.saved_og_image)
-        self.add_result_image(self.mask_dictionary[key_for_check_point])
+        if key_for_check_point in MASKS_KEYS:
+            self.add_result_image(self.mask_dictionary[key_for_check_point])
         for distance in self.entry_distance_labels:
             self.canvas.delete(self.entry_distance_labels[distance])
         self.entry_distance_labels = {}
@@ -243,7 +244,6 @@ class GUI(tk.Tk):
         print(total_mask.keys())
         print(total_mask)
         self.add_result_image(total_mask["Slopes&Trees"])
-
         # self.background_label.destroy()
         self.update_transparency(50)
         self.transparency_slider.set(50)
@@ -410,7 +410,7 @@ class GUI(tk.Tk):
         :return:
         """
         if self.mask_dictionary == {}:
-            self.mask_dictionary = {k : image for k in MASKS_KEYS}
+            self.mask_dictionary = {k: image for k in MASKS_KEYS}
         self.result_image_1 = Image.fromarray(image).resize((self.x, self.y))
         self.result_image_1 = self.result_image_1.convert(mode='RGB')
         self.result_image = ImageTk.PhotoImage(self.result_image_1)

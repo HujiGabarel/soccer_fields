@@ -177,10 +177,10 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     # plot_heat_map(slopes_mask_in_black_and_white)
     # This work with image name only when image is in Main dir, else need full path!
 
-    building_res = detect_building(image_name)
-    building_shape = building_res.shape
-    #building_mask_black_and_white = convert_building_to_black_white(building_res) #TODO: set threshold
-    building_mask_tree_style = convert_building_to_tree_style(building_res)
+    # building_res = detect_building(image_name)
+    # building_shape = building_res.shape
+    # #building_mask_black_and_white = convert_building_to_black_white(building_res) #TODO: set threshold
+    # building_mask_tree_style = convert_building_to_tree_style(building_res)
     unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape,
                                               slope_shape)  # add according to slopes - find all places where slope is 1
     
@@ -190,7 +190,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
 
     tree_mask = get_tree_mask_from_image(image_name, trained_model_path, unwanted_pixels)
     #TODO: do it before performing trees
-    tree_mask = np.logical_or(building_mask_tree_style,tree_mask)
+    # tree_mask = np.logical_or(building_mask_tree_style,tree_mask)
 
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                            slopes_mask_in_black_and_white)
@@ -201,11 +201,9 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     t2 =time.time()
     print("calculating",(t2-t1)*(10**3),"ms")
     print("spots found: {}".format(len(landing_spots)))
-    filter_area_size = 600
 
     filter_area_size = 800
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
-
     print("Finish")
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask_filtered, coordinates)
