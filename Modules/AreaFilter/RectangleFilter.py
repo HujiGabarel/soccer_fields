@@ -20,15 +20,15 @@ def get_rectangle_sum(sum_matrix,start_point,height,width):
     if next_row >= sum_matrix.shape[0] or next_col >= sum_matrix.shape[1]:
         raise Exception("Out of image bounds")    
     
-    tl_value,bl_value,br_value = 0,0,0
+    tl_value,bl_value,tr_value = 0,0,0
     if row_base !=0 :
-        br_value = sum_matrix[row_base-1][next_col]
+        tr_value = sum_matrix[row_base-1][next_col]
     if col_base != 0:
         bl_value = sum_matrix[next_row][col_base-1] 
     if row_base != 0 and col_base !=0:
         tl_value = sum_matrix[row_base-1][col_base-1]
 
-    val = sum_matrix[next_row][next_col] + tl_value - bl_value - br_value
+    val = sum_matrix[next_row][next_col] + tl_value - bl_value - tr_value
 
     return val
 
