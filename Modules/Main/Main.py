@@ -210,7 +210,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask_filtered, coordinates)
     screen_gui.update_progressbar(100)
-    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": tree_mask,
+    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees":  np.where(tree_mask == 255, 0, 255),
                         "Slopes&Trees": total_mask_filtered}
     return img, masks_dictionary
 
