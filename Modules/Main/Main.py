@@ -24,7 +24,6 @@ from Modules.AreaFilter.RectangleFilter import detect_rectangles;
 # TODO: remove after debug
 import time
 
-
 DTM_FILE_PATH = "../../DTM_data/top.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
@@ -35,9 +34,10 @@ def get_image_from_utm(coordinates, km_radius):
         prefs = json.loads(f.read())
 
     lat, long = image_downloading.convert_to_lat_long(coordinates)
+    print(lat, long)
     img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'],
                                            length=2 * km_radius)
-
+    print("image downloaded")
     # timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
     name = f'images_from_argcis/img_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, img)
@@ -50,7 +50,7 @@ def get_tree_mask_from_image(aerial, trained_model_path, pixels_to_ignore=[]):
     return predict_image(aerial, trained_model_path, pixels_to_ignore)
 
 
-def cheack_coordinates_area_are_in_dtm(coordinates, size, dem):
+def check_coordinates_area_are_in_dtm(coordinates, size, dem):
     return ((dem.bounds.left < (coordinates[0] + size) < dem.bounds.right) and
             (dem.bounds.left < (coordinates[0] - size) < dem.bounds.right) and
             (dem.bounds.bottom < (coordinates[1] + size) < dem.bounds.top) and
@@ -89,7 +89,7 @@ def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
     ### assuming that the coordinates[0] is cols (east / west) and coordinates[1] is rows (north / south)
 
     # calculating the center for partial_dtm
-    if cheack_coordinates_area_are_in_dtm(coordinates, size, dem):
+    if check_coordinates_area_are_in_dtm(coordinates, size, dem):
         print("coordinates are in range")
     print(dem.bounds.left, dem.bounds.top)
 
@@ -107,7 +107,6 @@ def get_partial_dtm_from_total_dtm(coordinates, km_radius, meters_per_pixel=10):
     new_cols = partial_dtm.shape[1]
 
     return partial_dtm, new_rows, new_cols
-
 
 
 def get_white_or_black(e_vals, n_vals, e_center, n_center, m_radius, trees, slopes):
@@ -153,10 +152,14 @@ def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_sl
     saved_image_name = str(int(coordinates[0])) + "," + str(int(coordinates[1])) + " RESULT"
     plt.savefig(os.path.join("results_images", saved_image_name))
     plt.show()
+
+
 def update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white):
     count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
     slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
     screen_gui.set_time_for_iteration(slopy)
+
+
 def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     st = time.time()
     cputime_start = time.process_time()
@@ -184,18 +187,21 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
     t1 =time.time()
     a = detect_rectangles(total_mask,(50,50),255)
-    t2 = time.time()
-    b=find_fields(total_mask,50,50,255)
-    print(len(a),len(b))
+    t2 =time.time()
     print("calculating",(t2-t1)*(10**3),"ms")
     filter_area_size = 600
+
+    # print(detect_fields_in_image(total_mask,20,20,255))
+
+    filter_area_size = 800
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     print("Finish")
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask_filtered, coordinates)
     screen_gui.update_progressbar(100)
-
-    return img, total_mask_filtered
+    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": tree_mask,
+                        "Slopes&Trees": total_mask_filtered}
+    return img, masks_dictionary
 
 
 def data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start):
