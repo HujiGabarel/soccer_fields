@@ -135,7 +135,7 @@ class GUI(tk.Tk):
         self.create_slider()
         # self.create_type_label()
         # self.change_type_button()
-        # self.add_masks_check_points()
+        self.add_masks_check_points()
 
         self.init_with_values()
 
@@ -151,7 +151,7 @@ class GUI(tk.Tk):
         self.trees_check_box.place(relx=TREES_CHECK_BOX_LOCATION[0], rely=TREES_CHECK_BOX_LOCATION[1], anchor=tk.CENTER)
         self.trees_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
         self.buildings_check_point = tk.IntVar()
-        # self.buildings_check_point.set(1)
+        self.buildings_check_point.set(0)
         self.buildings_check_box = tk.Checkbutton(self, text="Buildings", variable=self.buildings_check_point,
                                                   command=self.check_box_changed)
         self.buildings_check_box.pack()
@@ -159,7 +159,7 @@ class GUI(tk.Tk):
                                        anchor=tk.CENTER)
         self.buildings_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
         self.electricity_check_point = tk.IntVar()
-        # self.electricity_check_point.set(1)
+        self.electricity_check_point.set(0)
         self.electricity_check_box = tk.Checkbutton(self, text="Electricity", variable=self.electricity_check_point,
                                                     command=self.check_box_changed)
         self.electricity_check_box.pack()
@@ -239,6 +239,9 @@ class GUI(tk.Tk):
     def run_process(self, coordinates):
         image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
+        self.mask_dictionary = total_mask
+        print(total_mask.keys())
+        print(total_mask)
         self.add_result_image(total_mask["Slopes&Trees"])
         # self.background_label.destroy()
         self.update_transparency(50)
@@ -394,6 +397,7 @@ class GUI(tk.Tk):
         :param image: the original image
         :return:
         """
+        self.saved_og_image = image
         self.original_image_1 = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((self.x, self.y))
         self.original_image = ImageTk.PhotoImage(self.original_image_1)
         self.canvas.create_image(0, 0, image=self.original_image, anchor=tk.NW)
@@ -404,7 +408,8 @@ class GUI(tk.Tk):
         :param image: the result image
         :return:
         """
-
+        if self.mask_dictionary == {}:
+            self.mask_dictionary = {k : image for k in MASKS_KEYS}
         self.result_image_1 = Image.fromarray(image).resize((self.x, self.y))
         self.result_image_1 = self.result_image_1.convert(mode='RGB')
         self.result_image = ImageTk.PhotoImage(self.result_image_1)
