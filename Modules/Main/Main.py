@@ -15,13 +15,13 @@ from rasterio import plot
 import math
 from Modules.Trees.predict_with_trained_model import predict_image
 from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
+from Modules.Building.predict import detect_building, convert_building_to_black_white
 from Modules.GUI import gui
-import math
-import openpyxl
 from Modules.AreaFilter.Filterspecks import FilterSpecks;
 from Modules.AreaFilter.RectangleFilter import detect_rectangles;
 
-# TODO: remove after debug
+import math
+import openpyxl
 import time
 
 DTM_FILE_PATH = "../../DTM_data/top.tif"
@@ -59,6 +59,7 @@ def check_coordinates_area_are_in_dtm(coordinates, size, dem):
 
 
 def mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape, slope_shape):
+    
     unique_values, value_counts = np.unique(slopes_mask_in_black_and_white, return_counts=True)
 
     slope2TreeRow = tree_shape[0] / slope_shape[0]
@@ -176,8 +177,17 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     # plot_heat_map(slopes_mask_in_black_and_white)
     # This work with image name only when image is in Main dir, else need full path!
 
-    unwanted_pixels = mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape,
+    building_res = detect_building(image_name)
+    building_shape = building_res.shape
+    building_mask_black_and_white = convert_building_to_black_white(building_res) #TODO: set threshold
+    #print(building_black_and_white)
+
+    unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape,
                                               slope_shape)  # add according to slopes - find all places where slope is 1
+    
+    unwanted_pixels_building = mask_pixels_from_slopes(building_mask_black_and_white,tree_shape,building_shape) #TODO: add mask pixels from building also fo
+    #unwanted_pixels = np.unique(np.concatenate(unwanted_pixels_slope,unwanted_pixels_building))
+    unwanted_pixels = unwanted_pixels_slope
 
     tree_mask = get_tree_mask_from_image(image_name, trained_model_path, unwanted_pixels)
 
@@ -199,7 +209,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
     #                     total_mask_filtered, coordinates)
     screen_gui.update_progressbar(100)
-    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": tree_mask,
+    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": tree_mask,"Buildings" : building_mask_black_and_white,
                         "Slopes&Trees": total_mask_filtered}
     return img, masks_dictionary
 
@@ -239,11 +249,11 @@ if __name__ == '__main__':
     # BoundingBox(left=684825.0, bottom=3621765.0, right=689175.0, top=3624175.0) some
     # BoundingBox(left=666735.0, bottom=3590995.0, right=852765.0, top=3823815.0) top
     screen = gui.GUI()
-    #screen.mainloop()
+    screen.mainloop()
     coordinates = (698812, 3620547, 36, 'N')
     km_radius = 0.2
     # #
     # # 698342,3618731
     # # 698812,3620547
     # # 740000,3726000
-    get_viable_landing_in_radius(coordinates, km_radius,screen)
+    #get_viable_landing_in_radius(coordinates, km_radius,screen)
