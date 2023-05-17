@@ -15,16 +15,16 @@ from rasterio import plot
 import math
 from Modules.Trees.predict_with_trained_model import predict_image
 from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
-from Modules.Building.predict import detect_building, convert_building_to_black_white,convert_building_to_tree_style
+from Modules.Building.predict import detect_building, convert_building_to_black_white, convert_building_to_tree_style
 from Modules.GUI import gui
-from Modules.AreaFilter.Filterspecks import FilterSpecks;
-from Modules.AreaFilter.RectangleFilter import detect_rectangles;
+from Modules.AreaFilter.Filterspecks import FilterSpecks
+from Modules.AreaFilter.RectangleFilter import detect_rectangles
 
 import math
 import openpyxl
 import time
 
-DTM_FILE_PATH = "../../DTM_data/top.tif"
+DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
 
@@ -32,7 +32,6 @@ trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The 
 def get_image_from_utm(coordinates, km_radius):
     with open("preferences.json", 'r', encoding='utf-8') as f:
         prefs = json.loads(f.read())
-
     lat, long = image_downloading.convert_to_lat_long(coordinates)
     print(lat, long)
     img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'],
@@ -43,6 +42,43 @@ def get_image_from_utm(coordinates, km_radius):
     cv2.imwrite(name, img)
     print(f'Saved as {name}')
     return name, img
+
+
+def get_building_image_from_utm(coordinates, km_radius):
+    with open("preferences_building.json", 'r', encoding='utf-8') as f:
+        prefs = json.loads(f.read())
+    lat, long = image_downloading.convert_to_lat_long(coordinates)
+    print(lat, long)
+    img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'],
+                                           length=2 * km_radius)
+    print("image downloaded")
+    # timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+    name = f'images_from_argcis/img_{coordinates[0], coordinates[1]}.png'
+    cv2.imwrite(name, img)
+    print(f'Saved as {name}')
+    return img
+
+
+def smooth(building_mask):
+    return cv2.morphologyEx(building_mask, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8))
+
+
+def building_image_to_building_mask(building_image):
+    # run over each pixel and check if it is a in range of rgb of [220, 220, 220]
+    # if it is, change it to 1, else change it to 0
+    # return the mask
+    # 255 is building, 0 is not building
+    range_fiter = range(210, 225)
+    building_mask = np.copy(building_image)
+    for i in range(building_mask.shape[0]):
+        for j in range(building_mask.shape[1]):
+            if building_mask[i][j][0] in range_fiter and building_mask[i][j][1] in range_fiter and building_mask[i][j][
+                2] in range_fiter:
+                building_mask[i][j] = 255
+            else:
+                building_mask[i][j] = 0
+    # convert to grayscale
+    return cv2.cvtColor(smooth(building_mask), cv2.COLOR_BGR2GRAY)
 
 
 def get_tree_mask_from_image(aerial, trained_model_path, pixels_to_ignore=[]):
@@ -59,7 +95,6 @@ def check_coordinates_area_are_in_dtm(coordinates, size, dem):
 
 
 def mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape, slope_shape):
-    
     unique_values, value_counts = np.unique(slopes_mask_in_black_and_white, return_counts=True)
 
     slope2TreeRow = tree_shape[0] / slope_shape[0]
@@ -164,52 +199,34 @@ def update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white):
 def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     st = time.time()
     cputime_start = time.process_time()
+    # building mask
+    building_image = get_building_image_from_utm(coordinates, km_radius)
+    building_mask = building_image_to_building_mask(building_image)
+    partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
+    slope_shape = (new_rows, new_cols)
+    slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
+    slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
+    update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white)  # TODO:fix progressbar_speed
 
     image_name, img = get_image_from_utm(coordinates, km_radius)
     tree_shape = img.shape
-    partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
-    slope_shape = (new_rows, new_cols)
-
-    slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
-
-    slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
-    update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white)
-    # plot_heat_map(slopes_mask_in_black_and_white)
-    # This work with image name only when image is in Main dir, else need full path!
-
-    # building_res = detect_building(image_name)
-    # building_shape = building_res.shape
-    # #building_mask_black_and_white = convert_building_to_black_white(building_res) #TODO: set threshold
-    # building_mask_tree_style = convert_building_to_tree_style(building_res)
     unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape,
-                                              slope_shape)  # add according to slopes - find all places where slope is 1
-    
-    #unwanted_pixels_building = mask_pixels_from_slopes(building_mask_black_and_white,tree_shape,building_shape) #TODO: add mask pixels from building also fo
-    #unwanted_pixels = np.unique(np.concatenate(unwanted_pixels_slope,unwanted_pixels_building))
-    unwanted_pixels = unwanted_pixels_slope
-
+                                                    slope_shape)  # add according to slopes - find all places where slope is 1
+    unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
     tree_mask = get_tree_mask_from_image(image_name, trained_model_path, unwanted_pixels)
-    #TODO: do it before performing trees
-    # tree_mask = np.logical_or(building_mask_tree_style,tree_mask)
-
-    total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
-                                           slopes_mask_in_black_and_white)
-
-    data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
-    t1 =time.time()
-    landing_spots = detect_rectangles(total_mask,(50,50),255)
-    t2 =time.time()
-    print("calculating",(t2-t1)*(10**3),"ms")
-    print("spots found: {}".format(len(landing_spots)))
-
-    filter_area_size = 800
+    tree_and_slope_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
+                                                    slopes_mask_in_black_and_white)
+    total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
+                                           tree_and_slope_mask)
+    filter_area_size = 750
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
+    data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
     print("Finish")
-    # plot_image_and_mask(image_name, tree_mask, slopes_mask_in_black_and_white,
-    #                     total_mask_filtered, coordinates)
+    plot_image_and_mask(image_name, building_mask, tree_and_slope_mask,
+                        total_mask, coordinates)
     screen_gui.update_progressbar(100)
-    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees":  np.where(tree_mask == 255, 0, 255),
-                        "Slopes&Trees": total_mask_filtered}
+    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": np.where(tree_mask == 255, 0, 255),
+                        "Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix name
     return img, masks_dictionary
 
 
@@ -255,4 +272,6 @@ if __name__ == '__main__':
     # # 698342,3618731
     # # 698812,3620547
     # # 740000,3726000
-    #get_viable_landing_in_radius(coordinates, km_radius,screen)
+    # 695812,3600547
+    # 697687, 3620721
+    # get_viable_landing_in_radius(coordinates, km_radius,screen)

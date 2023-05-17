@@ -509,7 +509,7 @@ class GUI(tk.Tk):
 
     def set_time_for_iteration(self, slopy):
         time_for_flat_km_area = 190
-        new_area = (2 * (float(self.Radius_value)) ** 2) * (slopy / 100)
+        new_area = ((2 *float(self.Radius_value)) ** 2) * (slopy / 100)
         self.time_for_iteration = new_area * time_for_flat_km_area / 100
         # self.time_for_iteration = ((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) + (
         #         time_for_flat_km_area * (slopy / 100) ** 3)) / (2 * 100)
