@@ -1,5 +1,6 @@
 import os
 import math
+
 # Get the directory path of the current file (gui.py)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 search_path = os.path.join(dir_path, 'images_for_gui/heli_logo.jpeg')
@@ -63,12 +64,12 @@ END_X, END_Y = None, None
 #               "Electricity&Trees", "Buildings&Trees", "Buildings&Electricity", "Buildings&Slopes&Trees",
 #               "Buildings&Electricity&Slopes", "Electricity&Slopes&Trees", "Buildings&Electricity&Trees",
 #               "Buildings&Electricity&Slopes&Trees"]
-MASKS_KEYS=["Slopes","Trees","Slopes&Trees"]
+MASKS_KEYS = ["Slopes", "Trees", "Slopes&Trees", "Buildings", "Buildings&Slopes",  "Buildings&Trees",
+              "Buildings&Slopes&Trees"]
 TREES_CHECK_BOX_LOCATION = (0.8, 0.3)
 SLOPES_CHECK_BOX_LOCATION = (0.8, 0.35)
-ELECTRICITY_CHECK_BOX_LOCATION = (0.8, 0.4)
-BUILDINGS_CHECK_BOX_LOCATION = (0.8, 0.45)
-
+ELECTRICITY_CHECK_BOX_LOCATION = (0.8, 0.45)
+BUILDINGS_CHECK_BOX_LOCATION = (0.8, 0.4)
 
 TWO_POINTS_DISTANCE = lambda x, y, START_X, START_Y, END_X, END_Y: abs(
     (END_Y - START_Y) * x - (END_X - START_X) * y + END_X * START_Y - END_Y * START_X) / \

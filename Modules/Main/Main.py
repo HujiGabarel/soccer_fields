@@ -226,7 +226,9 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
                         total_mask, coordinates)
     screen_gui.update_progressbar(100)
     masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": np.where(tree_mask == 255, 0, 255),
-                        "Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix name
+                        "Slopes&Trees": tree_and_slope_mask,
+                        "Buildings": building_mask,
+                        "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix name
     return img, masks_dictionary
 
 
@@ -274,4 +276,5 @@ if __name__ == '__main__':
     # # 740000,3726000
     # 695812,3600547
     # 697687, 3620721
+    # 668668, 3542197 building test
     # get_viable_landing_in_radius(coordinates, km_radius,screen)

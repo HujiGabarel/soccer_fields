@@ -1,0 +1,7 @@
+{
+  "url": "https://services.arcgisonline.com/arcgis/rest/services/World_TOPO_MAP/MapServer/tile/{z}/{y}/{x}",
+  "tile_size": 256,
+  "tile_format": "jpg",
+  "dir": "https://services.arcgisonline.com/arcgis/rest/services/World_TOPO_MAP/MapServer/tile/{z}/{y}/{x}",
+  "zoom":18
+}
