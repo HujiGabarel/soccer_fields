@@ -35,7 +35,7 @@ class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.configure(background=BACKGROUND_COLOR)
-        self.title("Soccer Field GUI:")
+        self.title("Soccer Field")
         # put a picture on the window background
         self.square_x = WINDOW_SQUARE_X
         self.square_y = WINDOW_SQUARE_Y
@@ -44,7 +44,6 @@ class GUI(tk.Tk):
         self.canvas_distance = {}
         self.entry_distance_labels = {}
         self.mask_dictionary = {}
-
         self.E_value = 0
         self.N_value = 0
         self.Radius_value = 0
@@ -52,7 +51,6 @@ class GUI(tk.Tk):
         self.state("zoomed")
         self.resizable(True, True)
         self.create_widgets()
-        # self.add_background_gif()
 
     def init_with_values(self, E="698812", N="3620547", Radius="0.2"):
         self.E_entry.insert(0, E)
@@ -500,12 +498,12 @@ class GUI(tk.Tk):
                            background=SECOND_BACKGROUND_COLOR, )
         self.progressbar = ttk.Progressbar(self, orient="horizontal", length=PROGRESSBAR_LENGTH, mode="determinate",
                                            style="text.Horizontal.TProgressbar")
-        self.progressbar.place(relx=POGRESSBAR_LOCATION[0], rely=POGRESSBAR_LOCATION[1], anchor=tk.CENTER)
+        self.progressbar.place(relx=PROGRESSBAR_LOCATION[0], rely=PROGRESSBAR_LOCATION[1], anchor=tk.CENTER)
         self.progressbar["maximum"] = 100
         self.progressbar["value"] = 0
         self.progressbar_label = tk.Label(self, text="0%", font=FONT, foreground=FOREGROUND_COLOR,
                                           background=BACKGROUND_COLOR)
-        self.progressbar_label.place(relx=POGRESSBAR_LOCATION_LABEL[0], rely=POGRESSBAR_LOCATION_LABEL[1],
+        self.progressbar_label.place(relx=PROGRESSBAR_LOCATION_LABEL[0], rely=PROGRESSBAR_LOCATION_LABEL[1],
                                      anchor=tk.CENTER)
 
     def update_progressbar(self, value):
