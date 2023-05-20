@@ -1,20 +1,16 @@
 import os
 import math
 
-# Get the directory path of the current file (gui.py)
 dir_path = os.path.dirname(os.path.realpath(__file__))
 search_path = os.path.join(dir_path, 'images_for_gui/heli_logo.jpeg')
 cell_path = os.path.join(dir_path, 'images_for_gui/cell2.png')
-# Construct the absolute path of logo.png
 logo_path_gif = os.path.join(dir_path, 'images_for_gui/LOGO.gif')
 logo_path = os.path.join(dir_path, 'images_for_gui/logo.png')
-# Construct the absolute path of background.png
-pnotnp_path = os.path.join(dir_path, 'images_for_gui/PNOTNP.jpg')
-# Construct the absolute path of background.png
-pnp_path = os.path.join(dir_path, 'images_for_gui/PNP.jpg')
-# Construct the absolute path of background.png
 HELICOPTER_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/yasor.jpg')
-# Construct the absolute path of the original image and result image
+TREES_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/Trees.png')
+BUILDINGS_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/Buildings.png')
+SLOPES_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/Slopes.png')
+ELECTRICITY_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/electrical_line.png')
 ORIGINAL_IMAGE_PATH = logo_path
 RESULT_IMAGE_PATH = logo_path
 FONT = ('Helvetica', 16, "bold")
@@ -67,9 +63,11 @@ END_X, END_Y = None, None
 MASKS_KEYS = ["Slopes", "Trees", "Slopes&Trees", "Buildings", "Buildings&Slopes",  "Buildings&Trees",
               "Buildings&Slopes&Trees"]
 TREES_CHECK_BOX_LOCATION = (0.8, 0.3)
-SLOPES_CHECK_BOX_LOCATION = (0.8, 0.35)
-ELECTRICITY_CHECK_BOX_LOCATION = (0.8, 0.45)
-BUILDINGS_CHECK_BOX_LOCATION = (0.8, 0.4)
+SLOPES_CHECK_BOX_LOCATION = (0.8, 0.38)
+BUILDINGS_CHECK_BOX_LOCATION = (0.8, 0.46)
+ELECTRICITY_CHECK_BOX_LOCATION = (0.8, 0.54)
+
+CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT = 50, 50
 
 TWO_POINTS_DISTANCE = lambda x, y, START_X, START_Y, END_X, END_Y: abs(
     (END_Y - START_Y) * x - (END_X - START_X) * y + END_X * START_Y - END_Y * START_X) / \

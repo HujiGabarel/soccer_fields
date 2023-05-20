@@ -12,14 +12,12 @@ import rasterio
 import cv2
 import rasterio as rio
 from rasterio import plot
-import math
 from Modules.Trees.predict_with_trained_model import predict_image
 from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
-from Modules.Building.predict import detect_building, convert_building_to_black_white, convert_building_to_tree_style
+# from Modules.Building.predict import detect_building, convert_building_to_black_white, convert_building_to_tree_style
 from Modules.GUI import gui
 from Modules.AreaFilter.Filterspecks import FilterSpecks
 from Modules.AreaFilter.RectangleFilter import detect_rectangles
-
 import math
 import openpyxl
 import time
@@ -227,7 +225,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     screen_gui.update_progressbar(100)
     masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": np.where(tree_mask == 255, 0, 255),
                         "Slopes&Trees": tree_and_slope_mask,
-                        "Buildings": building_mask,
+                        "Buildings": np.where(building_mask == 255, 0, 255),
                         "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix name
     return img, masks_dictionary
 

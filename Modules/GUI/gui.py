@@ -142,37 +142,52 @@ class GUI(tk.Tk):
 
     def add_masks_check_points(self):
         # check points are the boxes that are checked in the check boxes
+        trees_image = Image.open(TREES_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
+        self.trees_image = ImageTk.PhotoImage(trees_image)
         self.trees_check_point = tk.IntVar()
         self.trees_check_point.set(1)
-        self.trees_check_box = tk.Checkbutton(self, text="Trees", variable=self.trees_check_point,
-                                              command=self.check_box_changed)
-        self.trees_check_box.pack()
+        self.trees_check_box = tk.Checkbutton(self, variable=self.trees_check_point,
+                                              command=self.check_box_changed, text=" Trees"+ " "*6, image=self.trees_image,
+                                              compound="left", font=FONT, foreground=FOREGROUND_COLOR,
+                                              background=BACKGROUND_COLOR)
         self.trees_check_box.place(relx=TREES_CHECK_BOX_LOCATION[0], rely=TREES_CHECK_BOX_LOCATION[1], anchor=tk.CENTER)
-        self.trees_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        # buildings
+        buildings_image = Image.open(BUILDINGS_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
+        self.buildings_image = ImageTk.PhotoImage(buildings_image)
         self.buildings_check_point = tk.IntVar()
         self.buildings_check_point.set(1)
-        self.buildings_check_box = tk.Checkbutton(self, text="Buildings", variable=self.buildings_check_point,
-                                                  command=self.check_box_changed)
-        self.buildings_check_box.pack()
+        self.buildings_check_box = tk.Checkbutton(self, variable=self.buildings_check_point,
+                                                  command=self.check_box_changed, text=" Buildings"+ " "*1,
+                                                  image=self.buildings_image,
+                                                  compound="left", font=FONT, foreground=FOREGROUND_COLOR,
+                                                  background=BACKGROUND_COLOR)
         self.buildings_check_box.place(relx=BUILDINGS_CHECK_BOX_LOCATION[0], rely=BUILDINGS_CHECK_BOX_LOCATION[1],
                                        anchor=tk.CENTER)
-        self.buildings_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        # electricity
+        electricity_image = Image.open(ELECTRICITY_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
+        self.electricity_image = ImageTk.PhotoImage(electricity_image)
         self.electricity_check_point = tk.IntVar()
         self.electricity_check_point.set(0)
-        self.electricity_check_box = tk.Checkbutton(self, text="Electricity", variable=self.electricity_check_point,
-                                                    command=self.check_box_changed)
-        self.electricity_check_box.pack()
-        self.electricity_check_box.place(relx=ELECTRICITY_CHECK_BOX_LOCATION[0],
-                                         rely=ELECTRICITY_CHECK_BOX_LOCATION[1], anchor=tk.CENTER)
-        self.electricity_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        self.electricity_check_box = tk.Checkbutton(self, variable=self.electricity_check_point,
+                                                    command=self.check_box_changed, text=" Electricity",
+                                                    image=self.electricity_image,
+                                                    compound="left", font=FONT, foreground=FOREGROUND_COLOR,
+                                                    background=BACKGROUND_COLOR)
+        self.electricity_check_box.place(relx=ELECTRICITY_CHECK_BOX_LOCATION[0], rely=ELECTRICITY_CHECK_BOX_LOCATION[1],
+                                         anchor=tk.CENTER)
+        # slope
+        slope_image = Image.open(SLOPES_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
+        self.slope_image = ImageTk.PhotoImage(slope_image)
         self.slope_check_point = tk.IntVar()
         self.slope_check_point.set(1)
-        self.slope_check_box = tk.Checkbutton(self, text="Slope", variable=self.slope_check_point,
-                                              command=self.check_box_changed)
-        self.slope_check_box.pack()
+        self.slope_check_box = tk.Checkbutton(self, variable=self.slope_check_point,
+                                              command=self.check_box_changed, text=" Terrain" + " "*4,
+                                              image=self.slope_image,
+                                              compound="left", font=FONT, foreground=FOREGROUND_COLOR,
+                                              background=BACKGROUND_COLOR)
+        self.slope_check_box.pack(anchor="w")
         self.slope_check_box.place(relx=SLOPES_CHECK_BOX_LOCATION[0], rely=SLOPES_CHECK_BOX_LOCATION[1],
                                    anchor=tk.CENTER)
-        self.slope_check_box.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
 
     def check_box_changed(self):
         key_for_check_point = ""
@@ -192,6 +207,7 @@ class GUI(tk.Tk):
             self.update_transparency(50)
 
         self.save_distance_when_mask_changed()
+
     def save_distance_when_mask_changed(self):
         for distance in self.entry_distance_labels:
             self.canvas.delete(self.entry_distance_labels[distance])
@@ -205,6 +221,7 @@ class GUI(tk.Tk):
             self.line = -111
             P = canvas_distance_copy[line]
             self.draw_line(P[0], P[1], P[2], P[3])
+
     def draw_line(self, START_X, START_Y, END_X, END_Y):
         if self.line != -111:
             self.canvas.coords(self.line, START_X, START_Y, END_X, END_Y)
@@ -335,7 +352,6 @@ class GUI(tk.Tk):
         self.canvas.itemconfig(self.result_image_canvas, image=alpha_image)
         self.canvas.image = alpha_image
         self.transparency_slider.set(val)
-
 
     def bind_keys(self):
         self.line = -111
