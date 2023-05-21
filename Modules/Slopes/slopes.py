@@ -13,6 +13,7 @@ GRAY = (128, 128, 128)
 ACCEPTED_SLOPE_COLOR = WHITE
 QUESTIONABLE_SLOPE_COLOR = WHITE
 UNACCEPTED_SLOPE_COLOR = BLACK
+DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 
 
 # the file is in format utm36
@@ -186,7 +187,6 @@ if __name__ == '__main__':
     #  The maximum angle for landing a Yaswor is 8 deg, therefore:
     # maximal height differences = tan(8) * resolution
     # in 10 meter resolution the maximum height differences is about 1.5 meters
-    DTM_FILE_PATH = "../../DTM_data/Yokneam.tif"
     resolution = 10
     max_angle = 8
     maximal_slope = resolution * math.tan(max_angle * math.pi / 180)

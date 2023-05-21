@@ -18,7 +18,8 @@ sys.path.append('../..')
 # Modules from your project
 import Modules.Main.image_downloading as image_downloading
 from Modules.Trees.predict_with_trained_model import predict_image
-from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white
+from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white, get_slopes_mask, \
+    mask_pixels_from_slopes
 from Modules.GUI import gui
 from Modules.AreaFilter.Filterspecks import FilterSpecks
 from Modules.AreaFilter.RectangleFilter import detect_rectangles
@@ -79,7 +80,7 @@ def building_image_to_building_mask(building_image: np.ndarray) -> np.ndarray:
     return cv2.cvtColor(smooth(image), cv2.COLOR_BGR2GRAY)
 
 
-def get_tree_mask_from_image(aerial: np.ndarray, trained_model_path: str, pixels_to_ignore: List[int]) -> np.ndarray:
+def get_tree_mask_from_image(aerial: str, trained_model_path: str, pixels_to_ignore: List[int]) -> np.ndarray:
     '''
     Get the aerial image, return formatted mask of the trees
     :param aerial: aerial image
@@ -164,30 +165,27 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
 
     building_image = get_building_image_from_utm(coordinates, km_radius)
     building_mask = building_image_to_building_mask(building_image)
-    partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
-    slope_shape = (new_rows, new_cols)
-    slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
-    slopes_mask_in_black_and_white = np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
-    update_progressbar_speed(screen_gui, slopes_mask_in_black_and_white)  # TODO:fix progressbar_speed
+    slopes_mask = get_slopes_mask(coordinates, km_radius)
+    update_progressbar_speed(screen_gui, slopes_mask)  # TODO:fix progressbar_speed
 
     image_name, img = get_image_from_utm(coordinates, km_radius)
     tree_shape = img.shape
-    unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask_in_black_and_white, tree_shape,
-                                                    slope_shape)  # add according to slopes - find all places where slope is 1
+    unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask, tree_shape,
+                                                    slopes_mask.shape)  # add according to slopes - find all places where slope is 1
     unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
     tree_mask = get_tree_mask_from_image(image_name, trained_model_path, unwanted_pixels)
     tree_and_slope_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
-                                                    slopes_mask_in_black_and_white)
+                                                    slopes_mask)
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
                                            tree_and_slope_mask)
     filter_area_size = 750
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
-    data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
+    data_analyse(slopes_mask, km_radius, st, cputime_start)
     print("Finish")
     # plot_image_and_mask(image_name, building_mask, tree_and_slope_mask,
     #                     total_mask, coordinates)
     screen_gui.update_progressbar(100)
-    masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": np.where(tree_mask == 255, 0, 255),
+    masks_dictionary = {"Slopes": slopes_mask, "Trees": np.where(tree_mask == 255, 0, 255),
                         "Slopes&Trees": tree_and_slope_mask,
                         "Buildings": np.where(building_mask == 255, 0, 255),
                         "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix name
