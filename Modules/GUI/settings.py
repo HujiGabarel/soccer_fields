@@ -59,7 +59,7 @@ END_X, END_Y = None, None
 #               "Electricity&Trees", "Buildings&Trees", "Buildings&Electricity", "Buildings&Slopes&Trees",
 #               "Buildings&Electricity&Slopes", "Electricity&Slopes&Trees", "Buildings&Electricity&Trees",
 #               "Buildings&Electricity&Slopes&Trees"]
-MASKS_KEYS = ["Slopes", "Trees", "Slopes&Trees", "Buildings", "Buildings&Slopes",  "Buildings&Trees",
+MASKS_KEYS = ["Slopes", "Trees", "Slopes&Trees", "Buildings",
               "Buildings&Slopes&Trees"]
 TREES_CHECK_BOX_LOCATION = (0.8, 0.3)
 SLOPES_CHECK_BOX_LOCATION = (0.8, 0.38)

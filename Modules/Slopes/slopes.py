@@ -11,9 +11,6 @@ GRAY = (128, 128, 128)
 ACCEPTED_SLOPE_COLOR = 255
 QUESTIONABLE_SLOPE_COLOR = 255
 UNACCEPTED_SLOPE_COLOR = 0
-ACCEPTED_SLOPE_COLOR = WHITE
-QUESTIONABLE_SLOPE_COLOR = WHITE
-UNACCEPTED_SLOPE_COLOR = BLACK
 DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 
 
@@ -58,7 +55,7 @@ def mask_pixels_from_slopes(slopes_mask_in_black_and_white: np.ndarray, tree_sha
     slope2TreeCol = tree_shape[1] / slope_shape[1]
 
     tree_mask = np.zeros((tree_shape[0], tree_shape[1]), dtype=bool)
-    masked_pixels_slope = np.argwhere(slopes_mask_in_black_and_white == 0)  # guessed 0 is black in rgb
+    masked_pixels_slope = np.argwhere(slopes_mask_in_black_and_white == UNACCEPTED_SLOPE_COLOR)  # guessed 0 is black in rgb
     for index in masked_pixels_slope:
         first_row, last_row = math.floor(slope2TreeRow * index[0]), math.ceil((slope2TreeRow) * (index[0] + 1) + 1)
         first_col, last_col = math.floor(slope2TreeCol * index[1]), math.ceil((slope2TreeCol) * (index[1] + 1) + 1)
@@ -113,26 +110,6 @@ def convert_slopes_to_black_and_white(height_differences, rows, cols):
     # interpolation makes it so its strictly black and white
 
 
-def utm_to_WGS84(easting, northing, zone_number=36, zone_letter='u'):
-    """
-    :param easting:
-    :param northing:
-    :param zone_number:
-    :param zone_letter:
-    :return: (latitude, longitude) WGS84 format, Google Earth format
-    """
-    return utm.to_latlon(easting, northing, zone_number, zone_letter)
-
-
-def WGS84_to_utm(latitude, longitude):
-    """
-    :param latitude:
-    :param longitude:
-    :return: (easting, northing, zone_number, zone_letter) utm format, our dtm format
-    """
-    return utm.from_latlon(latitude, longitude)
-
-
 if __name__ == '__main__':
     """
     This is the main function, it reads the DEM and plots a heat map of the maximum height differences
@@ -149,11 +126,7 @@ if __name__ == '__main__':
     rows = dem.height
     cols = dem.width
     dem_data = dem.read(1).astype("float64")
-    # print general information about the DEM
     print("rows: " + str(rows), "cols: " + str(cols))
     print(dem.crs)
     print(dem.bounds)
-    # max_slopes = get_max_slopes(dem_data, rows, cols)
-    # data_in_black_and_white = convert_slopes_to_black_and_white(max_slopes, rows, cols)
-    # max_slopes_in_binary = plot_heat_map(data_in_black_and_white)
     plot_heat_map(dem_data)
