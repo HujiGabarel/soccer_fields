@@ -36,18 +36,9 @@ class GUI(tk.Tk):
         super().__init__()
         self.configure(background=BACKGROUND_COLOR)
         self.title("Soccer Field")
-        # put a picture on the window background
-        self.square_x = WINDOW_SQUARE_X
-        self.square_y = WINDOW_SQUARE_Y
-        self.x = WINDOW_X
-        self.y = WINDOW_Y
         self.canvas_distance = {}
         self.entry_distance_labels = {}
         self.mask_dictionary = {}
-        self.E_value = 0
-        self.N_value = 0
-        self.Radius_value = 0
-        self.square_image_1 = None
         self.state("zoomed")
         self.resizable(True, True)
         self.create_widgets()
@@ -59,9 +50,7 @@ class GUI(tk.Tk):
 
     def create_widgets(self):
         # place the buttons on the window with a nice layout
-        # add an entry for entering, E, N, and S, insert the entry values into the search function
         self.create_inputs_cells()
-        # inserting the entry values into the search function
         self.add_search_button()
         self.add_progressbar()
         self.create_images_and_canvas()
@@ -71,12 +60,8 @@ class GUI(tk.Tk):
         self.create_slider()
         # self.create_type_label()
         # self.change_type_button()
-        self.add_masks_check_points()
-
+        self.add_masks_check_boxes()
         self.init_with_values()
-
-        # Define a function to set the start point of the line
-
     def add_E_cell(self):
         self.E = tk.Label(self, text="E: ")
         self.E.pack()
@@ -92,7 +77,7 @@ class GUI(tk.Tk):
         self.E_entry.pack()
         self.E_entry.place(relx=E_ENTRY_LOCATION[0], rely=E_ENTRY_LOCATION[1], anchor=tk.CENTER)
 
-        self.E_entry.config(width=ENTRY_WIDTH - 50, background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR, font=FONT,
+        self.E_entry.config(width=CELL_WIDTH - 250, background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR, font=FONT,
                             justify=tk.CENTER, bd=0, highlightthickness=0)
 
     def add_N_cell(self):
@@ -111,11 +96,11 @@ class GUI(tk.Tk):
         self.N_entry = tk.Entry(self)
         self.N_entry.pack()
         self.N_entry.place(relx=N_ENTRY_LOCATION[0], rely=N_ENTRY_LOCATION[1], anchor=tk.CENTER)
-        self.N_entry.config(width=ENTRY_WIDTH - 50, background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR, font=FONT,
+        self.N_entry.config(width=CELL_WIDTH - 250, background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR, font=FONT,
                             justify=tk.CENTER, bd=0, highlightthickness=0)
 
     def add_R_cell(self):
-        self.Radius = tk.Label(self, text="Radius in km: ")
+        self.Radius = tk.Label(self, text="Radius: ")
         self.Radius.pack()
         self.Radius.place(relx=R_LABEL_LOCATION[0], rely=R_LABEL_LOCATION[1], anchor=tk.CENTER)
         self.Radius.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
@@ -129,7 +114,7 @@ class GUI(tk.Tk):
         self.Radius_entry = tk.Entry(self)
         self.Radius_entry.pack()
         self.Radius_entry.place(relx=R_ENTRY_LOCATION[0], rely=R_ENTRY_LOCATION[1], anchor=tk.CENTER)
-        self.Radius_entry.config(width=ENTRY_WIDTH - 50, background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR,
+        self.Radius_entry.config(width=CELL_WIDTH - 250, background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR,
                                  font=FONT,
                                  justify=tk.CENTER, bd=0, highlightthickness=0)
 
@@ -138,30 +123,32 @@ class GUI(tk.Tk):
         self.add_N_cell()
         self.add_R_cell()
 
-    def add_masks_check_points(self):
-        # check points are the boxes that are checked in the check boxes
+    def add_trees_check_box(self):
         trees_image = Image.open(TREES_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
         self.trees_image = ImageTk.PhotoImage(trees_image)
         self.trees_check_point = tk.IntVar()
         self.trees_check_point.set(1)
         self.trees_check_box = tk.Checkbutton(self, variable=self.trees_check_point,
-                                              command=self.check_box_changed, text=" Trees"+ " "*6, image=self.trees_image,
+                                              command=self.check_box_changed, text=" Trees" + " " * 6,
+                                              image=self.trees_image,
                                               compound="left", font=FONT, foreground=FOREGROUND_COLOR,
                                               background=BACKGROUND_COLOR)
         self.trees_check_box.place(relx=TREES_CHECK_BOX_LOCATION[0], rely=TREES_CHECK_BOX_LOCATION[1], anchor=tk.CENTER)
-        # buildings
+
+    def add_buildings_check_box(self):
         buildings_image = Image.open(BUILDINGS_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
         self.buildings_image = ImageTk.PhotoImage(buildings_image)
         self.buildings_check_point = tk.IntVar()
         self.buildings_check_point.set(1)
         self.buildings_check_box = tk.Checkbutton(self, variable=self.buildings_check_point,
-                                                  command=self.check_box_changed, text=" Buildings"+ " "*1,
+                                                  command=self.check_box_changed, text=" Buildings" + " " * 1,
                                                   image=self.buildings_image,
                                                   compound="left", font=FONT, foreground=FOREGROUND_COLOR,
                                                   background=BACKGROUND_COLOR)
         self.buildings_check_box.place(relx=BUILDINGS_CHECK_BOX_LOCATION[0], rely=BUILDINGS_CHECK_BOX_LOCATION[1],
                                        anchor=tk.CENTER)
-        # electricity
+
+    def add_electricity_check_box(self):
         electricity_image = Image.open(ELECTRICITY_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
         self.electricity_image = ImageTk.PhotoImage(electricity_image)
         self.electricity_check_point = tk.IntVar()
@@ -173,19 +160,26 @@ class GUI(tk.Tk):
                                                     background=BACKGROUND_COLOR)
         self.electricity_check_box.place(relx=ELECTRICITY_CHECK_BOX_LOCATION[0], rely=ELECTRICITY_CHECK_BOX_LOCATION[1],
                                          anchor=tk.CENTER)
-        # slope
+
+    def add_slopes_check_box(self):
         slope_image = Image.open(SLOPES_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
         self.slope_image = ImageTk.PhotoImage(slope_image)
         self.slope_check_point = tk.IntVar()
         self.slope_check_point.set(1)
         self.slope_check_box = tk.Checkbutton(self, variable=self.slope_check_point,
-                                              command=self.check_box_changed, text=" Terrain" + " "*4,
+                                              command=self.check_box_changed, text=" Terrain" + " " * 4,
                                               image=self.slope_image,
                                               compound="left", font=FONT, foreground=FOREGROUND_COLOR,
                                               background=BACKGROUND_COLOR)
         self.slope_check_box.pack(anchor="w")
         self.slope_check_box.place(relx=SLOPES_CHECK_BOX_LOCATION[0], rely=SLOPES_CHECK_BOX_LOCATION[1],
                                    anchor=tk.CENTER)
+
+    def add_masks_check_boxes(self):
+        self.add_trees_check_box()
+        self.add_slopes_check_box()
+        self.add_buildings_check_box()
+        self.add_electricity_check_box()
 
     def check_box_changed(self):
         key_for_check_point = ""
@@ -236,37 +230,27 @@ class GUI(tk.Tk):
         self.add_entry_distance()
 
     def search(self):
-        # get the entry values
-        # estimate runtime
-
-        # self.add_background_gif()
         self.update_progressbar(0)
         self.E_value = self.E_entry.get()
         self.N_value = self.N_entry.get()
         self.Radius_value = self.Radius_entry.get()
         coordinates = (int(self.E_value), int(self.N_value), 36, "N")
-        # need to add logs of this in main
-        print(coordinates, self.Radius_value)
-        # run the function
+        print(coordinates, self.Radius_value)  # TODO: add log
         t = threading.Thread(target=self.run_process, args=(coordinates,))
-        # image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         t.start()
         progress_thread = threading.Thread(target=self.run_progressbar())
         progress_thread.start()
 
     def run_process(self, coordinates):
-        image, total_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
+        image, self.mask_dictionary = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
-        self.mask_dictionary = total_mask
         self.add_result_image(self.mask_dictionary["Buildings&Slopes&Trees"])  # TODO: need to be general
-        # self.background_label.destroy()
         self.update_transparency(50)
 
     def start(self, event):
         global START_X, START_Y
         self.line = -111
         START_X, START_Y = event.x, event.y
-
         # Define a function to update the end point of the line and draw it
 
     def draw(self, event):
@@ -286,7 +270,6 @@ class GUI(tk.Tk):
             self.distance = 2 * self.distance * float_R * 1000 / CANVAS_WIDTH
             self.distance = round(self.distance, 2)
             self.add_entry_distance()
-            # self.entry_distance_labels[self.line].config(text=DISTANCE_STR_FORMAT(self.distance))
 
     def delete_line(self, event):
         x, y = event.x, event.y
@@ -333,11 +316,8 @@ class GUI(tk.Tk):
     def create_images_and_canvas(self):
         self.original_image = Image.open(ORIGINAL_IMAGE_PATH)
         self.result_image = Image.open(RESULT_IMAGE_PATH)
-        # # make self.original_image and self.result_image an array of the image
         self.original_image_array = np.array(self.original_image)
         self.result_image_array = np.array(self.result_image)
-        # self.square_image_array = np.array(Image.open(HELICOPTER_IMAGE_PATH))
-        # add the original image and the result image to the window
         self.canvas = tk.Canvas(self, width=CANVAS_WIDTH, height=CANVAS_HEIGHT, bg="white",
                                 highlightcolor=CANVAS_HIGHLIGHT_COLOR)
         self.canvas.place(relx=CANVAS_LOCATION[0], rely=CANVAS_LOCATION[1], anchor=tk.CENTER)
@@ -353,59 +333,9 @@ class GUI(tk.Tk):
 
     def bind_keys(self):
         self.line = -111
-        # self.bind("<Left>", self.left_key)
-        # self.bind("<Right>", self.right_key)
-        # self.bind("<Up>", self.up_key)
-        # self.bind("<Down>", self.down_key)
-        # self.bind(ROTATION_KEY, self.rotate_square_image_clockwise)
-        # Bind the left mouse button to the start function and the left mouse motion to the draw function
         self.canvas.bind("<Button-1>", self.start)
         self.canvas.bind("<B1-Motion>", self.draw)
         self.canvas.bind("<Button-3>", self.delete_line)
-
-    # def rotate_square_image_clockwise(self, event):
-    #     # rotate the square image 45 degrees clockwise
-    #     self.square_x, self.square_y = self.square_y, self.square_x
-    #     self.square_image_1 = Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize(
-    #         (self.square_x, self.square_y))
-    #     self.square_image = ImageTk.PhotoImage(self.square_image_1)
-    #     self.canvas.itemconfig(self.square_image_canvas, image=self.square_image)
-    #
-    # def left_key(self, event):
-    #     # dont let the square image go out of the canvas\
-    #     c1 = self.canvas.coords(self.square_image_canvas)
-    #     if c1[0] > 0:
-    #         self.canvas.move(self.square_image_canvas, -1, 0)
-    #
-    # def right_key(self, event):
-    #     # dont let the square image go out of the canvas
-    #     c1 = self.canvas.coords(self.square_image_canvas)
-    #     if c1[0] + self.square_x < self.x:
-    #         self.canvas.move(self.square_image_canvas, 1, 0)
-    #
-    # def up_key(self, event):
-    #     # dont let the square image go out of the canvas
-    #     c1 = self.canvas.coords(self.square_image_canvas)
-    #     if c1[1] > 0:
-    #         self.canvas.move(self.square_image_canvas, 0, -1)
-    #
-    # def down_key(self, event):
-    #     # dont let the square image go out of the canvas
-    #     # get the pixel coordinates of the square image
-    #     c1 = self.canvas.coords(self.square_image_canvas)
-    #     if c1[1] + 30 + 2 * self.square_y < self.y:
-    #         self.canvas.move(self.square_image_canvas, 0, 1)
-    #
-    # def add_square_image(self):
-    #     """
-    #     get the square image in the form of array and put it on the window bellow the buttons, resize it to fit the x but the y should be 200
-    #     :param image: the square image
-    #     :return:
-    #     """
-    #     self.square_image_1 = Image.fromarray(cv2.cvtColor(self.square_image_array, cv2.COLOR_BGR2RGB)).resize(
-    #         (self.square_x, self.square_y))
-    #     self.square_image = ImageTk.PhotoImage(self.square_image_1)
-    #     self.square_image_canvas = self.canvas.create_image(0, 0, image=self.square_image, anchor=tk.NW)
 
     def add_original_image(self, image):
         """
@@ -414,7 +344,7 @@ class GUI(tk.Tk):
         :return:
         """
         self.saved_og_image = image
-        self.original_image_1 = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((self.x, self.y))
+        self.original_image_1 = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((WINDOW_X, WINDOW_Y))
         self.original_image = ImageTk.PhotoImage(self.original_image_1)
         self.canvas.create_image(0, 0, image=self.original_image, anchor=tk.NW)
 
@@ -426,67 +356,16 @@ class GUI(tk.Tk):
         """
         if self.mask_dictionary == {}:
             self.mask_dictionary = {k: image for k in MASKS_KEYS}
-        self.result_image_1 = Image.fromarray(image).resize((self.x, self.y))
+        self.result_image_1 = Image.fromarray(image).resize((WINDOW_X, WINDOW_Y))
         self.result_image_1 = self.result_image_1.convert(mode='RGB')
         self.result_image = ImageTk.PhotoImage(self.result_image_1)
-
         self.result_image_canvas = self.canvas.create_image(0, 0, image=self.result_image, anchor=tk.NW)
         # self.add_square_image()
-
-    def make_zoom_in(self):
-        # Set the initial viewport size
-        VIEWPORT_WIDTH = CANVAS_WIDTH
-        VIEWPORT_HEIGHT = CANVAS_HEIGHT
-        # Set the initial viewport position
-
-        # Display the image on the canvas
-        img = self.result_image_1
-        image_item = self.result_image_canvas
-
-        # Define a function to update the viewport and redraw the image
-        def update_viewport():
-            # Calculate the coordinates of the viewport
-            x1 = VIEWPORT_X
-            y1 = VIEWPORT_Y
-            x2 = x1 + VIEWPORT_WIDTH
-            y2 = y1 + VIEWPORT_HEIGHT
-
-            # Set the canvas viewport
-            self.canvas.configure(scrollregion=(0, 0, img.width, img.height), width=VIEWPORT_WIDTH,
-                                  height=VIEWPORT_HEIGHT)
-            self.canvas.xview_moveto(x1 / img.width)
-            self.canvas.yview_moveto(y1 / img.height)
-
-            # Redraw the image in the viewport
-            cropped_img = img.crop((x1, y1, x2, y2))
-            cropped_tk = ImageTk.PhotoImage(cropped_img)
-            self.canvas.itemconfig(image_item, image=cropped_tk)
-
-        # Define a function to zoom in or out on the image
-        def zoom(event):
-            global VIEWPORT_X, VIEWPORT_Y, VIEWPORT_WIDTH, VIEWPORT_HEIGHT
-            if event.delta < 0:
-                # Zoom out
-                VIEWPORT_X -= VIEWPORT_WIDTH // 4  # Decrease the viewport size by 25%
-                VIEWPORT_Y -= VIEWPORT_HEIGHT // 4
-                VIEWPORT_WIDTH *= 2
-                VIEWPORT_HEIGHT *= 2
-            else:
-                # Zoom in
-                VIEWPORT_X += VIEWPORT_WIDTH // 4  # Increase the viewport size by 25%
-                VIEWPORT_Y += VIEWPORT_HEIGHT // 4
-                VIEWPORT_WIDTH //= 2
-                VIEWPORT_HEIGHT //= 2
-            update_viewport()
-
-        # Bind the function to a mouse wheel event
-        self.canvas.bind("<MouseWheel>", zoom)
 
     def add_progressbar(self):
 
         # define the style
         pb_style = ttk.Style()
-        # ('winnative', 'clam', 'alt', 'default', 'classic', 'vista', 'xpnative')
         pb_style.theme_use("default")
         pb_style.layout('text.Horizontal.TProgressbar',
                         [('Horizontal.Progressbar.trough',
@@ -512,7 +391,7 @@ class GUI(tk.Tk):
         self.progressbar.update()
 
     def run_progressbar(self):
-        time_for_km_area = 200  # sec
+        time_for_km_area = 250  # sec
         self.time_for_iteration = (time_for_km_area * (2 * (float(self.Radius_value)) ** 2) / 100)
         while self.progressbar['value'] < 99:
             current_value = self.progressbar['value']
@@ -523,59 +402,28 @@ class GUI(tk.Tk):
             print('Progresbar complete!')
 
     def set_time_for_iteration(self, slopy):
-        time_for_flat_km_area = 250
+        time_for_flat_km_area = 300
         new_area = ((2 * float(self.Radius_value)) ** 2) * (slopy / 100)
         self.time_for_iteration = new_area * time_for_flat_km_area / 100
-        # self.time_for_iteration = ((time_for_flat_km_area * (2 * (float(self.Radius_value)) ** 2)) + (
-        #         time_for_flat_km_area * (slopy / 100) ** 3)) / (2 * 100)
-
-    def add_background_gif(self):
-        # TO DO:
-        # fix bug with the gif
-        # Open the GIF image using PIL
-        image = Image.open(logo_path_gif)  # Replace "animation.gif" with the filename or file path of your GIF image
-        # chagne image background to white
-        # Create a list to store individual frames of the GIF image
-        frames = []
-        # Loop through each frame in the GIF image and append it to the frames list
-        for frame in ImageSequence.Iterator(image):
-            resized_frame = frame.resize((self.x, self.y))
-            frames.append(ImageTk.PhotoImage(resized_frame))
-            # add to canves
-        # Create a Label widget to display the animated GIF
-        self.background_label = tk.Label(self.canvas, image=frames[0], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-        self.background_label.pack()
-
-        # self.canvas.create_window(0, 0, window=self.background_label, anchor=tk.NW)
-        # Function to update the Label with the next frame of the animated GIF
-        def update_label(frame_idx):
-            self.background_label.config(image=frames[frame_idx], width=CANVAS_WIDTH, height=CANVAS_HEIGHT)
-            self.after(100, update_label, (frame_idx + 1) % len(frames))
-
-        # Start displaying the animated GIF
-        update_label(0)
 
     def add_search_button(self):
-        # add image
         self.search_image = Image.open(search_path)
         self.search_image = self.search_image.resize((SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT))
         self.search_image = ImageTk.PhotoImage(self.search_image)
         self.search_button = tk.Button(self, image=self.search_image, command=self.search, bg=BACKGROUND_COLOR, bd=0,
-                                       highlightthickness=0, activebackground=BACKGROUND_COLOR)
-        # self.search_button = tk.Button(self, text="חפש", command=self.search)
+                                       highlightthickness=0, activebackground=BACKGROUND_COLOR,
+                                       text="Search", font=FONT, compound="top", borderwidth=0.5)
         self.search_button.pack()
         self.search_button.place(relx=SEARCH_BUTTON_LOCATION[0], rely=SEARCH_BUTTON_LOCATION[1], anchor=tk.CENTER)
-        self.search_button.config(background=BACKGROUND_COLOR, activebackground=BACKGROUND_COLOR, borderwidth=0)
 
     def create_slider(self):
         self.transparency_slider = tk.Scale(self, from_=0, to=100, orient=tk.VERTICAL, length=CANVAS_HEIGHT,
                                             width=SLIDER_WIDTH,
                                             sliderlength=SLIDER_LENGTH,
-                                            background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR, )
+                                            background=BACKGROUND_COLOR, foreground=FOREGROUND_COLOR,
+                                            command=self.update_transparency)
         self.transparency_slider.pack()
         self.transparency_slider.place(relx=SLIDER_LOCATION[0], rely=SLIDER_LOCATION[1], anchor=tk.CENTER)
-        # Call the update_transparency function when the slider is moved
-        self.transparency_slider.config(command=self.update_transparency)
         self.update_transparency(100)
 
     def change_type_button(self):
