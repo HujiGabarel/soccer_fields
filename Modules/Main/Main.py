@@ -9,20 +9,17 @@ from rasterio import plot
 import time
 from Modules.GUI.settings import *
 from Modules.Main.Processing_runtimes import data_analyse
+
 # Adding the root directory to the system path
 sys.path.append('../..')
 
 # Modules from your project
 import Modules.Main.image_downloading as image_downloading
-from Modules.Trees.predict_with_trained_model import predict_image
-from Modules.Slopes.slopes import  get_slopes_mask,mask_pixels_from_slopes
+from Modules.Trees.predict_with_trained_model import get_tree_mask_from_image
+from Modules.Slopes.slopes import get_slopes_mask, mask_pixels_from_slopes
 from Modules.GUI import gui
 from Modules.AreaFilter.Filterspecks import FilterSpecks
 from Modules.Building.Buildings import get_building_mask
-
-# Constants
-DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
-trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
 
 def get_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
@@ -54,20 +51,6 @@ def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: flo
     cv2.imwrite(name, img)
     print("Building image downloaded")
     return img
-
-
-
-
-
-def get_tree_mask_from_image(aerial: str, trained_model_path: str, pixels_to_ignore: List[int]) -> np.ndarray:
-    '''
-    Get the aerial image, return formatted mask of the trees
-    :param aerial: aerial image
-    :param trained_model_path: model to predict the trees
-    :param pixels_to_ignore: pixels to automatically ignore, to improve runtime
-    :return: formatted mask of the trees, 255 is not tree, 0 is tree
-    '''
-    return predict_image(aerial, trained_model_path, pixels_to_ignore)
 
 
 def get_white_or_black(e_vals: np.ndarray, n_vals: np.ndarray, e_center: float, n_center: float, m_radius: float,
@@ -118,8 +101,6 @@ def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, 
     plt.show()
 
 
-
-
 def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui) -> Tuple[
     np.ndarray, Dict[str, np.ndarray]]:
     st = time.time()
@@ -142,7 +123,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
     screen_gui.update_progressbar_speed(slopes_mask)
 
-    tree_mask = get_tree_mask_from_image(image_name, trained_model_path, unwanted_pixels)
+    tree_mask = get_tree_mask_from_image(image_name, unwanted_pixels)
     tree_and_slope_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                                     slopes_mask)
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
@@ -159,9 +140,6 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
                         "Buildings": np.where(building_mask == 255, 0, 255),
                         "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix colors
     return img, masks_dictionary
-
-
-
 
 
 if __name__ == '__main__':

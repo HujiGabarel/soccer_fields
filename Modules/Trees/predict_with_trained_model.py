@@ -4,7 +4,10 @@ from joblib import dump, load
 from Modules.Trees.classifier import Classifier
 import rasterio as rio
 from rasterio import plot
-from os import path
+from Modules.GUI.settings import *
+from typing import List, Tuple, Dict
+import matplotlib.pyplot as plt
+
 """
 This file load trained model and predict for given image
 """
@@ -21,14 +24,14 @@ def predict(trained_model_name, image_name, images_directory):
     # Plot
     trained_model_title = file_name_to_title(trained_model_name)
     image_title = file_name_to_title(image_name)
-    plot_image_and_mask(image_to_predict,predicted_mask, image_title, trained_model_title)
+    plot_image_and_mask(image_to_predict, predicted_mask, image_title, trained_model_title)
     # Saving the images (side by side view)
     save_plot(trained_model_title, image_title, images_directory)
 
-def predict_image(image_to_predict,trained_model_path,pixels_to_ignore):
 
+def predict_image(image_to_predict, trained_model_path, pixels_to_ignore):
     trained_model = load(trained_model_path)
-    predicted_mask = Classifier().classify_img(image_to_predict, trained_model,pixels_to_ignore)
+    predicted_mask = Classifier().classify_img(image_to_predict, trained_model, pixels_to_ignore)
 
     # plot_image_and_mask(image_to_predict,predicted_mask, image_title="", trained_model_title="")
     # plt.show()
@@ -42,12 +45,12 @@ def file_name_to_title(file_name):
     return title
 
 
-def plot_image_and_mask(image_to_predict, predicted_mask,image_title, trained_model_title, ):
+def plot_image_and_mask(image_to_predict, predicted_mask, image_title, trained_model_title, ):
     # This part is only plotting style:
     # plots predicted and original images
     # side-by-side plot of the tile and the predicted tree/non-tree pixels
     figwidth, figheight = plt.rcParams['figure.figsize']
-    fig, axes = plt.subplots(1, 2, figsize=(2 * figwidth, figheight),sharex="all", sharey="all")
+    fig, axes = plt.subplots(1, 2, figsize=(2 * figwidth, figheight), sharex="all", sharey="all")
     # with rio.open(img_filepath) as src:
     with rio.open(image_to_predict) as src:
         plot.show(src.read(), ax=axes[0])
@@ -68,6 +71,17 @@ def save_plot(trained_model_title, image_title, images_directory):
     # Save figure
     plt.savefig(os.path.join(path, "Result of " + image_title))
     plt.show()
+
+
+def get_tree_mask_from_image(aerial: str, pixels_to_ignore, trained_model_path=TRAINED_MODEL_PATH):
+    '''
+    Get the aerial image, return formatted mask of the trees
+    :param aerial: aerial image
+    :param trained_model_path: model to predict the trees
+    :param pixels_to_ignore: pixels to automatically ignore, to improve runtime
+    :return: formatted mask of the trees, 255 is not tree, 0 is tree
+    '''
+    return predict_image(aerial, trained_model_path, pixels_to_ignore)
 
 
 if __name__ == '__main__':
