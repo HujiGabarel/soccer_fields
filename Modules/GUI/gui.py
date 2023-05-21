@@ -406,6 +406,13 @@ class GUI(tk.Tk):
         new_area = ((2 * float(self.Radius_value)) ** 2) * (slopy / 100)
         self.time_for_iteration = new_area * time_for_flat_km_area / 100
 
+    def update_progressbar_speed(self, slopes_mask: np.ndarray) -> None:
+        count_good_pixels = np.count_nonzero(slopes_mask == VIABLE_LANDING)
+        print(count_good_pixels)
+        slopy = 100 * count_good_pixels / slopes_mask.size
+        print(slopy)
+        self.set_time_for_iteration(slopy)
+
     def add_search_button(self):
         self.search_image = Image.open(search_path)
         self.search_image = self.search_image.resize((SEARCH_BUTTON_WIDTH, SEARCH_BUTTON_HEIGHT))

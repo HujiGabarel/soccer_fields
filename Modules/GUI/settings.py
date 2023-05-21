@@ -1,6 +1,7 @@
 import os
 import math
-
+VIABLE_LANDING=255
+UNVIABLE_LANDING=0
 dir_path = os.path.dirname(os.path.realpath(__file__))
 search_path = os.path.join(dir_path, 'images_for_gui/heli_logo.jpeg')
 cell_path = os.path.join(dir_path, 'images_for_gui/cell2.png')

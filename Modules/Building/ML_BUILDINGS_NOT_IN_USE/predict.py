@@ -3,30 +3,27 @@ import sys
 import cv2
 import torch
 import numpy as np
-import matplotlib.pyplot as plt
 import time
-from imageio import imsave
 from torch.utils import model_zoo
 
 #TODO: add to globals of project
 WHITE_COLOR = 255
 BLACK_COLOR = 0
 
-module_path = os.path.abspath(os.path.join('../'))
+module_path = os.path.abspath(os.path.join('../../'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
-from building_footprint_segmentation.seg.binary.models import ReFineNet ,DLinkNet34
+from building_footprint_segmentation.seg.binary.models import ReFineNet
 from building_footprint_segmentation.helpers.normalizer import min_max_image_net
 from building_footprint_segmentation.utils.py_network import (
     to_input_image_tensor,
     add_extra_dimension,
     convert_tensor_to_numpy,
-    load_parallel_model,
     adjust_model,
 )
 
-from Modules.Building.operations import handle_image_size
+from Modules.Building.ML_BUILDINGS_NOT_IN_USE.operations import handle_image_size
 
 MAX_SIZE = 384
 TRAINED_MODEL = ReFineNet()

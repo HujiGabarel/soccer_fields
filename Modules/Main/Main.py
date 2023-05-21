@@ -2,82 +2,61 @@ import sys
 from typing import List, Tuple, Dict
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import json
-import rasterio
 import cv2
 import rasterio as rio
 from rasterio import plot
-import math
-import openpyxl
 import time
-
+from Modules.GUI.settings import *
+from Modules.Main.Processing_runtimes import data_analyse
 # Adding the root directory to the system path
 sys.path.append('../..')
 
 # Modules from your project
 import Modules.Main.image_downloading as image_downloading
 from Modules.Trees.predict_with_trained_model import predict_image
-from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_to_black_and_white, get_slopes_mask, \
-    mask_pixels_from_slopes
+from Modules.Slopes.slopes import  get_slopes_mask,mask_pixels_from_slopes
 from Modules.GUI import gui
 from Modules.AreaFilter.Filterspecks import FilterSpecks
-from Modules.AreaFilter.RectangleFilter import detect_rectangles
+from Modules.Building.Buildings import get_building_mask
 
 # Constants
 DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
 
-# TODO: decide about length
-def get_image_from_utm(coords: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
+def get_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
     with open("preferences.json", 'r', encoding='utf-8') as f:
         prefs = json.loads(f.read())
-    lat, long = image_downloading.convert_to_lat_long(coords)
-    print(lat, long)
+    lat, long = image_downloading.convert_to_lat_long(coordinates)  # ToDO: change to out of function as input
     img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'],
                                            length=2 * km_radius)
-    print("image downloaded")
-    # timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    name = f'images_from_argcis/img_{coords[0], coords[1]}.png'
+    path = os.path.join('images_from_argcis', f'data_{coordinates[0], coordinates[1]}')
+    if not os.path.exists(path):
+        os.makedirs(path)
+    name = f'images_from_argcis/data_{coordinates[0], coordinates[1]}/img_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, img)
-    print(f'Saved as {name}')
+    print("image downloaded")
+
     return name, img
 
 
-# TODO: repetitive code, mix the preferences files
 def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> np.ndarray:
     with open("preferences_building.json", 'r', encoding='utf-8') as f:
         prefs = json.loads(f.read())
     lat, long = image_downloading.convert_to_lat_long(coordinates)
-    print(lat, long)
     img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'],
                                            length=2 * km_radius)
-    print("image downloaded")
-    # timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
-    name = f'images_from_argcis/img_{coordinates[0], coordinates[1]}.png'
+    path = os.path.join('images_from_argcis', f'data_{coordinates[0], coordinates[1]}')
+    if not os.path.exists(path):
+        os.makedirs(path)
+    name = f'images_from_argcis/data_{coordinates[0], coordinates[1]}/img_buildings_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, img)
-    print(f'Saved as {name}')
+    print("Building image downloaded")
     return img
 
 
-def smooth(img: np.ndarray) -> np.ndarray:
-    kernel = np.ones((5, 5), np.uint8)
-    return cv2.morphologyEx(img, cv2.MORPH_OPEN, kernel)
 
-
-def building_image_to_building_mask(building_image: np.ndarray) -> np.ndarray:
-    '''
-    Get the buildings image, return formatted mask of the buildings
-    :param building_image: regular image of the buildings
-    :return: mask of the buildings, 255 is not building, 0 is building
-    '''
-    range_filter = range(210, 225)
-    image = np.copy(building_image)
-    mask = np.all(np.isin(image, range_filter), axis=2)
-    image[mask] = 0
-    image[~mask] = 255
-    return cv2.cvtColor(smooth(image), cv2.COLOR_BGR2GRAY)
 
 
 def get_tree_mask_from_image(aerial: str, trained_model_path: str, pixels_to_ignore: List[int]) -> np.ndarray:
@@ -89,12 +68,6 @@ def get_tree_mask_from_image(aerial: str, trained_model_path: str, pixels_to_ign
     :return: formatted mask of the trees, 255 is not tree, 0 is tree
     '''
     return predict_image(aerial, trained_model_path, pixels_to_ignore)
-
-
-
-
-
-
 
 
 def get_white_or_black(e_vals: np.ndarray, n_vals: np.ndarray, e_center: float, n_center: float, m_radius: float,
@@ -145,11 +118,6 @@ def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, 
     plt.show()
 
 
-def update_progressbar_speed(screen_gui: gui, slopes_mask_in_black_and_white: np.ndarray) -> None:
-    count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
-    slopy = 100 * count_slopes_good / slopes_mask_in_black_and_white.size
-    screen_gui.set_time_for_iteration(slopy)
-
 
 
 def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui) -> Tuple[
@@ -164,21 +132,22 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
         mask = func(coordinates, km_radius)
 
     building_image = get_building_image_from_utm(coordinates, km_radius)
-    building_mask = building_image_to_building_mask(building_image)
+    building_mask = get_building_mask(building_image)
     slopes_mask = get_slopes_mask(coordinates, km_radius)
-    update_progressbar_speed(screen_gui, slopes_mask)  # TODO:fix progressbar_speed
 
     image_name, img = get_image_from_utm(coordinates, km_radius)
     tree_shape = img.shape
     unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask, tree_shape,
                                                     slopes_mask.shape)  # add according to slopes - find all places where slope is 1
     unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
+    screen_gui.update_progressbar_speed(slopes_mask)
+
     tree_mask = get_tree_mask_from_image(image_name, trained_model_path, unwanted_pixels)
     tree_and_slope_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                                     slopes_mask)
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
                                            tree_and_slope_mask)
-    filter_area_size = 750
+    filter_area_size = 1000
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     data_analyse(slopes_mask, km_radius, st, cputime_start)
     print("Finish")
@@ -188,38 +157,11 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     masks_dictionary = {"Slopes": slopes_mask, "Trees": np.where(tree_mask == 255, 0, 255),
                         "Slopes&Trees": tree_and_slope_mask,
                         "Buildings": np.where(building_mask == 255, 0, 255),
-                        "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix name
+                        "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix colors
     return img, masks_dictionary
 
 
-def data_analyse(slopes_mask_in_black_and_white: np.ndarray, km_radius: float, st: float, cputime_start: float) -> None:
-    # count number of 255 in slopes_mask_in_black_and_white
-    count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)
-    slopy = round(100 * count_slopes_good / slopes_mask_in_black_and_white.size, 2)
-    area = (2 * km_radius) ** 2
-    total_time = time.time() - st
-    cpu_total_time = time.process_time() - cputime_start
-    # write to excel
-    print(slopy, area, total_time)
-    save_result_to_excel(slopy, area, total_time, cpu_total_time)
 
-
-def save_result_to_excel(slopy: float, area: float, total_time: float, cpu_total_time: float) -> None:
-    workbook = openpyxl.load_workbook("results.xlsx")
-    worksheet = workbook.active
-    worksheet.title = "result"
-    worksheet.cell(row=1, column=1, value="slopy%")
-    worksheet.cell(row=1, column=2, value="area [km^2]")
-    worksheet.cell(row=1, column=3, value="total time [sec]")
-    worksheet.cell(row=1, column=4, value="cpu total time [sec]")
-    # add to filename
-    last_row = worksheet.max_row
-    worksheet.cell(row=last_row + 1, column=1, value=slopy)
-    worksheet.cell(row=last_row + 1, column=2, value=area)
-    worksheet.cell(row=last_row + 1, column=3, value=total_time)
-    worksheet.cell(row=last_row + 1, column=4, value=cpu_total_time)
-
-    workbook.save("results.xlsx")
 
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@ from typing import List, Tuple, Dict
 import matplotlib.pyplot as plt
 import utm
 import math
+from Modules.GUI.settings import *
 
 PURPLE = (255, 0, 255)
 YELLOW = (255, 255, 0)
@@ -55,13 +56,14 @@ def mask_pixels_from_slopes(slopes_mask_in_black_and_white: np.ndarray, tree_sha
     slope2TreeCol = tree_shape[1] / slope_shape[1]
 
     tree_mask = np.zeros((tree_shape[0], tree_shape[1]), dtype=bool)
-    masked_pixels_slope = np.argwhere(slopes_mask_in_black_and_white == UNACCEPTED_SLOPE_COLOR)  # guessed 0 is black in rgb
+    masked_pixels_slope = np.argwhere(slopes_mask_in_black_and_white == UNVIABLE_LANDING)  # guessed 0 is black in rgb
     for index in masked_pixels_slope:
         first_row, last_row = math.floor(slope2TreeRow * index[0]), math.ceil((slope2TreeRow) * (index[0] + 1) + 1)
         first_col, last_col = math.floor(slope2TreeCol * index[1]), math.ceil((slope2TreeCol) * (index[1] + 1) + 1)
         tree_mask[first_row:last_row, first_col:last_col] = True
     masked_pixels_tree = np.argwhere(tree_mask == True)
     # move the pixels of trees
+
     return masked_pixels_tree
 
 
