@@ -1,4 +1,6 @@
+import numpy as np
 import rasterio
+from typing import List, Tuple, Dict
 import matplotlib.pyplot as plt
 import utm
 import math
@@ -14,6 +16,109 @@ UNACCEPTED_SLOPE_COLOR = BLACK
 
 
 # the file is in format utm36
+def get_partial_dtm_from_total_dtm(coordinates: Tuple[float, float], km_radius: float, meters_per_pixel: float = 10) -> \
+        Tuple[np.ndarray, int, int]:
+    # find the area in the dtm that is relevant
+    # cut around the area in a SIZE*SIZE matrix
+    size = round(km_radius * 1000 / meters_per_pixel)
+    dem = rasterio.open(DTM_FILE_PATH)  # turn .tiff file to dem format, each pixel is a height
+    rows = dem.height  # number of rows
+    cols = dem.width  # number of columns
+
+    # slow solution - loading all file
+    # dem_data = dem.read(1).astype("int")
+    ### assuming that the coordinates[0] is cols (east / west) and coordinates[1] is rows (north / south)
+
+    # calculating the center for partial_dtm
+    if check_coordinates_area_are_in_dtm(coordinates, size, dem):
+        print("coordinates are in range")
+    print(dem.bounds.left, dem.bounds.top)
+
+    col_center = round((coordinates[0] - dem.bounds.left) / meters_per_pixel)
+    row_center = -round((coordinates[1] - dem.bounds.top) / meters_per_pixel)
+
+    window = rasterio.windows.Window.from_slices((row_center - size, row_center + size),
+                                                 (col_center - size, col_center + size))
+
+    partial_dtm = dem.read(1, window=window).astype("int")  # convert height to int instead of float
+
+    # partial_dtm = dem_data[row_center - size: row_center + size, col_center - size: col_center + size]
+
+    new_rows = partial_dtm.shape[0]
+    new_cols = partial_dtm.shape[1]
+
+    return partial_dtm, new_rows, new_cols
+
+
+def check_coordinates_area_are_in_dtm(coordinates: Tuple[float, float], size: float,
+                                      dem: rasterio.DatasetReader) -> bool:
+    return ((dem.bounds.left < (coordinates[0] + size) < dem.bounds.right) and
+            (dem.bounds.left < (coordinates[0] - size) < dem.bounds.right) and
+            (dem.bounds.bottom < (coordinates[1] + size) < dem.bounds.top) and
+            (dem.bounds.bottom < (coordinates[1] - size) < dem.bounds.top)
+            )
+
+
+def mask_pixels_from_slopes(slopes_mask_in_black_and_white: np.ndarray, tree_shape: Tuple[int, int],
+                            slope_shape: Tuple[int, int]) -> np.ndarray:
+    unique_values, value_counts = np.unique(slopes_mask_in_black_and_white, return_counts=True)
+
+    slope2TreeRow = tree_shape[0] / slope_shape[0]
+    slope2TreeCol = tree_shape[1] / slope_shape[1]
+
+    tree_mask = np.zeros((tree_shape[0], tree_shape[1]), dtype=bool)
+    masked_pixels_slope = np.argwhere(slopes_mask_in_black_and_white == 0)  # guessed 0 is black in rgb
+    for index in masked_pixels_slope:
+        first_row, last_row = math.floor(slope2TreeRow * index[0]), math.ceil((slope2TreeRow) * (index[0] + 1) + 1)
+        first_col, last_col = math.floor(slope2TreeCol * index[1]), math.ceil((slope2TreeCol) * (index[1] + 1) + 1)
+        tree_mask[first_row:last_row, first_col:last_col] = True
+    masked_pixels_tree = np.argwhere(tree_mask == True)
+    print("masked", masked_pixels_tree.shape)
+    # move the pixels of trees
+    return masked_pixels_tree
+
+
+def get_partial_dtm_from_total_dtm(coordinates: Tuple[float, float], km_radius: float, meters_per_pixel: float = 10) -> \
+        Tuple[np.ndarray, int, int]:
+    # find the area in the dtm that is relevant
+    # cut around the area in a SIZE*SIZE matrix
+    size = round(km_radius * 1000 / meters_per_pixel)
+    dem = rasterio.open(DTM_FILE_PATH)  # turn .tiff file to dem format, each pixel is a height
+    rows = dem.height  # number of rows
+    cols = dem.width  # number of columns
+
+    # slow solution - loading all file
+    # dem_data = dem.read(1).astype("int")
+    ### assuming that the coordinates[0] is cols (east / west) and coordinates[1] is rows (north / south)
+
+    # calculating the center for partial_dtm
+    if check_coordinates_area_are_in_dtm(coordinates, size, dem):
+        print("coordinates are in range")
+    print(dem.bounds.left, dem.bounds.top)
+
+    col_center = round((coordinates[0] - dem.bounds.left) / meters_per_pixel)
+    row_center = -round((coordinates[1] - dem.bounds.top) / meters_per_pixel)
+
+    window = rasterio.windows.Window.from_slices((row_center - size, row_center + size),
+                                                 (col_center - size, col_center + size))
+
+    partial_dtm = dem.read(1, window=window).astype("int")  # convert height to int instead of float
+
+    # partial_dtm = dem_data[row_center - size: row_center + size, col_center - size: col_center + size]
+
+    new_rows = partial_dtm.shape[0]
+    new_cols = partial_dtm.shape[1]
+
+    return partial_dtm, new_rows, new_cols
+
+
+def get_slopes_mask(coordinates, km_radius):
+    partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
+    slope_shape = (new_rows, new_cols)
+    slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
+    return np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
+
+
 def get_max_slopes(dem_data, rows, cols):
     """
     This function returns the maximum height differences in the DEM
