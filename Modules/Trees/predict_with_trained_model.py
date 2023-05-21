@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 from joblib import dump, load
 from Modules.Trees.classifier import Classifier
 import rasterio as rio
@@ -35,6 +36,7 @@ def predict_image(image_to_predict, trained_model_path, pixels_to_ignore):
 
     # plot_image_and_mask(image_to_predict,predicted_mask, image_title="", trained_model_title="")
     # plt.show()
+    # when we get here, 0 represents nontree, 255 is tree
     return predicted_mask
 
 
@@ -81,7 +83,8 @@ def get_tree_mask_from_image(aerial: str, pixels_to_ignore, trained_model_path=T
     :param pixels_to_ignore: pixels to automatically ignore, to improve runtime
     :return: formatted mask of the trees, 255 is not tree, 0 is tree
     '''
-    return predict_image(aerial, trained_model_path, pixels_to_ignore)
+    flipped_image = predict_image(aerial, trained_model_path, pixels_to_ignore)
+    return np.where(flipped_image == UNVIABLE_LANDING, VIABLE_LANDING, UNVIABLE_LANDING)
 
 
 if __name__ == '__main__':

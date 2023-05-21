@@ -53,20 +53,20 @@ def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: flo
     return img
 
 
-def get_white_or_black(e_vals: np.ndarray, n_vals: np.ndarray, e_center: float, n_center: float, m_radius: float,
-                       trees: np.ndarray, slopes: np.ndarray) -> np.ndarray:
+def overlay_masks(e_vals: np.ndarray, n_vals: np.ndarray, e_center: float, n_center: float, m_radius: float,
+                  trees: np.ndarray, slopes: np.ndarray) -> np.ndarray:
     row_tree = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * trees.shape[0]).astype(int)
     col_tree = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * trees.shape[1]).astype(int)
     row_slope = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * slopes.shape[0]).astype(int) - 1
     col_slope = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * slopes.shape[1]).astype(int) - 1
     tree = trees[row_tree, col_tree]
     slope = slopes[row_slope, col_slope]
-    mask = np.logical_and(np.logical_not(tree), slope)
-    return np.where(mask, 255, 0)
+    and_mask = np.logical_and(tree == VIABLE_LANDING, slope == VIABLE_LANDING)
+    return np.where(and_mask, VIABLE_LANDING, UNVIABLE_LANDING)
 
 
-def get_total_mask_from_masks(e_center: float, n_center: float, radius: float, trees: np.ndarray,
-                              slopes: np.ndarray) -> np.ndarray:
+def get_total_mask_from_masks(e_center: float, n_center: float, radius: float, trees_mask: np.ndarray,
+                              slopes_mask: np.ndarray) -> np.ndarray:
     m_radius = int(radius * 1000)
     e_vals = np.arange(e_center - m_radius, e_center + m_radius)
     n_vals = np.arange(n_center - m_radius, n_center + m_radius)
@@ -75,7 +75,7 @@ def get_total_mask_from_masks(e_center: float, n_center: float, radius: float, t
     ee, nn = np.meshgrid(e_vals, n_vals, indexing='xy')
 
     # Calculate the total mask using vectorized numpy indexing
-    total_mask = get_white_or_black(ee, nn, e_center, n_center, m_radius, trees, slopes)
+    total_mask = overlay_masks(ee, nn, e_center, n_center, m_radius, trees_mask, slopes_mask)
 
     return total_mask
 
@@ -106,12 +106,6 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     st = time.time()
     cputime_start = time.process_time()
     # TODO: improve modularity, allow user to add or implement more mask functions
-    # building mask
-    mask_functions = []
-    masks = []
-    for func in mask_functions:
-        mask = func(coordinates, km_radius)
-
     building_image = get_building_image_from_utm(coordinates, km_radius)
     building_mask = get_building_mask(building_image)
     slopes_mask = get_slopes_mask(coordinates, km_radius)
@@ -128,16 +122,16 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
                                                     slopes_mask)
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
                                            tree_and_slope_mask)
-    filter_area_size = 1000
+    filter_area_size = 750
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     data_analyse(slopes_mask, km_radius, st, cputime_start)
     print("Finish")
     # plot_image_and_mask(image_name, building_mask, tree_and_slope_mask,
     #                     total_mask, coordinates)
     screen_gui.update_progressbar(100)
-    masks_dictionary = {"Slopes": slopes_mask, "Trees": np.where(tree_mask == 255, 0, 255),
+    masks_dictionary = {"Slopes": slopes_mask, "Trees": tree_mask,
                         "Slopes&Trees": tree_and_slope_mask,
-                        "Buildings": np.where(building_mask == 255, 0, 255),
+                        "Buildings": building_mask,
                         "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix colors
     return img, masks_dictionary
 

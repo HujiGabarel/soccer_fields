@@ -49,6 +49,7 @@ def check_coordinates_area_are_in_dtm(coordinates: Tuple[float, float], size: fl
             )
 
 
+# TODO might have generalization problems, 255 and 0
 def mask_pixels_from_slopes(slopes_mask_in_black_and_white: np.ndarray, tree_shape: Tuple[int, int],
                             slope_shape: Tuple[int, int]) -> np.ndarray:
 
@@ -69,11 +70,11 @@ def mask_pixels_from_slopes(slopes_mask_in_black_and_white: np.ndarray, tree_sha
 
 def get_slopes_mask(coordinates, km_radius):
     partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
-    slope_shape = (new_rows, new_cols)
     slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
     return np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
 
 
+# TODO: for loop should be numpy, maybe whole function is irrelevant
 def get_max_slopes(dem_data, rows, cols):
     """
     This function returns the maximum height differences in the DEM
@@ -100,6 +101,7 @@ def plot_heat_map(data_in_black_and_white):
     plt.show()
 
 
+# TODO: for loop should be numpy, combine with previous using more than 2 instead of casting to 2
 def convert_slopes_to_black_and_white(height_differences, rows, cols):
     data_in_black_and_white = height_differences
     color_map = {0: ACCEPTED_SLOPE_COLOR,
