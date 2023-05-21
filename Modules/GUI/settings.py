@@ -2,7 +2,7 @@ import os
 import math
 
 VIABLE_LANDING = 255
-UNVIABLE_LANDING = 0
+UNVIABLE_LANDING= 0
 DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 TRAINED_MODEL_PATH = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 # GUI
