@@ -220,8 +220,8 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
     print("Finish")
-    plot_image_and_mask(image_name, building_mask, tree_and_slope_mask,
-                        total_mask, coordinates)
+    # plot_image_and_mask(image_name, building_mask, tree_and_slope_mask,
+    #                     total_mask, coordinates)
     screen_gui.update_progressbar(100)
     masks_dictionary = {"Slopes": slopes_mask_in_black_and_white, "Trees": np.where(tree_mask == 255, 0, 255),
                         "Slopes&Trees": tree_and_slope_mask,
