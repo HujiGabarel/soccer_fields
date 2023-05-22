@@ -65,10 +65,9 @@ def is_box_in_the_area(box, coordinates, radius):
 
 
 def calculate_box_of_shape_in_the_area(list_of_shapes):
-    """
-    :param list_of_shapes: that at least part of them are in the area
-    :return: box of the x_min,y_min,x_max,y_max of the shapes in the area
-    """
+    if len(list_of_shapes) == 0:
+        print("No shapes in the area")
+        return None
     x, y = [], []
     for shape in list_of_shapes:
         box = shape[1]
@@ -83,6 +82,7 @@ def calculate_box_of_shape_in_the_area(list_of_shapes):
 if __name__ == '__main__':
     coordinates = (696531, 3662682)
     radius_in_km = 5
+
     print(len(get_shapes_in_the_area(coordinates, radius_in_km, shp_file_to_list_of_shapes(SHP_PATH))))
     print(calculate_box_of_shape_in_the_area(
         get_shapes_in_the_area(coordinates, radius_in_km, shp_file_to_list_of_shapes(SHP_PATH))))
