@@ -1,5 +1,9 @@
 import shapefile
 from PIL import Image, ImageDraw
+import numpy as np
+from skimage import color
+import matplotlib.pyplot as plt
+import cv2
 
 # opening the vector map
 SHP_PATH = "../../SHP_UTM/B_SITES_A.shp"
@@ -80,7 +84,7 @@ def calculate_box_of_shapes_in_the_area(list_of_shapes):
     return min(x), min(y), max(x), max(y)
 
 
-def create_mask_from_shape(box_of_shapes_in_the_area, shapes_in_the_area):
+def create_mask_from_shapes(box_of_shapes_in_the_area, shapes_in_the_area):
     """
     :param shape: shapefile shape
     :return: mask of the shape
@@ -97,22 +101,92 @@ def create_mask_from_shape(box_of_shapes_in_the_area, shapes_in_the_area):
         draw.polygon(relative_list_of_points, outline=UNVIABLE_LANDING, fill=UNVIABLE_LANDING)
     image.show()
 
+    return convert_image_to_mask(image)
+
+
+def convert_image_to_mask(image):  # Todo: improve this
+    mask = np.array(image)
+    mask = mask.sum(axis=2)
+    mask[mask == 0] = UNVIABLE_LANDING
+    mask[mask == 765] = VIABLE_LANDING
+    return mask
+
 
 def create_relative_points(list_of_points, box_of_shapes_in_the_area):
     new_list_of_points = []
     for point in list_of_points:
         # relative to the top left corner
-        new_point = (point[0] - box_of_shapes_in_the_area[0],-point[1] + box_of_shapes_in_the_area[3])
+        new_point = (point[0] - box_of_shapes_in_the_area[0], -point[1] + box_of_shapes_in_the_area[3])
         new_list_of_points.append(new_point)
     return new_list_of_points
 
 
+def change_resolution_of_mask(mask, image_size):
+    """
+    :param mask: mask of the shape
+    :param resolution: resolution of the mask
+    :return: mask with the given resolution
+    """
+    # resize the mask to the size of the image
+    mask = mask.astype(np.uint8)
+    print(mask.shape)
+    mask = cv2.resize(mask, image_size, interpolation=cv2.INTER_NEAREST)
+    return mask
+
+
+def get_partial_mask_from_total_mask(total_mask_from_shape, box_of_shapes_in_the_area, coordinates, radius,
+                                     image_size: tuple):
+    """
+    # Todo: fix this
+    :param total_mask_from_shape:
+    :param coordinates:
+    :param radius:
+    :return: mask in box of the relevant area
+    """
+    km_radius = radius * 1000
+    original_area_box = (
+        coordinates[0] - km_radius, coordinates[1] - km_radius, coordinates[0] + km_radius, coordinates[1] + km_radius)
+    print(original_area_box, box_of_shapes_in_the_area)
+    row_resolution = (box_of_shapes_in_the_area[3] - box_of_shapes_in_the_area[1]) / total_mask_from_shape.shape[
+        0]  # meter per pixel
+    col_resolution = (box_of_shapes_in_the_area[2] - box_of_shapes_in_the_area[0]) / total_mask_from_shape.shape[
+        1]  # meter per pixel
+    print(row_resolution, col_resolution)
+
+    partial_mask = 0  # Todo find the relevant part of the mask
+    resized_mask_in_area = change_resolution_of_mask(partial_mask, image_size)
+    plt.imshow(resized_mask_in_area)
+    plt.show()
+
+    return resized_mask_in_area
+
+
+def get_mask_from_shp_file(shp_path, coordinates, radius, image_size: tuple):
+    """
+    :param shp_path: shp file path
+    :param coordinates: coordinates of the area
+    :param radius: radius of the area
+    :param image_size: size of the image in pixels (width, height)
+    :return: mask of the area
+    """
+    shapes_list = shp_file_to_list_of_shapes(shp_path)
+    shapes_in_the_area = get_shapes_in_the_area(coordinates, radius, shapes_list)
+    box_of_shapes_in_the_area = calculate_box_of_shapes_in_the_area(shapes_in_the_area)
+    mask = create_mask_from_shapes(box_of_shapes_in_the_area, shapes_in_the_area)
+    mask_for_area = get_partial_mask_from_total_mask(mask, box_of_shapes_in_the_area, coordinates, radius,
+                                                     image_size)  # TODO: finish this
+    return mask_for_area
+
+
 if __name__ == '__main__':
     coordinates = (696531, 3662682)
-    radius_in_km = 5
+    radius_in_km = 1
 
-    print(len(get_shapes_in_the_area(coordinates, radius_in_km, shp_file_to_list_of_shapes(SHP_PATH))))
-    list_of_shp = shp_file_to_list_of_shapes(SHP_PATH)
-    list_of_shp_in_the_area = get_shapes_in_the_area(coordinates, radius_in_km, list_of_shp)
-    box_of_shapes_in_the_area = calculate_box_of_shapes_in_the_area(list_of_shp_in_the_area)
-    create_mask_from_shape(box_of_shapes_in_the_area, list_of_shp_in_the_area)
+    # print(len(get_shapes_in_the_area(coordinates, radius_in_km, shp_file_to_list_of_shapes(SHP_PATH))))
+    # list_of_shp = shp_file_to_list_of_shapes(SHP_PATH)
+    # list_of_shp_in_the_area = get_shapes_in_the_area(coordinates, radius_in_km, list_of_shp)
+    # box_of_shapes_in_the_area = calculate_box_of_shapes_in_the_area(list_of_shp_in_the_area)
+    # total_mask_from_shape = create_mask_from_shapes(box_of_shapes_in_the_area, list_of_shp_in_the_area)
+    # new_mask = change_resolution_of_mask(total_mask_from_shape, 10)
+    # print(len(new_mask), len(new_mask[0]))
+    get_mask_from_shp_file(SHP_PATH, coordinates, radius_in_km, (400, 400))
