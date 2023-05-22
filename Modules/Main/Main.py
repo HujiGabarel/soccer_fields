@@ -18,7 +18,7 @@ from Modules.Slopes.slopes import get_max_slopes, plot_heat_map, convert_slopes_
 from Modules.Building.predict import detect_building, convert_building_to_black_white, convert_building_to_tree_style
 from Modules.GUI import gui
 from Modules.AreaFilter.Filterspecks import FilterSpecks
-from Modules.AreaFilter.RectangleFilter import detect_rectangles
+from Modules.AreaFilter.RectangleFilter import detect_rectangles,smooth_unwanted
 
 import math
 import openpyxl
@@ -186,7 +186,7 @@ def plot_image_and_mask(image_to_predict, predicted_mask_tree, predicted_mask_sl
     axes[0][1].set_title("total mask")
     axes[0][1].imshow(total_mask, cmap='Greys', interpolation='nearest')
     saved_image_name = str(int(coordinates[0])) + "," + str(int(coordinates[1])) + " RESULT"
-    plt.savefig(os.path.join("results_images", saved_image_name))
+    #plt.savefig(os.path.join("results_images", saved_image_name))
     plt.show()
 
 
@@ -218,6 +218,8 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
                                                     slopes_mask_in_black_and_white)
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
                                            tree_and_slope_mask)
+    
+    total_mask = smooth_unwanted(total_mask,(100,60))
     filter_area_size = 750
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
