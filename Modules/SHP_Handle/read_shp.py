@@ -1,8 +1,9 @@
 import shapefile
-import os
+from PIL import Image, ImageDraw
 
 # opening the vector map
 SHP_PATH = "../../SHP_UTM/B_SITES_A.shp"
+from Modules.GUI.settings import *
 
 
 def shp_file_to_list_of_shapes(shp_path) -> list[tuple[list[tuple[float, float]], tuple[float, float, float, float]]]:
@@ -64,7 +65,7 @@ def is_box_in_the_area(box, coordinates, radius):
     return False
 
 
-def calculate_box_of_shape_in_the_area(list_of_shapes):
+def calculate_box_of_shapes_in_the_area(list_of_shapes):
     if len(list_of_shapes) == 0:
         print("No shapes in the area")
         return None
@@ -79,10 +80,39 @@ def calculate_box_of_shape_in_the_area(list_of_shapes):
     return min(x), min(y), max(x), max(y)
 
 
+def create_mask_from_shape(box_of_shapes_in_the_area, shapes_in_the_area):
+    """
+    :param shape: shapefile shape
+    :return: mask of the shape
+    """
+
+    # Define the size of the image
+    image_width = int(box_of_shapes_in_the_area[2] - box_of_shapes_in_the_area[0])
+    image_height = int(box_of_shapes_in_the_area[3] - box_of_shapes_in_the_area[1])
+    # Create a blank image with a white background
+    image = Image.new("RGB", (image_width, image_height), "white")
+    draw = ImageDraw.Draw(image)
+    for shape in shapes_in_the_area:
+        relative_list_of_points = create_relative_points(shape[0], box_of_shapes_in_the_area)
+        draw.polygon(relative_list_of_points, outline=UNVIABLE_LANDING, fill=UNVIABLE_LANDING)
+    image.show()
+
+
+def create_relative_points(list_of_points, box_of_shapes_in_the_area):
+    new_list_of_points = []
+    for point in list_of_points:
+        # relative to the top left corner
+        new_point = (point[0] - box_of_shapes_in_the_area[0],-point[1] + box_of_shapes_in_the_area[3])
+        new_list_of_points.append(new_point)
+    return new_list_of_points
+
+
 if __name__ == '__main__':
     coordinates = (696531, 3662682)
     radius_in_km = 5
 
     print(len(get_shapes_in_the_area(coordinates, radius_in_km, shp_file_to_list_of_shapes(SHP_PATH))))
-    print(calculate_box_of_shape_in_the_area(
-        get_shapes_in_the_area(coordinates, radius_in_km, shp_file_to_list_of_shapes(SHP_PATH))))
+    list_of_shp = shp_file_to_list_of_shapes(SHP_PATH)
+    list_of_shp_in_the_area = get_shapes_in_the_area(coordinates, radius_in_km, list_of_shp)
+    box_of_shapes_in_the_area = calculate_box_of_shapes_in_the_area(list_of_shp_in_the_area)
+    create_mask_from_shape(box_of_shapes_in_the_area, list_of_shp_in_the_area)
