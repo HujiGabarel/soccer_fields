@@ -121,7 +121,7 @@ def smooth_unwanted(matrix,shape,val_to_find = 255, threshold=0):
         start_x = -1
         for x, event_type, in events_y:
             
-            if x == shape[1]-1 and counter >1:
+            if x == shape[1]-1 and counter >=1:
                 final_res[y,start_x:shape[1]] = 255 #WHITE
                 break
 
