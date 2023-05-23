@@ -87,13 +87,13 @@ def detect_rectangles(matrix,shape,val_to_find,threshold = 0):
 def smooth_unwanted(matrix,shape,val_to_find = 255, threshold=0):
     """_summary_
 
-    :param matrix: _description_
-    :type matrix: _type_
-    :param shape: _description_
-    :type shape: _type_
-    :param val_to_find: _description_, defaults to 0
+    :param matrix: full mask matrix 
+    :type matrix: np.ndarray
+    :param shape: shape of rectangle to find
+    :type shape: (height, width)
+    :param val_to_find: value to look for, (color white), defaults to 0
     :type val_to_find: int, optional
-    :param threshold: _description_, defaults to 0
+    :param threshold: threshold for slicing rectangles(value from 0 to 1), defaults to 0
     :type threshold: int, optional
     """
     #list to dict
