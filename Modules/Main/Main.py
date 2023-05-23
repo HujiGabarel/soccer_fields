@@ -10,7 +10,7 @@ import time
 from Modules.GUI.settings import *
 from Modules.Main.Processing_runtimes import data_analyse
 from Modules.Main.utils import *
-
+from Modules.SHP_Handle.read_shp import get_mask_from_shp_file
 
 # Adding the root directory to the system path
 sys.path.append('../..')
@@ -114,6 +114,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     slopes_mask = get_slopes_mask(coordinates, km_radius)
 
     image_name, img = get_image_from_utm(coordinates, km_radius)
+    shp_mask = get_mask_from_shp_file(SHP_PATH, coordinates, km_radius, (img.shape[0], img.shape[1]))
     tree_shape = img.shape
     unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask, tree_shape,
                                                     slopes_mask.shape)  # add according to slopes - find all places where slope is 1
@@ -125,6 +126,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
                                                     slopes_mask)
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
                                            tree_and_slope_mask)
+
     filter_area_size = 750
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     data_analyse(slopes_mask, km_radius, st, cputime_start)
@@ -134,7 +136,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     screen_gui.update_progressbar(100)
     masks_dictionary = {"Slopes": slopes_mask, "Trees": tree_mask,
                         "Slopes&Trees": tree_and_slope_mask,
-                        "Buildings": building_mask,
+                        "Buildings": building_mask, "Electricity": shp_mask,
                         "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix colors
     return img, masks_dictionary
 

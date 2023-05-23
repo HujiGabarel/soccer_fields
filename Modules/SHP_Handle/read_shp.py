@@ -109,7 +109,7 @@ def create_mask_from_shapes(box_of_shapes_in_the_area, shapes_in_the_area):
     for shape in shapes_in_the_area:
         relative_list_of_points = create_relative_points(shape[0], box_of_shapes_in_the_area)
         draw.polygon(relative_list_of_points, outline=UNVIABLE_LANDING, fill=UNVIABLE_LANDING)
-    image.show()
+    # image.show()
 
     return convert_image_to_mask(image)
 
@@ -160,7 +160,7 @@ def get_partial_mask_from_total_mask(total_mask_from_shape, total_box, coordinat
         0]  # meter per pixel
     col_resolution = (total_box[2] - total_box[0]) / total_mask_from_shape.shape[
         1]  # meter per pixel
-    top_left_row = int((original_area_box[3] - total_box[3]) / row_resolution)
+    top_left_row = -int((original_area_box[3] - total_box[3]) / row_resolution)
     top_left_col = int((original_area_box[0] - total_box[0]) / col_resolution)
     bottom_right_row = -int((original_area_box[1] - total_box[3]) / row_resolution)
     bottom_right_col = int((original_area_box[2] - total_box[0]) / col_resolution)
@@ -168,8 +168,8 @@ def get_partial_mask_from_total_mask(total_mask_from_shape, total_box, coordinat
     partial_mask = total_mask_from_shape[top_left_row:bottom_right_row, top_left_col:bottom_right_col]
     print(partial_mask.shape, total_mask_from_shape.shape)
     resized_mask_in_area = change_resolution_of_mask(partial_mask, image_size)
-    plt.imshow(resized_mask_in_area)
-    plt.show()
+    # plt.imshow(resized_mask_in_area)
+    # plt.show()
 
     return resized_mask_in_area
 
@@ -185,9 +185,13 @@ def get_mask_from_shp_file(shp_path, coordinates, radius, image_size: tuple):
     shapes_list = shp_file_to_list_of_shapes(shp_path)
     shapes_in_the_area = get_shapes_in_the_area(coordinates, radius, shapes_list)
     box_of_shapes_in_the_area = calculate_total_box(shapes_in_the_area, coordinates, radius)
+    if box_of_shapes_in_the_area is None:
+        # mask of image size with all VIABLE_LANDING
+        print("No shapes in the area")
+        return np.ones(image_size) * VIABLE_LANDING
     mask = create_mask_from_shapes(box_of_shapes_in_the_area, shapes_in_the_area)
     mask_for_area = get_partial_mask_from_total_mask(mask, box_of_shapes_in_the_area, coordinates, radius,
-                                                     image_size)  # TODO: finish this
+                                                     image_size)
     return mask_for_area
 
 
