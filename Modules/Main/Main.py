@@ -219,7 +219,7 @@ def get_viable_landing_in_radius(coordinates, km_radius, screen_gui):
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
                                            tree_and_slope_mask)
     
-    total_mask = smooth_unwanted(total_mask,(100,60))
+    total_mask = smooth_unwanted(total_mask,(30,50))
     filter_area_size = 750
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     data_analyse(slopes_mask_in_black_and_white, km_radius, st, cputime_start)
