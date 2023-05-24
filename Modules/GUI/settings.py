@@ -2,7 +2,8 @@ import os
 import math
 
 VIABLE_LANDING = 255
-UNVIABLE_LANDING= 0
+UNVIABLE_LANDING = 0
+SHP_PATH = "../../SHP_UTM/B_BUILDINGS_A.shp"
 DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 TRAINED_MODEL_PATH = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 # GUI
@@ -31,7 +32,6 @@ N_ENTRY_LOCATION = (0.5, 0.1)
 R_LABEL_LOCATION = (0.39, 0.15)
 R_ENTRY_LOCATION = (0.5, 0.15)
 DISTANCE_ENTRY_LOCATION = (0.8, 0.3)
-
 LINE_WIDTH = 3
 LINE_COLOR = "#7B68EE"
 DISTANCE_LABEL_COLOR = 'white'
@@ -64,7 +64,7 @@ END_X, END_Y = None, None
 #               "Electricity&Trees", "Buildings&Trees", "Buildings&Electricity", "Buildings&Slopes&Trees",
 #               "Buildings&Electricity&Slopes", "Electricity&Slopes&Trees", "Buildings&Electricity&Trees",
 #               "Buildings&Electricity&Slopes&Trees"]
-MASKS_KEYS = ["Slopes", "Trees", "Slopes&Trees", "Buildings",
+MASKS_KEYS = ["Slopes", "Trees", "Slopes&Trees", "Buildings", "Electricity",
               "Buildings&Slopes&Trees"]
 TREES_CHECK_BOX_LOCATION = (0.8, 0.3)
 SLOPES_CHECK_BOX_LOCATION = (0.8, 0.38)

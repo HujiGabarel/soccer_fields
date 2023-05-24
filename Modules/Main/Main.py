@@ -10,7 +10,7 @@ import time
 from Modules.GUI.settings import *
 from Modules.Main.Processing_runtimes import data_analyse
 from Modules.Main.utils import *
-
+from Modules.SHP_Handle.read_shp import get_mask_from_shp_file
 
 # Adding the root directory to the system path
 sys.path.append('../..')
@@ -21,7 +21,14 @@ from Modules.Trees.predict_with_trained_model import get_tree_mask_from_image
 from Modules.Slopes.slopes import get_slopes_mask, mask_pixels_from_slopes
 from Modules.GUI import gui
 from Modules.AreaFilter.Filterspecks import FilterSpecks
-from Modules.Building.Buildings import get_building_mask
+from Modules.AreaFilter.RectangleFilter import detect_rectangles,smooth_unwanted
+
+import math
+import openpyxl
+import time
+
+DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
+trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
 
 def get_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
@@ -99,7 +106,7 @@ def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, 
     axes[0][1].set_title("total mask")
     axes[0][1].imshow(total_mask, cmap='Greys', interpolation='nearest')
     saved_image_name = str(int(coordinates[0])) + "," + str(int(coordinates[1])) + " RESULT"
-    plt.savefig(os.path.join("results_images", saved_image_name))
+    #plt.savefig(os.path.join("results_images", saved_image_name))
     plt.show()
 
 
@@ -115,6 +122,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     slopes_mask = get_slopes_mask(coordinates, km_radius)
 
     image_name, img = get_image_from_utm(coordinates, km_radius)
+    shp_mask = get_mask_from_shp_file(SHP_PATH, coordinates, km_radius, (img.shape[0], img.shape[1]))
     tree_shape = img.shape
     unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask, tree_shape,
                                                     slopes_mask.shape)  # add according to slopes - find all places where slope is 1
@@ -126,6 +134,9 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
                                                     slopes_mask)
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
                                            tree_and_slope_mask)
+
+    
+    total_mask = smooth_unwanted(total_mask,(30,50))
     filter_area_size = 750
     total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
     data_analyse(slopes_mask, km_radius, st, cputime_start)
@@ -135,7 +146,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     screen_gui.update_progressbar(100)
     masks_dictionary = {"Slopes": slopes_mask, "Trees": tree_mask,
                         "Slopes&Trees": tree_and_slope_mask,
-                        "Buildings": building_mask,
+                        "Buildings": building_mask, "Electricity": shp_mask,
                         "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix colors
     return img, masks_dictionary
 
