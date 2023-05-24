@@ -110,7 +110,8 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     # TODO: improve modularity, allow user to add or implement more mask functions
     building_image = get_building_image_from_utm(coordinates, km_radius)
     building_mask = get_building_mask(building_image)
-    building_mask = enlarge_obstacles(building_mask)
+    # building_mask = enlarge_obstacles(building_mask)
+    building_mask = filter_chopper_area(building_mask, 30, 30)
     slopes_mask = get_slopes_mask(coordinates, km_radius)
 
     image_name, img = get_image_from_utm(coordinates, km_radius)
