@@ -26,34 +26,37 @@ trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The 
 
 
 def get_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
-    with open("preferences.json", 'r', encoding='utf-8') as f:
-        prefs = json.loads(f.read())
-    lat, long = image_downloading.convert_to_lat_long(coordinates)  # ToDO: change to out of function as input
-    img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'],
-                                           length=2 * km_radius)
-    path = os.path.join('images_from_argcis', f'data_{coordinates[0], coordinates[1]}')
-    if not os.path.exists(path):
-        os.makedirs(path)
-    name = f'images_from_argcis/data_{coordinates[0], coordinates[1]}/img_{coordinates[0], coordinates[1]}.png'
-    cv2.imwrite(name, img)
-    print("image downloaded")
-
-    return name, img
+    return get_layer_from_server(coordinates, km_radius, 'aerial_url', 'img')
 
 
-def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> np.ndarray:
-    with open("preferences_building.json", 'r', encoding='utf-8') as f:
+def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
+    return get_layer_from_server(coordinates, km_radius, 'building_url', 'img_buildings')
+
+
+def get_layer_from_server(coordinates: Tuple[float, float], km_radius: float, url_name: str,
+                          inner_folder_name: str,
+                          folder_name: str = 'images_from_arcgis') -> Tuple[str, np.ndarray]:
+    """
+    return a layer from the arcgis server based on a url in arcgis_preferences.json, and save it in a folder
+    :param coordinates: the utm coordinates of the center of the area
+    :param km_radius: radius in km
+    :param url_name: name of the url in arcgis_preferences.json
+    :param inner_folder_name: name of the folder to save the image in
+    :param folder_name: defaults to 'images_from_arcgis', could change in future
+    :return:
+    """
+    with open("arcgis_preferences.json", 'r', encoding='utf-8') as f:
         prefs = json.loads(f.read())
     lat, long = image_downloading.convert_to_lat_long(coordinates)
-    img = image_downloading.download_image(lat, long, prefs["zoom"], prefs['url'], prefs['tile_size'],
+    img = image_downloading.download_image(lat, long, prefs["zoom"], prefs[url_name], prefs['tile_size'],
                                            length=2 * km_radius)
-    path = os.path.join('images_from_argcis', f'data_{coordinates[0], coordinates[1]}')
+    path = os.path.join(folder_name, f'data_{coordinates[0], coordinates[1]}')
     if not os.path.exists(path):
         os.makedirs(path)
-    name = f'images_from_argcis/data_{coordinates[0], coordinates[1]}/img_buildings_{coordinates[0], coordinates[1]}.png'
+    name = f'{folder_name}/data_{coordinates[0], coordinates[1]}/{inner_folder_name}_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, img)
     print("Building image downloaded")
-    return img
+    return name, img
 
 
 def overlay_masks(e_vals: np.ndarray, n_vals: np.ndarray, e_center: float, n_center: float, m_radius: float,
@@ -109,7 +112,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     st = time.time()
     cputime_start = time.process_time()
     # TODO: improve modularity, allow user to add or implement more mask functions
-    building_image = get_building_image_from_utm(coordinates, km_radius)
+    _, building_image = get_building_image_from_utm(coordinates, km_radius)
     building_mask = get_building_mask(building_image)
     building_mask = enlarge_obstacles(building_mask)
     slopes_mask = get_slopes_mask(coordinates, km_radius)

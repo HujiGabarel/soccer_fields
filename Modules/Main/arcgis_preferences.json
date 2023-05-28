@@ -1,0 +1,7 @@
+{
+  "aerial_url": "https://services.arcgisonline.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+  "building_url": "https://services.arcgisonline.com/arcgis/rest/services/World_TOPO_MAP/MapServer/tile/{z}/{y}/{x}",
+  "tile_size": 256,
+  "tile_format": "jpg",
+  "zoom":18
+}
