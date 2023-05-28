@@ -56,6 +56,19 @@ def filter_chopper_area(array, radius=15):
     array = cv2.bitwise_not(array)
     return array
 
+def calculate_new_speed_run(slopes_mask, km_radius):
+    """
+    calculates the new speed run based on the slopes mask and the radius
+    :param slopes_mask:
+    :param km_radius:
+    :return:
+    """
+    count_good_pixels = np.count_nonzero(slopes_mask == VIABLE_LANDING)
+    slopy = 100 * count_good_pixels / slopes_mask.size
+    time_for_flat_km_area = 300
+    new_area = ((2 * float(km_radius)) ** 2) * (slopy / 100)
+    time_for_iteration = new_area * time_for_flat_km_area / 100
+    return time_for_iteration
 
 def OUT_OF_USE_area_filter(array, m, n):
     """

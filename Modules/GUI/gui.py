@@ -11,6 +11,7 @@ from PIL import Image
 from tkinter import ttk
 import time
 from Modules.GUI.settings import *
+from tkinter import filedialog
 
 
 def distance_text_location_func(points):
@@ -34,6 +35,7 @@ def distance_text_location_func(points):
 class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.file_path = []
         self.configure(background=BACKGROUND_COLOR)
         self.title("Soccer Field")
         self.canvas_distance = {}
@@ -58,10 +60,12 @@ class GUI(tk.Tk):
         self.add_result_image(self.result_image_array)
         self.bind_keys()
         self.create_slider()
+        self.add_load_file_button()
         # self.create_type_label()
         # self.change_type_button()
         self.add_masks_check_boxes()
         self.init_with_values()
+
     def add_E_cell(self):
         self.E = tk.Label(self, text="E: ")
         self.E.pack()
@@ -401,17 +405,8 @@ class GUI(tk.Tk):
         else:
             print('Progresbar complete!')
 
-    def set_time_for_iteration(self, slopy):
-        time_for_flat_km_area = 300
-        new_area = ((2 * float(self.Radius_value)) ** 2) * (slopy / 100)
-        self.time_for_iteration = new_area * time_for_flat_km_area / 100
-
-    def update_progressbar_speed(self, slopes_mask: np.ndarray) -> None:
-        count_good_pixels = np.count_nonzero(slopes_mask == VIABLE_LANDING)
-        print(count_good_pixels)
-        slopy = 100 * count_good_pixels / slopes_mask.size
-        print(slopy)
-        self.set_time_for_iteration(slopy)
+    def update_progressbar_speed(self, val):
+        self.time_for_iteration = val
 
     def add_search_button(self):
         self.search_image = Image.open(search_path)
@@ -458,6 +453,29 @@ class GUI(tk.Tk):
 
     def get_Radius_value(self):
         return self.Radius_value
+
+    def add_load_file_button(self):
+        # Create a label and entry widget to display the selected file name
+        self.file_name = tk.StringVar()
+        file_path_label = tk.Label(self, textvariable=self.file_name, width=LABEL_FILE_PATH_WIDTH, font=FONT,
+                                   foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        file_path_label.place(relx=FILE_PATH_LABEL_LOCATION[0], rely=FILE_PATH_LABEL_LOCATION[1], anchor=tk.CENTER)
+        # Create a button to browse and select the file
+        browse_button = tk.Button(self, text="Browse File", command=self.browse_file, background=BACKGROUND_COLOR,
+                                  foreground=FOREGROUND_COLOR, font=FONT, borderwidth=0.5)
+        browse_button.place(relx=FILE_PATH_BROWSE_LOCATION[0], rely=FILE_PATH_BROWSE_LOCATION[1], anchor=tk.CENTER)
+
+    def browse_file(self):
+        file_path = filedialog.askopenfilename()
+        self.file_path.append(file_path)
+        print("Selected file path:", file_path)
+        self.file_name.set(os.path.basename(file_path))  # Extract the file name from the path
+
+    def get_shp_file_path(self):
+        return self.file_path
+
+    def add_label_list_of_files_loaded(self):
+        pass
 
 
 # Press the green button in the gutter to run the script.

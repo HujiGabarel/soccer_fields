@@ -1,6 +1,8 @@
 import openpyxl
 import time
 import numpy as np
+
+
 def data_analyse(slopes_mask_in_black_and_white: np.ndarray, km_radius: float, st: float, cputime_start: float) -> None:
     # count number of 255 in slopes_mask_in_black_and_white
     count_slopes_good = np.count_nonzero(slopes_mask_in_black_and_white == 255)

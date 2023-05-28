@@ -107,6 +107,8 @@ def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, 
     plt.show()
 
 
+
+
 def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui) -> Tuple[
     np.ndarray, Dict[str, np.ndarray]]:
     st = time.time()
@@ -122,7 +124,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask, tree_shape,
                                                     slopes_mask.shape)  # add according to slopes - find all places where slope is 1
     unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
-    screen_gui.update_progressbar_speed(slopes_mask)
+    screen_gui.update_progressbar_speed(calculate_new_speed_run(slopes_mask, km_radius))
     tree_mask = get_tree_mask_from_image(image_name, unwanted_pixels)
     tree_and_slope_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                                     slopes_mask)
@@ -134,11 +136,11 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     name = f'images_from_argcis/data_{coordinates[0], coordinates[1]}/mask_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, total_mask_big_spots)
     data_analyse(slopes_mask, km_radius, st, cputime_start)
-    screen_gui.update_progressbar(100)
     masks_dictionary = {"Slopes": slopes_mask, "Trees": tree_mask,
                         "Slopes&Trees": tree_and_slope_mask,
                         "Buildings": building_mask, "Electricity": shp_mask,
-                        "Buildings&Slopes&Trees": total_mask_big_spots}  # TODO: add building mask and fix colors
+                        "Buildings&Slopes&Trees": total_mask_big_spots}  # TODO: add building mask and modularity
+    screen_gui.update_progressbar(100)
     print("Finish")
     return img, masks_dictionary
 
