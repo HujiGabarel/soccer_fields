@@ -1,18 +1,14 @@
-import sys
-from typing import List, Tuple, Dict
-import matplotlib.pyplot as plt
-import numpy as np
 import json
-import cv2
+import sys
+from typing import Tuple, Dict
+
+import matplotlib.pyplot as plt
 import rasterio as rio
 from rasterio import plot
-import time
-from Modules.GUI.settings import *
+
 from Modules.Main.Processing_runtimes import data_analyse
 from Modules.Main.utils import *
 from Modules.SHP_Handle.read_shp import get_mask_from_shp_file
-from Modules.SHP_Handle.write_shp import image_file_to_shp_file
-
 
 # Adding the root directory to the system path
 sys.path.append('../..')
@@ -22,11 +18,7 @@ import Modules.Main.image_downloading as image_downloading
 from Modules.Trees.predict_with_trained_model import get_tree_mask_from_image
 from Modules.Slopes.slopes import get_slopes_mask, mask_pixels_from_slopes
 from Modules.GUI import gui
-from Modules.AreaFilter.Filterspecks import FilterSpecks
-from Modules.AreaFilter.RectangleFilter import detect_rectangles, smooth_unwanted
 from Modules.Building.Buildings import get_building_mask
-import math
-import openpyxl
 import time
 
 DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
@@ -119,10 +111,8 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     # TODO: improve modularity, allow user to add or implement more mask functions
     building_image = get_building_image_from_utm(coordinates, km_radius)
     building_mask = get_building_mask(building_image)
-    # building_mask = enlarge_obstacles(building_mask)
-    building_mask = filter_chopper_area(building_mask, 30)
+    building_mask = enlarge_obstacles(building_mask)
     slopes_mask = get_slopes_mask(coordinates, km_radius)
-
     image_name, img = get_image_from_utm(coordinates, km_radius)
     shp_mask = get_mask_from_shp_file(SHP_PATH, coordinates, km_radius, (img.shape[0], img.shape[1]))
     tree_shape = img.shape
@@ -130,43 +120,28 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
                                                     slopes_mask.shape)  # add according to slopes - find all places where slope is 1
     unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
     screen_gui.update_progressbar_speed(slopes_mask)
-
     tree_mask = get_tree_mask_from_image(image_name, unwanted_pixels)
     tree_and_slope_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
                                                     slopes_mask)
     total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
                                            tree_and_slope_mask)
-
-    total_mask_filtered = smooth_unwanted(total_mask, (25, 25))
-    # filter_area_size = 750
-    # total_mask_filtered = FilterSpecks(total_mask, filter_area_size)
+    # could select of the following two filters
+    # total_mask_big_spots = smooth_unwanted(total_mask, (25, 25))
+    total_mask_big_spots = filter_chopper_area(total_mask.astype(np.uint8), radius=15)
     name = f'images_from_argcis/data_{coordinates[0], coordinates[1]}/mask_{coordinates[0], coordinates[1]}.png'
-    cv2.imwrite(name, total_mask_filtered)
+    cv2.imwrite(name, total_mask_big_spots)
     data_analyse(slopes_mask, km_radius, st, cputime_start)
-    # plot_image_and_mask(image_name, building_mask, tree_and_slope_mask,
-    #                     total_mask, coordinates)
     screen_gui.update_progressbar(100)
     masks_dictionary = {"Slopes": slopes_mask, "Trees": tree_mask,
                         "Slopes&Trees": tree_and_slope_mask,
                         "Buildings": building_mask, "Electricity": shp_mask,
-                        "Buildings&Slopes&Trees": total_mask_filtered}  # TODO: add building mask and fix colors
+                        "Buildings&Slopes&Trees": total_mask_big_spots}  # TODO: add building mask and fix colors
     print("Finish")
     return img, masks_dictionary
 
 
 if __name__ == '__main__':
-    # BoundingBox(left=692125.0, bottom=3614785.0, right=705335.0, top=3623875.0) Yokneam
-    # BoundingBox(left=684825.0, bottom=3621765.0, right=689175.0, top=3624175.0) some
-    # BoundingBox(left=666735.0, bottom=3590995.0, right=852765.0, top=3823815.0) top
     screen = gui.GUI()
     screen.mainloop()
     coordinates = (698812, 3620547, 36, 'N')
     km_radius = 0.2
-    # #
-    # # 698342,3618731
-    # # 698812,3620547
-    # # 740000,3726000
-    # 695812,3600547
-    # 697687, 3620721
-    # 668668, 3542197 building test
-    # get_viable_landing_in_radius(coordinates, km_radius,screen)

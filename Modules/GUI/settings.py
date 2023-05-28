@@ -3,7 +3,7 @@ import math
 
 VIABLE_LANDING = 255
 UNVIABLE_LANDING = 0
-SHP_PATH = "../../SHP_UTM/B_BUILDINGS_A.shp"
+SHP_PATH = "../SHP_UTM/B_BUILDINGS_A.shp"
 DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 TRAINED_MODEL_PATH = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 # GUI

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import cv2
 
 # opening the vector map
-SHP_PATH = "../../SHP_UTM/B_SITES_A.shp"
+SHP_PATH = "../SHP_UTM/B_SITES_A.shp"
 from Modules.GUI.settings import *
 
 
