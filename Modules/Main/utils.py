@@ -101,6 +101,7 @@ def get_layer_from_server(coordinates: Tuple[float, float], km_radius: float, ur
                                            length=2 * km_radius)
     path = os.path.join(folder_name, f'data_{coordinates[0], coordinates[1]}')
     if not os.path.exists(path):
+        print("Creating folder for data")
         os.makedirs(path)
     name = f'{folder_name}/data_{coordinates[0], coordinates[1]}/{inner_folder_name}_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, img)
@@ -123,6 +124,17 @@ def stretch_array(input_array: np.ndarray, target_size: Tuple[int, int]) -> np.n
     input_x = (grid_x / stretch_ratio_x).astype(int)
     input_y = (grid_y / stretch_ratio_y).astype(int)
     return input_array[input_y, input_x]
+
+
+def change_resolution_of_mask(mask, image_size):
+    """
+    :param mask:  mask
+    :param image_size: the new size of the mask
+    :return:
+    """
+    mask = mask.astype(np.uint8)
+    mask = cv2.resize(mask, image_size, interpolation=cv2.INTER_NEAREST)
+    return mask
 
 
 def get_total_mask_from_masks(masks: List[np.ndarray], km_radius: float) -> np.ndarray:
@@ -172,3 +184,5 @@ def get_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tu
 
 def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
     return get_layer_from_server(coordinates, km_radius, 'building_url', 'img_buildings')
+
+

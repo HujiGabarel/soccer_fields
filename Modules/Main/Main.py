@@ -1,3 +1,4 @@
+import json
 import sys
 from typing import Tuple, Dict, List
 
@@ -15,12 +16,9 @@ from Modules.GUI import gui
 from Modules.Building.Buildings import get_building_mask
 import time
 
-DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
-trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
-
 
 def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui) -> Tuple[
-                                 np.ndarray, Dict[str, np.ndarray]]:
+    np.ndarray, Dict[str, np.ndarray]]:
     st = time.time()
     cputime_start = time.process_time()
     # TODO: improve modularity, allow user to add or implement more mask functions
@@ -41,7 +39,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     # could select of the following two filters
     # total_mask_big_spots = smooth_unwanted(total_mask, (25, 25))
     total_mask_big_spots = filter_chopper_area(total_mask.astype(np.uint8), radius=15)
-    name = f'images_from_argcis/data_{coordinates[0], coordinates[1]}/mask_{coordinates[0], coordinates[1]}.png'
+    name = f'images_from_arcgis/data_{coordinates[0], coordinates[1]}/mask_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, total_mask_big_spots)
     data_analyse(slopes_mask, km_radius, st, cputime_start)
     masks_dictionary = {"Slopes": slopes_mask, "Trees": tree_mask,

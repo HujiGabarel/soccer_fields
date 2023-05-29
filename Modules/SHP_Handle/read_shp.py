@@ -1,12 +1,9 @@
 import shapefile
 from PIL import Image, ImageDraw
 import numpy as np
-from skimage import color
-import matplotlib.pyplot as plt
 import cv2
 
 # opening the vector map
-SHP_PATH = "../../SHP_UTM/B_SITES_A.shp"
 from Modules.GUI.settings import *
 
 
@@ -66,11 +63,11 @@ def is_box_in_the_area(box, coordinates, radius):
     if (coordinates[0] - radius_in_km < min_x < coordinates[0] + radius_in_km) and (
             coordinates[1] - radius_in_km < min_y < coordinates[1] + radius_in_km) or (
             (coordinates[0] - radius_in_km < max_x < coordinates[0] + radius_in_km) and (
-                    coordinates[1] - radius_in_km < max_y < coordinates[1] + radius_in_km)) or(
+            coordinates[1] - radius_in_km < max_y < coordinates[1] + radius_in_km)) or (
             (coordinates[0] - radius_in_km < min_x < coordinates[0] + radius_in_km) and (
-                    coordinates[1] - radius_in_km < max_y < coordinates[1] + radius_in_km)) or(
+            coordinates[1] - radius_in_km < max_y < coordinates[1] + radius_in_km)) or (
             (coordinates[0] - radius_in_km < max_x < coordinates[0] + radius_in_km) and (
-                    coordinates[1] - radius_in_km < min_y < coordinates[1] + radius_in_km)
+            coordinates[1] - radius_in_km < min_y < coordinates[1] + radius_in_km)
     ):
         return radius_in_km
     return False
@@ -83,14 +80,14 @@ def calculate_total_box(list_of_shapes, coordinates, radius_in_km):
     radius = radius_in_km * 1000
     x_min, y_min, x_max, y_max = coordinates[0] - radius, coordinates[1] - radius, coordinates[0] + radius, \
                                  coordinates[1] + radius
-    x, y = [int(x_min),int(x_max)], [int(y_min),int(y_max)]
+    x, y = [int(x_min), int(x_max)], [int(y_min), int(y_max)]
     for shape in list_of_shapes:
         box = shape[1]
         x.append(int(box[0]))  # x_min
-        x.append(int(box[2])) # x_max
+        x.append(int(box[2]))  # x_max
         y.append(int(box[1]))  # y_min
         y.append(int(box[3]))  # y_max
-    total_box= min(x), min(y), max(x), max(y)
+    total_box = min(x), min(y), max(x), max(y)
     return total_box
 
 
@@ -100,16 +97,13 @@ def create_mask_from_shapes(box_of_shapes_in_the_area, shapes_in_the_area):
     :return: mask of the shape
     """
 
-    # Define the size of the image
     image_width = int(box_of_shapes_in_the_area[2] - box_of_shapes_in_the_area[0])
     image_height = int(box_of_shapes_in_the_area[3] - box_of_shapes_in_the_area[1])
-    # Create a blank image with a white background
     image = Image.new("RGB", (image_width, image_height), "white")
     draw = ImageDraw.Draw(image)
     for shape in shapes_in_the_area:
         relative_list_of_points = create_relative_points(shape[0], box_of_shapes_in_the_area)
         draw.polygon(relative_list_of_points, outline=UNVIABLE_LANDING, fill=UNVIABLE_LANDING)
-    # image.show()
 
     return convert_image_to_mask(image)
 
@@ -123,6 +117,12 @@ def convert_image_to_mask(image):  # Todo: improve this
 
 
 def create_relative_points(list_of_points, box_of_shapes_in_the_area):
+    """
+
+    :param list_of_points:
+    :param box_of_shapes_in_the_area:
+    :return:
+    """
     new_list_of_points = []
     for point in list_of_points:
         # relative to the top left corner
@@ -133,45 +133,69 @@ def create_relative_points(list_of_points, box_of_shapes_in_the_area):
 
 def change_resolution_of_mask(mask, image_size):
     """
-    :param mask: mask of the shape
-    :param resolution: resolution of the mask
-    :return: mask with the given resolution
+    :param mask:  mask
+    :param image_size: the new size of the mask
+    :return:
     """
-    # resize the mask to the size of the image
     mask = mask.astype(np.uint8)
     mask = cv2.resize(mask, image_size, interpolation=cv2.INTER_NEAREST)
     return mask
 
 
-def get_partial_mask_from_total_mask(total_mask_from_shape, total_box, coordinates, radius,
-                                     image_size: tuple):
+def create_box(coordinates, m_radius):
     """
-    # Todo: fix this
-    :param total_mask_from_shape:
-    :param coordinates:
-    :param radius:
-    :return: mask in box of the relevant area
+    get the coordinates of the center of the area and the radius and return the box of the area
+    :param coordinates: coordinates of the center of the area
+    :param m_radius: radius in meters
+    :return: box of the area
     """
-    km_radius = radius * 1000
-    original_area_box = (
-        coordinates[0] - km_radius, coordinates[1] - km_radius, coordinates[0] + km_radius, coordinates[1] + km_radius)
-    print(original_area_box, total_box)
-    row_resolution = (total_box[3] - total_box[1]) / total_mask_from_shape.shape[
-        0]  # meter per pixel
-    col_resolution = (total_box[2] - total_box[0]) / total_mask_from_shape.shape[
-        1]  # meter per pixel
+    return (coordinates[0] - m_radius, coordinates[1] - m_radius, coordinates[0] + m_radius, coordinates[1] + m_radius)
+
+
+def calculate_top_left(original_area_box, total_box, row_resolution, col_resolution):
+    """
+    calculate the top left point of the original area in the total box
+    :param original_area_box:
+    :param total_box:
+    :param row_resolution:
+    :param col_resolution:
+    :return:
+    """
     top_left_row = -int((original_area_box[3] - total_box[3]) / row_resolution)
     top_left_col = int((original_area_box[0] - total_box[0]) / col_resolution)
+    return top_left_row, top_left_col
+
+
+def calculate_right_bottom(original_area_box, total_box, row_resolution, col_resolution):
+    """
+    calculate the bottom right point of the original area in the total box
+    :param original_area_box:
+    :param total_box:
+    :param row_resolution:
+    :param col_resolution:
+    :return:
+    """
     bottom_right_row = -int((original_area_box[1] - total_box[3]) / row_resolution)
     bottom_right_col = int((original_area_box[2] - total_box[0]) / col_resolution)
-    print(top_left_row, top_left_col, bottom_right_row, bottom_right_col)
-    partial_mask = total_mask_from_shape[top_left_row:bottom_right_row, top_left_col:bottom_right_col]
-    print(partial_mask.shape, total_mask_from_shape.shape)
-    resized_mask_in_area = change_resolution_of_mask(partial_mask, image_size)
-    # plt.imshow(resized_mask_in_area)
-    # plt.show()
+    return bottom_right_row, bottom_right_col
 
-    return resized_mask_in_area
+
+def get_partial_mask_from_total_mask(total_mask_from_shape, total_box, coordinates, radius):
+    """
+    :param total_mask_from_shape: mask of the total area
+    :param coordinates: coordinates of the center of the area
+    :param radius: radius in km
+    :return: mask in box of the relevant area
+    """
+    m_radius = radius * 1000
+    original_area_box = create_box(coordinates, m_radius)
+    row_resolution, col_resolution = (total_box[3] - total_box[1]) / total_mask_from_shape.shape[0] \
+        , (total_box[2] - total_box[0]) / total_mask_from_shape.shape[1]
+    top_left_row, top_left_col = calculate_top_left(original_area_box, total_box, row_resolution, col_resolution)
+    bottom_right_row, bottom_right_col = calculate_right_bottom(original_area_box, total_box, row_resolution,
+                                                                col_resolution)
+    partial_mask = total_mask_from_shape[top_left_row:bottom_right_row, top_left_col:bottom_right_col]
+    return partial_mask
 
 
 def get_mask_from_shp_file(shp_path, coordinates, radius, image_size: tuple):
@@ -186,16 +210,16 @@ def get_mask_from_shp_file(shp_path, coordinates, radius, image_size: tuple):
     shapes_in_the_area = get_shapes_in_the_area(coordinates, radius, shapes_list)
     box_of_shapes_in_the_area = calculate_total_box(shapes_in_the_area, coordinates, radius)
     if box_of_shapes_in_the_area is None:
-        # mask of image size with all VIABLE_LANDING
-        print("No shapes in the area")
         return np.ones(image_size) * VIABLE_LANDING
     mask = create_mask_from_shapes(box_of_shapes_in_the_area, shapes_in_the_area)
-    mask_for_area = get_partial_mask_from_total_mask(mask, box_of_shapes_in_the_area, coordinates, radius,
-                                                     image_size)
+    partial_mask = get_partial_mask_from_total_mask(mask, box_of_shapes_in_the_area, coordinates, radius)
+    mask_for_area = change_resolution_of_mask(partial_mask, image_size)
     return mask_for_area
 
 
 if __name__ == '__main__':
+    SHP_PATH = "../../SHP_UTM/B_SITES_A.shp"
+
     coordinates = (696531, 3662682)
     radius_in_km = 0.57
     get_mask_from_shp_file(SHP_PATH, coordinates, radius_in_km, (400, 400))

@@ -1,46 +1,55 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import shapefile
 import cv2
-# from skimage import io
-# import numpy as np
-# from skimage.measure import label
-# from skimage.measure import regionprops
-# from shapely.geometry import Polygon
-# from skimage.measure import regionprops
-# from shapely.geometry import Polygon
-# import geopandas as gpd
-# def image_file_to_shp_file(image_name):
-#     img = io.imread(image_name, as_gray=True)
-#
-#     threshold = 0.5  # adjust this threshold as needed
-#     mask = np.where(img > threshold, 1, 0)
-#
-#     labeled = label(mask)
-#
-#     polygons = []
-#     for props in regionprops(labeled):
-#         polygons.append(Polygon(props.coords[:, ::-1]).buffer(0))
-#         print(polygons)
-#
-#     merged_polygon = gpd.GeoSeries(polygons).unary_union
-#     gdf = gpd.GeoDataFrame(geometry=[merged_polygon])
-#     gdf.to_file("output.shp")
-def convert_row_col2coordinates(row, col, x_min, y_min, pixel_size):
+
+
+def convert_row_col2coordinates(row, col, coordinates, km_radius, mask_size):
     """
-    convert row and col to x and y
-    :param row: row
-    :param col: col
-    :param x_min: x_min
-    :param y_min: y_min
-    :param pixel_size: pixel_size
-    :return: x,y
+
+    :param row:
+    :param col:
+    :param coordinates: coordinates of the center of the area
+    :param km_radius:
+    :param mask_size:
+    :return: row and col in coordinates
     """
-    pass
+    m_radius = km_radius * 1000
+    row_resolution, col_resolution = (m_radius * 2) / mask_size[0], (m_radius * 2) / mask_size[1]
+    return (coordinates[0] - m_radius) + (col * col_resolution), (coordinates[1] + m_radius) - (row * row_resolution)
 
 
-def convert_mask2polygons(mask):
+def convert_mask2polygons(image: np.ndarray, coordinates, km_radius) -> list:
+    """
+    convert the mask to polygons
+    :param mask: mask
+    :return: list of polygons
+    """
+    mask = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    ret, threshold = cv2.threshold(mask, 127, 255, cv2.THRESH_BINARY)
+    contours, hierarchy = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    polygons = []
+    for contour in contours:
+        epsilon = 0.001 * cv2.arcLength(contour, True)
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+        polygons.append(approx)
 
-    pass
+    polygon_coordinates = []
+    for polygon in polygons:
+        list_of_points_for_polygon = []
+        for point in polygon:
+            points_in_coordinates = convert_row_col2coordinates(point[0][0], point[0][1], coordinates, km_radius,
+                                                                mask.shape)
+            list_of_points_for_polygon.append(points_in_coordinates)
+        polygon_coordinates.append(list_of_points_for_polygon)
+
+    # Print the list of polygon coordinates
+    for polygon in polygon_coordinates:
+        print(polygon)
+        print(1)
+
+    return polygon_coordinates
+
 
 def convert_mask2shp(mask: np.ndarray, directory_path: str):
     """
@@ -53,3 +62,29 @@ def convert_mask2shp(mask: np.ndarray, directory_path: str):
     # Create a polygon shapefile writer
     return None
 
+
+def draw_polygons_on_image(polygons: list):
+    """
+    draw polygons on image
+    :param image: image
+    :param polygons: list of polygons
+    :return: image with polygons
+    """
+    # black image
+    image = np.zeros((512, 512, 3), np.uint8)
+    for polygon in polygons:
+        pts = np.array(polygon, np.int32)
+        pts = pts.reshape((-1, 1, 2))
+        cv2.polylines(image, [pts], isClosed=True, color=(255, 255, 255), thickness=2)
+
+    return image
+
+
+if __name__ == '__main__':
+    image = cv2.imread(
+        "C:\\Users\\t8875796\\PycharmProjects\\soccer_field\\Modules\\Main\\images_from_arcgis\\data_(698813, 3620547)\\mask_(698813, 3620547).png")
+
+    list_of_polygons = convert_mask2polygons(image, (698813, 3620547), 0.3)
+    new_image = draw_polygons_on_image(list_of_polygons)
+    plt.imshow(new_image)
+    plt.show()
