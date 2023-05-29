@@ -1,8 +1,11 @@
 import json
-from typing import Tuple
+from typing import Tuple, List
 
 import cv2
 import numpy as np
+import rasterio as rio
+from matplotlib import pyplot as plt
+from rasterio import plot
 
 from Modules.GUI.settings import *
 from Modules.Main import image_downloading
@@ -167,3 +170,32 @@ def get_total_mask_from_masks(masks: List[np.ndarray], km_radius: float) -> np.n
         raise ValueError("VIABLE_LANDING and UNVIABLE_LANDING must be either 0 or 255")
     total_mask = np.where(total_mask, VIABLE_LANDING, UNVIABLE_LANDING)
     return total_mask
+
+
+def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, predicted_mask_slope: np.ndarray,
+                        total_mask: np.ndarray, coordinates: Tuple[float, float]) -> None:
+    # This part is only plotting style:
+    # plots predicted and original images
+    # side-by-side plot of the tile and the masks
+    fig, axes = plt.subplots(2, 2)
+    # with rio.open(img_filepath) as src:
+    with rio.open(image_to_predict) as src:
+        plot.show(src.read(), ax=axes[0][0])
+    axes[0][0].set_title("Image: " + str(coordinates))
+    axes[1][0].set_title("tree mask")
+    axes[1][0].imshow(predicted_mask_tree, cmap='Greys', interpolation='nearest')
+    axes[1][1].set_title("slopes mask")
+    axes[1][1].imshow(predicted_mask_slope, cmap='Greys', interpolation='nearest')
+    axes[0][1].set_title("total mask")
+    axes[0][1].imshow(total_mask, cmap='Greys', interpolation='nearest')
+    saved_image_name = str(int(coordinates[0])) + "," + str(int(coordinates[1])) + " RESULT"
+    # plt.savefig(os.path.join("results_images", saved_image_name))
+    plt.show()
+
+
+def get_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
+    return get_layer_from_server(coordinates, km_radius, 'aerial_url', 'img')
+
+
+def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
+    return get_layer_from_server(coordinates, km_radius, 'building_url', 'img_buildings')

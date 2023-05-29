@@ -1,10 +1,6 @@
 import sys
 from typing import Tuple, Dict, List
 
-import matplotlib.pyplot as plt
-import rasterio as rio
-from rasterio import plot
-
 from Modules.Main.Processing_runtimes import data_analyse
 from Modules.Main.utils import *
 from Modules.SHP_Handle.read_shp import get_mask_from_shp_file
@@ -23,37 +19,8 @@ DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
 
 
-def get_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
-    return get_layer_from_server(coordinates, km_radius, 'aerial_url', 'img')
-
-
-def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
-    return get_layer_from_server(coordinates, km_radius, 'building_url', 'img_buildings')
-
-
-def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, predicted_mask_slope: np.ndarray,
-                        total_mask: np.ndarray, coordinates: Tuple[float, float]) -> None:
-    # This part is only plotting style:
-    # plots predicted and original images
-    # side-by-side plot of the tile and the masks
-    fig, axes = plt.subplots(2, 2)
-    # with rio.open(img_filepath) as src:
-    with rio.open(image_to_predict) as src:
-        plot.show(src.read(), ax=axes[0][0])
-    axes[0][0].set_title("Image: " + str(coordinates))
-    axes[1][0].set_title("tree mask")
-    axes[1][0].imshow(predicted_mask_tree, cmap='Greys', interpolation='nearest')
-    axes[1][1].set_title("slopes mask")
-    axes[1][1].imshow(predicted_mask_slope, cmap='Greys', interpolation='nearest')
-    axes[0][1].set_title("total mask")
-    axes[0][1].imshow(total_mask, cmap='Greys', interpolation='nearest')
-    saved_image_name = str(int(coordinates[0])) + "," + str(int(coordinates[1])) + " RESULT"
-    # plt.savefig(os.path.join("results_images", saved_image_name))
-    plt.show()
-
-
 def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui) -> Tuple[
-    np.ndarray, Dict[str, np.ndarray]]:
+                                 np.ndarray, Dict[str, np.ndarray]]:
     st = time.time()
     cputime_start = time.process_time()
     # TODO: improve modularity, allow user to add or implement more mask functions
