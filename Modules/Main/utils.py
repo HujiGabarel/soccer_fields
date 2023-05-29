@@ -79,36 +79,6 @@ def calculate_new_speed_run(slopes_mask, km_radius):
     return time_for_iteration
 
 
-def OUT_OF_USE_area_filter(array, m, n):
-    """
-    Legacy function, not used anymore
-    :param array:
-    :param m:
-    :param n:
-    :return:
-    """
-    horizontal_sum = np.cumsum(array, axis=0)
-    integral_image = np.cumsum(horizontal_sum, axis=1)
-    region_sums = np.zeros_like(array)
-    integral_image = np.pad(integral_image, ((0, 1), (0, 1)), mode='constant')
-    rows = np.arange(m - 1, array.shape[0])
-    cols = np.arange(n - 1, array.shape[1])
-    region_sums[rows[:, np.newaxis], cols] = integral_image[rows[:, np.newaxis], cols] - \
-                                             integral_image[rows[:, np.newaxis] - m, cols] - \
-                                             integral_image[rows[:, np.newaxis], cols - n] + \
-                                             integral_image[rows[:, np.newaxis] - m, cols - n]
-    mask = (region_sums == m * n)
-    expanded_mask = np.zeros_like(array)
-    ones_locations = np.where(mask)
-    for i in range(len(ones_locations[0])):
-        print(i / len(ones_locations[0]))
-        for k in range(m):
-            for l in range(n):
-                expanded_mask[ones_locations[0][i] - k, ones_locations[1][i] - l] = 1
-        result = array * expanded_mask
-        return result
-
-
 def get_layer_from_server(coordinates: Tuple[float, float], km_radius: float, url_name: str,
                           inner_folder_name: str,
                           folder_name: str = 'images_from_arcgis') -> Tuple[str, np.ndarray]:
