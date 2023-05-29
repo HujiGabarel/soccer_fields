@@ -3,6 +3,7 @@ import numpy as np
 from typing import Tuple, Union
 
 from Modules.GUI.settings import UNVIABLE_LANDING, VIABLE_LANDING
+from Modules.Main.utils import get_building_image_from_utm
 
 
 def smooth(building_mask: np.ndarray) -> np.ndarray:
@@ -16,7 +17,7 @@ def smooth(building_mask: np.ndarray) -> np.ndarray:
     return building_mask
 
 
-def get_building_mask(building_image: np.ndarray) -> np.ndarray:
+def building_image_to_mask(building_image: np.ndarray) -> np.ndarray:
     '''
     Checks if a pixel is a building based on govmap color coding.
     :param building_image: image from govmap, highlights buildings in gray
@@ -33,3 +34,8 @@ def get_building_mask(building_image: np.ndarray) -> np.ndarray:
                 building_mask[i][j] = VIABLE_LANDING
     # Convert to grayscale
     return cv2.cvtColor(smooth(building_mask), cv2.COLOR_BGR2GRAY)
+
+
+def get_building_mask(coordinates: Tuple[float, float], km_radius: float) -> np.ndarray:
+    _, building_image = get_building_image_from_utm(coordinates, km_radius)
+    return building_image_to_mask(building_image)
