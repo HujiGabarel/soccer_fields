@@ -1,7 +1,11 @@
+import json
+from typing import Tuple
+
 import cv2
 import numpy as np
 
 from Modules.GUI.settings import *
+from Modules.Main import image_downloading
 
 WHITE = 255
 BLACK = 0
@@ -56,6 +60,7 @@ def filter_chopper_area(array, radius=15):
     array = cv2.bitwise_not(array)
     return array
 
+
 def calculate_new_speed_run(slopes_mask, km_radius):
     """
     calculates the new speed run based on the slopes mask and the radius
@@ -69,6 +74,7 @@ def calculate_new_speed_run(slopes_mask, km_radius):
     new_area = ((2 * float(km_radius)) ** 2) * (slopy / 100)
     time_for_iteration = new_area * time_for_flat_km_area / 100
     return time_for_iteration
+
 
 def OUT_OF_USE_area_filter(array, m, n):
     """
@@ -98,3 +104,66 @@ def OUT_OF_USE_area_filter(array, m, n):
                 expanded_mask[ones_locations[0][i] - k, ones_locations[1][i] - l] = 1
         result = array * expanded_mask
         return result
+
+
+def get_layer_from_server(coordinates: Tuple[float, float], km_radius: float, url_name: str,
+                          inner_folder_name: str,
+                          folder_name: str = 'images_from_arcgis') -> Tuple[str, np.ndarray]:
+    """
+    return a layer from the arcgis server based on a url in arcgis_preferences.json, and save it in a folder
+    :param coordinates: the utm coordinates of the center of the area
+    :param km_radius: radius in km
+    :param url_name: name of the url in arcgis_preferences.json
+    :param inner_folder_name: name of the folder to save the image in
+    :param folder_name: defaults to 'images_from_arcgis', could change in future
+    :return:
+    """
+    with open("arcgis_preferences.json", 'r', encoding='utf-8') as f:
+        prefs = json.loads(f.read())
+    lat, long = image_downloading.convert_to_lat_long(coordinates)
+    img = image_downloading.download_image(lat, long, prefs["zoom"], prefs[url_name], prefs['tile_size'],
+                                           length=2 * km_radius)
+    path = os.path.join(folder_name, f'data_{coordinates[0], coordinates[1]}')
+    if not os.path.exists(path):
+        os.makedirs(path)
+    name = f'{folder_name}/data_{coordinates[0], coordinates[1]}/{inner_folder_name}_{coordinates[0], coordinates[1]}.png'
+    cv2.imwrite(name, img)
+    print("Building image downloaded")
+    return name, img
+
+
+def stretch_array(input_array: np.ndarray, target_size: Tuple[int, int]) -> np.ndarray:
+    """
+    Stretches an array to a target size using nearest neighbor interpolation
+    :param input_array: 2D array to be stretched
+    :param target_size: size we want to stretch to
+    :return: stretched array
+    """
+    stretch_ratio_x = target_size[1] / input_array.shape[1]
+    stretch_ratio_y = target_size[0] / input_array.shape[0]
+    x = np.arange(target_size[1])
+    y = np.arange(target_size[0])
+    grid_x, grid_y = np.meshgrid(x, y)
+    input_x = (grid_x / stretch_ratio_x).astype(int)
+    input_y = (grid_y / stretch_ratio_y).astype(int)
+    return input_array[input_y, input_x]
+
+
+def get_total_mask_from_masks(masks: List[np.ndarray], km_radius: float) -> np.ndarray:
+    """
+    Overlay the masks on top of each other and return the total mask
+    :param masks: list of masks
+    :param km_radius: radius of the image
+    :return: the total mask
+    """
+    # Resize all masks to the same size of km_radius * 1000 * 2 by km_radius * 1000 * 2
+    m_radius = int(km_radius * 1000)
+    resized_masks = [stretch_array(mask.astype(np.uint8), (2 * m_radius, 2 * m_radius)) for mask in masks]
+    if VIABLE_LANDING == WHITE and UNVIABLE_LANDING == BLACK:
+        total_mask = np.logical_and.reduce(resized_masks)
+    elif VIABLE_LANDING == BLACK and UNVIABLE_LANDING == WHITE:
+        total_mask = np.logical_or.reduce(resized_masks)
+    else:
+        raise ValueError("VIABLE_LANDING and UNVIABLE_LANDING must be either 0 or 255")
+    total_mask = np.where(total_mask, VIABLE_LANDING, UNVIABLE_LANDING)
+    return total_mask
