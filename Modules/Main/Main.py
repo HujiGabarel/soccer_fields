@@ -27,6 +27,7 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     building_mask = get_building_mask(coordinates, km_radius)
     building_mask = enlarge_obstacles(building_mask)
     slopes_mask = get_slopes_mask(coordinates, km_radius)
+    slopes_mask = enlarge_obstacles(slopes_mask)
     image_name, img = get_image_from_utm(coordinates, km_radius)
     shp_mask = get_mask_from_shp_file(SHP_PATH, coordinates, km_radius, (img.shape[0], img.shape[1]))
     tree_shape = img.shape

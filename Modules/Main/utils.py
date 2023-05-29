@@ -27,7 +27,7 @@ def create_circular_structuring_element(radius: int) -> np.ndarray:
     return structuring_element
 
 
-def enlarge_obstacles(image: np.ndarray, radius: int = 8) -> np.ndarray:
+def enlarge_obstacles(image: np.ndarray, radius: int = 0) -> np.ndarray:
     """
     We dilate the white areas with the cv2.dilate func, so if our viable landing is white, we invert, because we want to
     dilate the invalid areas
@@ -35,6 +35,9 @@ def enlarge_obstacles(image: np.ndarray, radius: int = 8) -> np.ndarray:
     :param radius: required distance between obstacles and landing site
     :return: image with bigger obstacles, to ensure safe landing
     """
+    if radius <= 0:
+        print("No enlargement done, radius is non-positive")
+        return image
     kernel = create_circular_structuring_element(radius)
     if VIABLE_LANDING == WHITE and UNVIABLE_LANDING == BLACK:
         inverted = cv2.bitwise_not(image)
