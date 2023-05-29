@@ -31,8 +31,6 @@ def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: flo
     return get_layer_from_server(coordinates, km_radius, 'building_url', 'img_buildings')
 
 
-
-
 def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, predicted_mask_slope: np.ndarray,
                         total_mask: np.ndarray, coordinates: Tuple[float, float]) -> None:
     # This part is only plotting style:
@@ -71,15 +69,10 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
     screen_gui.update_progressbar_speed(calculate_new_speed_run(slopes_mask, km_radius))
     tree_mask = get_tree_mask_from_image(image_name, unwanted_pixels)
-    # tree_and_slope_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
-    #                                                 slopes_mask)
-    # total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
-    #                                        tree_and_slope_mask)
     tree_and_slope_mask = get_total_mask_from_masks([tree_mask, slopes_mask], km_radius)
     total_mask = get_total_mask_from_masks([building_mask, tree_mask, slopes_mask], km_radius)
     # could select of the following two filters
     # total_mask_big_spots = smooth_unwanted(total_mask, (25, 25))
-    # total_mask_big_spots = total_mask.astype(np.uint8)
     total_mask_big_spots = filter_chopper_area(total_mask.astype(np.uint8), radius=15)
     name = f'images_from_argcis/data_{coordinates[0], coordinates[1]}/mask_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, total_mask_big_spots)
