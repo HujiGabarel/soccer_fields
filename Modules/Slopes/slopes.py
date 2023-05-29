@@ -30,8 +30,8 @@ def get_partial_dtm_from_total_dtm(coordinates: Tuple[float, float], km_radius: 
     col_center = round((coordinates[0] - dem.bounds.left) / meters_per_pixel)
     row_center = -round((coordinates[1] - dem.bounds.top) / meters_per_pixel)
 
-    window = rasterio.windows.Window.from_slices((row_center - size, row_center + size),
-                                                 (col_center - size, col_center + size))
+    window = rasterio.windows.Window.from_slices((row_center - size, row_center + size + 1),
+                                                 (col_center - size, col_center + size + 1))
 
     partial_dtm = dem.read(1, window=window).astype("int")  # convert height to int instead of float
     new_rows = partial_dtm.shape[0]

@@ -1,6 +1,6 @@
 import json
 import sys
-from typing import Tuple, Dict
+from typing import Tuple, Dict, List
 
 import matplotlib.pyplot as plt
 import rasterio as rio
@@ -59,30 +59,40 @@ def get_layer_from_server(coordinates: Tuple[float, float], km_radius: float, ur
     return name, img
 
 
-def overlay_masks(e_vals: np.ndarray, n_vals: np.ndarray, e_center: float, n_center: float, m_radius: float,
-                  trees: np.ndarray, slopes: np.ndarray) -> np.ndarray:
-    row_tree = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * trees.shape[0]).astype(int)
-    col_tree = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * trees.shape[1]).astype(int)
-    row_slope = np.round((n_vals - n_center + m_radius) / (2 * m_radius) * slopes.shape[0]).astype(int) - 1
-    col_slope = np.round((e_vals - e_center + m_radius) / (2 * m_radius) * slopes.shape[1]).astype(int) - 1
-    tree = trees[row_tree, col_tree]
-    slope = slopes[row_slope, col_slope]
-    and_mask = np.logical_and(tree == VIABLE_LANDING, slope == VIABLE_LANDING)
-    return np.where(and_mask, VIABLE_LANDING, UNVIABLE_LANDING)
+def stretch_array(input_array: np.ndarray, target_size: Tuple[int, int]) -> np.ndarray:
+    """
+    Stretches an array to a target size using nearest neighbor interpolation
+    :param input_array: 2D array to be stretched
+    :param target_size: size we want to stretch to
+    :return: stretched array
+    """
+    stretch_ratio_x = target_size[1] / input_array.shape[1]
+    stretch_ratio_y = target_size[0] / input_array.shape[0]
+    x = np.arange(target_size[1])
+    y = np.arange(target_size[0])
+    grid_x, grid_y = np.meshgrid(x, y)
+    input_x = (grid_x / stretch_ratio_x).astype(int)
+    input_y = (grid_y / stretch_ratio_y).astype(int)
+    return input_array[input_y, input_x]
 
 
-def get_total_mask_from_masks(e_center: float, n_center: float, radius: float, trees_mask: np.ndarray,
-                              slopes_mask: np.ndarray) -> np.ndarray:
-    m_radius = int(radius * 1000)
-    e_vals = np.arange(e_center - m_radius, e_center + m_radius)
-    n_vals = np.arange(n_center - m_radius, n_center + m_radius)
-
-    # Create 2D arrays of e and n values for indexing
-    ee, nn = np.meshgrid(e_vals, n_vals, indexing='xy')
-
-    # Calculate the total mask using vectorized numpy indexing
-    total_mask = overlay_masks(ee, nn, e_center, n_center, m_radius, trees_mask, slopes_mask)
-
+def get_total_mask_from_masks(masks: List[np.ndarray], km_radius: float) -> np.ndarray:
+    """
+    Overlay the masks on top of each other and return the total mask
+    :param masks: list of masks
+    :param km_radius: radius of the image
+    :return: the total mask
+    """
+    # Resize all masks to the same size of km_radius * 1000 * 2 by km_radius * 1000 * 2
+    m_radius = int(km_radius * 1000)
+    resized_masks = [stretch_array(mask.astype(np.uint8), (2 * m_radius, 2 * m_radius)) for mask in masks]
+    if VIABLE_LANDING == WHITE and UNVIABLE_LANDING == BLACK:
+        total_mask = np.logical_and.reduce(resized_masks)
+    elif VIABLE_LANDING == BLACK and UNVIABLE_LANDING == WHITE:
+        total_mask = np.logical_or.reduce(resized_masks)
+    else:
+        raise ValueError("VIABLE_LANDING and UNVIABLE_LANDING must be either 0 or 255")
+    total_mask = np.where(total_mask, VIABLE_LANDING, UNVIABLE_LANDING)
     return total_mask
 
 
@@ -107,8 +117,6 @@ def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, 
     plt.show()
 
 
-
-
 def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui) -> Tuple[
     np.ndarray, Dict[str, np.ndarray]]:
     st = time.time()
@@ -126,12 +134,15 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
     screen_gui.update_progressbar_speed(calculate_new_speed_run(slopes_mask, km_radius))
     tree_mask = get_tree_mask_from_image(image_name, unwanted_pixels)
-    tree_and_slope_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
-                                                    slopes_mask)
-    total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
-                                           tree_and_slope_mask)
+    # tree_and_slope_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, tree_mask,
+    #                                                 slopes_mask)
+    # total_mask = get_total_mask_from_masks(coordinates[0], coordinates[1], km_radius, building_mask,
+    #                                        tree_and_slope_mask)
+    tree_and_slope_mask = get_total_mask_from_masks([tree_mask, slopes_mask], km_radius)
+    total_mask = get_total_mask_from_masks([building_mask, tree_mask, slopes_mask], km_radius)
     # could select of the following two filters
     # total_mask_big_spots = smooth_unwanted(total_mask, (25, 25))
+    # total_mask_big_spots = total_mask.astype(np.uint8)
     total_mask_big_spots = filter_chopper_area(total_mask.astype(np.uint8), radius=15)
     name = f'images_from_argcis/data_{coordinates[0], coordinates[1]}/mask_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, total_mask_big_spots)
