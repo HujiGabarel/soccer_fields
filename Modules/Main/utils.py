@@ -3,6 +3,7 @@ from typing import Tuple, List
 
 import cv2
 import numpy as np
+import functools
 import rasterio as rio
 from matplotlib import pyplot as plt
 from rasterio import plot
@@ -82,6 +83,26 @@ def calculate_new_speed_run(slopes_mask, km_radius):
     return time_for_iteration
 
 
+def cache_result(func):
+    cache = {}
+
+    @functools.wraps(func)
+    def wrapper(*args):
+        if args in cache:
+            # Return the cached result if it exists
+            return cache[args]
+
+        # Perform the slow operation
+        result = func(*args)
+
+        # Cache the result
+        cache[args] = result
+
+        return result
+
+    return wrapper
+
+
 def get_layer_from_server(coordinates: Tuple[float, float], km_radius: float, url_name: str,
                           inner_folder_name: str,
                           folder_name: str = 'images_from_arcgis') -> Tuple[str, np.ndarray]:
@@ -146,6 +167,7 @@ def get_total_mask_from_masks(masks: List[np.ndarray], km_radius: float) -> np.n
     """
     # Resize all masks to the same size of km_radius * 1000 * 2 by km_radius * 1000 * 2
     m_radius = int(km_radius * 1000)
+    # TODO: maybe use Matan's stretch_array
     resized_masks = [stretch_array(mask.astype(np.uint8), (2 * m_radius, 2 * m_radius)) for mask in masks]
     if VIABLE_LANDING == WHITE and UNVIABLE_LANDING == BLACK:
         total_mask = np.logical_and.reduce(resized_masks)
@@ -178,11 +200,30 @@ def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, 
     plt.show()
 
 
+@cache_result
 def get_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
     return get_layer_from_server(coordinates, km_radius, 'aerial_url', 'img')
 
 
 def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
     return get_layer_from_server(coordinates, km_radius, 'building_url', 'img_buildings')
+
+
+def mask_pixels_from_slopes(slopes_mask_in_black_and_white: np.ndarray, tree_shape: Tuple[int, int],
+                            slope_shape: Tuple[int, int]) -> np.ndarray:
+
+    slope2TreeRow = tree_shape[0] / slope_shape[0]
+    slope2TreeCol = tree_shape[1] / slope_shape[1]
+
+    tree_mask = np.zeros((tree_shape[0], tree_shape[1]), dtype=bool)
+    masked_pixels_slope = np.argwhere(slopes_mask_in_black_and_white == UNVIABLE_LANDING)  # guessed 0 is black in rgb
+    for index in masked_pixels_slope:
+        first_row, last_row = math.floor(slope2TreeRow * index[0]), math.ceil((slope2TreeRow) * (index[0] + 1) + 1)
+        first_col, last_col = math.floor(slope2TreeCol * index[1]), math.ceil((slope2TreeCol) * (index[1] + 1) + 1)
+        tree_mask[first_row:last_row, first_col:last_col] = True
+    masked_pixels_tree = np.argwhere(tree_mask == True)
+    # move the pixels of trees
+
+    return masked_pixels_tree
 
 

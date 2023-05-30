@@ -1,6 +1,4 @@
-import json
 import sys
-from typing import Tuple, Dict, List
 
 from Modules.Main.Processing_runtimes import data_analyse
 from Modules.Main.utils import *
@@ -10,45 +8,48 @@ from Modules.SHP_Handle.read_shp import get_mask_from_shp_file
 sys.path.append('../..')
 
 # Modules from your project
-from Modules.Trees.predict_with_trained_model import get_tree_mask_from_image
-from Modules.Slopes.slopes import get_slopes_mask, mask_pixels_from_slopes
+from Modules.Trees.predict_with_trained_model import get_tree_mask
+from Modules.Slopes.slopes import get_slopes_mask
 from Modules.GUI import gui
 from Modules.Building.Buildings import get_building_mask
 import time
 
+DEFAULT_FUNCS = [get_slopes_mask, get_building_mask, get_tree_mask]
 
-def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui) -> Tuple[
-    np.ndarray, Dict[str, np.ndarray]]:
+
+def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui, get_mask_functions=None) -> Tuple[np.ndarray, List[np.ndarray]]:
+    """
+    Given coord
+    :param coordinates:
+    :param km_radius:
+    :param screen_gui:
+    :param get_mask_functions:
+    :return:
+    """
+    if get_mask_functions is None:
+        get_mask_functions = DEFAULT_FUNCS
     st = time.time()
     cputime_start = time.process_time()
     # TODO: improve modularity, allow user to add or implement more mask functions
-    building_mask = get_building_mask(coordinates, km_radius)
-    building_mask = enlarge_obstacles(building_mask)
-    slopes_mask = get_slopes_mask(coordinates, km_radius)
-    slopes_mask = enlarge_obstacles(slopes_mask)
     image_name, img = get_image_from_utm(coordinates, km_radius)
+    total_masks = [np.ones((img.shape[0], img.shape[1]), dtype=np.uint8) * VIABLE_LANDING]
+    for get_some_mask in get_mask_functions:
+        partial_mask = get_some_mask(coordinates, km_radius, total_masks[-1])
+        total_mask = get_total_mask_from_masks([total_masks[-1], partial_mask], km_radius)
+        total_mask = enlarge_obstacles(total_mask)
+        screen_gui.update_progressbar_speed(calculate_new_speed_run(total_mask, km_radius))
+        total_masks.append(total_mask)
     shp_mask = get_mask_from_shp_file(SHP_PATH, coordinates, km_radius, (img.shape[0], img.shape[1]))
-    tree_shape = img.shape
-    unwanted_pixels_slope = mask_pixels_from_slopes(slopes_mask, tree_shape,
-                                                    slopes_mask.shape)  # add according to slopes - find all places where slope is 1
-    unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
-    screen_gui.update_progressbar_speed(calculate_new_speed_run(slopes_mask, km_radius))
-    tree_mask = get_tree_mask_from_image(image_name, unwanted_pixels)
-    tree_and_slope_mask = get_total_mask_from_masks([tree_mask, slopes_mask], km_radius)
-    total_mask = get_total_mask_from_masks([building_mask, tree_mask, slopes_mask], km_radius)
     # could select of the following two filters
-    # total_mask_big_spots = smooth_unwanted(total_mask, (25, 25))
-    total_mask_big_spots = filter_chopper_area(total_mask.astype(np.uint8), radius=15)
+    # total_mask_big_spots = smooth_unwanted(total_mask, (15, 5))
+    total_masks[-1] = filter_chopper_area(total_masks[-1].astype(np.uint8), radius=15)
     name = f'images_from_arcgis/data_{coordinates[0], coordinates[1]}/mask_{coordinates[0], coordinates[1]}.png'
-    cv2.imwrite(name, total_mask_big_spots)
-    data_analyse(slopes_mask, km_radius, st, cputime_start)
-    masks_dictionary = {"Slopes": slopes_mask, "Trees": tree_mask,
-                        "Slopes&Trees": tree_and_slope_mask,
-                        "Buildings": building_mask, "Electricity": shp_mask,
-                        "Buildings&Slopes&Trees": total_mask_big_spots}  # TODO: add building mask and modularity
+    cv2.imwrite(name, total_masks[-1])
+    data_analyse(total_masks[-2], km_radius, st, cputime_start)
+
     screen_gui.update_progressbar(100)
     print("Finish")
-    return img, masks_dictionary
+    return img, total_masks[1:]
 
 
 if __name__ == '__main__':

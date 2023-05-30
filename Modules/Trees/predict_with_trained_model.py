@@ -2,6 +2,8 @@ import os
 
 import numpy as np
 from joblib import dump, load
+
+from Modules.Main.utils import get_image_from_utm, mask_pixels_from_slopes
 from Modules.Trees.classifier import Classifier
 import rasterio as rio
 from rasterio import plot
@@ -85,6 +87,18 @@ def get_tree_mask_from_image(aerial: str, pixels_to_ignore, trained_model_path=T
     '''
     flipped_image = predict_image(aerial, trained_model_path, pixels_to_ignore)
     return np.where(flipped_image == UNVIABLE_LANDING, VIABLE_LANDING, UNVIABLE_LANDING)
+
+
+def get_tree_mask(coordinates: Tuple[float, float], km_radius: float, total_mask=None,
+                  trained_model_path: str = TRAINED_MODEL_PATH):
+    image_name, img = get_image_from_utm(coordinates, km_radius)
+    tree_shape = img.shape
+    unwanted_pixels_slope = mask_pixels_from_slopes(total_mask, tree_shape,
+                                                    total_mask.shape)  # add according to slopes - find all places where slope is 1
+    unwanted_pixels = unwanted_pixels_slope  # TODO: add mask pixels from building also fo
+    tree_mask = get_tree_mask_from_image(image_name, unwanted_pixels, trained_model_path)
+    return tree_mask
+
 
 
 if __name__ == '__main__':

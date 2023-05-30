@@ -36,6 +36,6 @@ def building_image_to_mask(building_image: np.ndarray) -> np.ndarray:
     return cv2.cvtColor(smooth(building_mask), cv2.COLOR_BGR2GRAY)
 
 
-def get_building_mask(coordinates: Tuple[float, float], km_radius: float) -> np.ndarray:
+def get_building_mask(coordinates: Tuple[float, float], km_radius: float, total_mask: np.ndarray) -> np.ndarray:
     _, building_image = get_building_image_from_utm(coordinates, km_radius)
     return building_image_to_mask(building_image)

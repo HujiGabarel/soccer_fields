@@ -50,25 +50,9 @@ def check_coordinates_area_are_in_dtm(coordinates: Tuple[float, float], size: fl
 
 
 # TODO might have generalization problems, 255 and 0
-def mask_pixels_from_slopes(slopes_mask_in_black_and_white: np.ndarray, tree_shape: Tuple[int, int],
-                            slope_shape: Tuple[int, int]) -> np.ndarray:
-
-    slope2TreeRow = tree_shape[0] / slope_shape[0]
-    slope2TreeCol = tree_shape[1] / slope_shape[1]
-
-    tree_mask = np.zeros((tree_shape[0], tree_shape[1]), dtype=bool)
-    masked_pixels_slope = np.argwhere(slopes_mask_in_black_and_white == UNVIABLE_LANDING)  # guessed 0 is black in rgb
-    for index in masked_pixels_slope:
-        first_row, last_row = math.floor(slope2TreeRow * index[0]), math.ceil((slope2TreeRow) * (index[0] + 1) + 1)
-        first_col, last_col = math.floor(slope2TreeCol * index[1]), math.ceil((slope2TreeCol) * (index[1] + 1) + 1)
-        tree_mask[first_row:last_row, first_col:last_col] = True
-    masked_pixels_tree = np.argwhere(tree_mask == True)
-    # move the pixels of trees
-
-    return masked_pixels_tree
 
 
-def get_slopes_mask(coordinates, km_radius):
+def get_slopes_mask(coordinates, km_radius, total_mask):
     partial_dtm, new_rows, new_cols = get_partial_dtm_from_total_dtm(coordinates, km_radius)
     slopes_mask = get_max_slopes(partial_dtm, new_rows, new_cols)
     return np.array(convert_slopes_to_black_and_white(slopes_mask, new_rows, new_cols))
