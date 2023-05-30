@@ -6,6 +6,7 @@ UNVIABLE_LANDING = 0
 SHP_PATH = "../../SHP_UTM/B_BUILDINGS_A.shp"
 DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 TRAINED_MODEL_PATH = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
+E_INITIAL_VALUE, N_INITIAL_VALUE,RADIUS_INIT_VALUE = "698812","3620547","0.2"
 # GUI
 dir_path = os.path.dirname(os.path.realpath(__file__))
 search_path = os.path.join(dir_path, 'images_for_gui/heli_logo.jpeg')
@@ -69,9 +70,9 @@ END_X, END_Y = None, None
 #               "Buildings&Electricity&Slopes&Trees"]
 MASKS_KEYS = ["Slopes", "Trees", "Slopes&Trees", "Buildings", "Electricity",
               "Buildings&Slopes&Trees"]
-TREES_CHECK_BOX_LOCATION = (0.8, 0.3)
-SLOPES_CHECK_BOX_LOCATION = (0.8, 0.38)
-BUILDINGS_CHECK_BOX_LOCATION = (0.8, 0.46)
+SLOPES_CHECK_BOX_LOCATION = (0.8, 0.3)
+BUILDINGS_CHECK_BOX_LOCATION = (0.8, 0.38)
+TREES_CHECK_BOX_LOCATION = (0.8, 0.46)
 ELECTRICITY_CHECK_BOX_LOCATION = (0.8, 0.54)
 
 CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT = 50, 50

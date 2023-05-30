@@ -36,16 +36,17 @@ class GUI(tk.Tk):
     def __init__(self):
         super().__init__()
         self.file_path = []
+        self.check_box_list = []
         self.configure(background=BACKGROUND_COLOR)
         self.title("Soccer Field")
         self.canvas_distance = {}
         self.entry_distance_labels = {}
-        self.mask_dictionary = {}
+        self.list_mask = []
         self.state("zoomed")
         self.resizable(True, True)
         self.create_widgets()
 
-    def init_with_values(self, E="698812", N="3620547", Radius="0.2"):
+    def init_with_values(self, E=E_INITIAL_VALUE, N=N_INITIAL_VALUE, Radius=RADIUS_INIT_VALUE):
         self.E_entry.insert(0, E)
         self.N_entry.insert(0, N)
         self.Radius_entry.insert(0, Radius)
@@ -67,11 +68,9 @@ class GUI(tk.Tk):
         self.init_with_values()
 
     def add_E_cell(self):
-        self.E = tk.Label(self, text="E: ")
-        self.E.pack()
-        self.E.place(relx=E_LABEL_LOCATION[0], rely=E_LABEL_LOCATION[1], anchor=tk.CENTER)
-        self.E.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
-        # add entry image
+        E = tk.Label(self, text="E: ")
+        E.place(relx=E_LABEL_LOCATION[0], rely=E_LABEL_LOCATION[1], anchor=tk.CENTER)
+        E.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
         self.cell_image = Image.open(cell_path)
         self.cell_image = self.cell_image.resize((CELL_WIDTH, CELL_HEIGHT), Image.ANTIALIAS)
         self.cell_image = ImageTk.PhotoImage(self.cell_image)
@@ -86,10 +85,9 @@ class GUI(tk.Tk):
 
     def add_N_cell(self):
         # add label for entry it
-        self.N = tk.Label(self, text="N: ")
-        self.N.pack()
-        self.N.place(relx=N_LABEL_LOCATION[0], rely=N_LABEL_LOCATION[1], anchor=tk.CENTER)
-        self.N.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        N = tk.Label(self, text="N: ")
+        N.place(relx=N_LABEL_LOCATION[0], rely=N_LABEL_LOCATION[1], anchor=tk.CENTER)
+        N.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
         # add entry image
         self.cell_image_N = Image.open(cell_path)
         self.cell_image_N = self.cell_image_N.resize((CELL_WIDTH, CELL_HEIGHT), Image.ANTIALIAS)
@@ -104,10 +102,9 @@ class GUI(tk.Tk):
                             justify=tk.CENTER, bd=0, highlightthickness=0)
 
     def add_R_cell(self):
-        self.Radius = tk.Label(self, text="Radius: ")
-        self.Radius.pack()
-        self.Radius.place(relx=R_LABEL_LOCATION[0], rely=R_LABEL_LOCATION[1], anchor=tk.CENTER)
-        self.Radius.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
+        Radius = tk.Label(self, text="Radius: ")
+        Radius.place(relx=R_LABEL_LOCATION[0], rely=R_LABEL_LOCATION[1], anchor=tk.CENTER)
+        Radius.config(font=FONT, foreground=FOREGROUND_COLOR, background=BACKGROUND_COLOR)
         # add entry image
         self.cell_image_R = Image.open(cell_path)
         self.cell_image_R = self.cell_image_R.resize((CELL_WIDTH, CELL_HEIGHT), Image.ANTIALIAS)
@@ -138,6 +135,7 @@ class GUI(tk.Tk):
                                               compound="left", font=FONT, foreground=FOREGROUND_COLOR,
                                               background=BACKGROUND_COLOR)
         self.trees_check_box.place(relx=TREES_CHECK_BOX_LOCATION[0], rely=TREES_CHECK_BOX_LOCATION[1], anchor=tk.CENTER)
+        self.check_box_list.append(self.trees_check_box)
 
     def add_buildings_check_box(self):
         buildings_image = Image.open(BUILDINGS_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
@@ -151,6 +149,7 @@ class GUI(tk.Tk):
                                                   background=BACKGROUND_COLOR)
         self.buildings_check_box.place(relx=BUILDINGS_CHECK_BOX_LOCATION[0], rely=BUILDINGS_CHECK_BOX_LOCATION[1],
                                        anchor=tk.CENTER)
+        self.check_box_list.append(self.buildings_check_box)
 
     def add_electricity_check_box(self):
         electricity_image = Image.open(ELECTRICITY_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
@@ -164,6 +163,7 @@ class GUI(tk.Tk):
                                                     background=BACKGROUND_COLOR)
         self.electricity_check_box.place(relx=ELECTRICITY_CHECK_BOX_LOCATION[0], rely=ELECTRICITY_CHECK_BOX_LOCATION[1],
                                          anchor=tk.CENTER)
+        # self.check_box_list.append(self.electricity_check_box)
 
     def add_slopes_check_box(self):
         slope_image = Image.open(SLOPES_IMAGE_PATH).resize((CHECK_BOX_IMAGE_WIDTH, CHECK_BOX_IMAGE_HEIGHT))
@@ -178,31 +178,38 @@ class GUI(tk.Tk):
         self.slope_check_box.pack(anchor="w")
         self.slope_check_box.place(relx=SLOPES_CHECK_BOX_LOCATION[0], rely=SLOPES_CHECK_BOX_LOCATION[1],
                                    anchor=tk.CENTER)
+        self.check_box_list.append(self.slope_check_box)
 
     def add_masks_check_boxes(self):
-        self.add_trees_check_box()
         self.add_slopes_check_box()
         self.add_buildings_check_box()
+        self.add_trees_check_box()
         self.add_electricity_check_box()
 
     def check_box_changed(self):
-        key_for_check_point = ""
-        if self.buildings_check_point.get() == 1:
-            key_for_check_point += "Buildings"
-        if self.electricity_check_point.get() == 1:
-            key_for_check_point += "&Electricity"
-        if self.slope_check_point.get() == 1:
-            key_for_check_point += "&Slopes"
+        if self.list_mask == []:
+            return None
         if self.trees_check_point.get() == 1:
-            key_for_check_point += "&Trees"
-        if len(key_for_check_point) != 0 and key_for_check_point[0] == "&":
-            key_for_check_point = key_for_check_point[1:]
-        self.add_original_image(self.saved_og_image)
-        if key_for_check_point in MASKS_KEYS:
-            self.add_result_image(self.mask_dictionary[key_for_check_point])
-            self.update_transparency(50)
+            index_mask = len(self.list_mask) - 1
+            self.add_image_and_result_image(self.saved_og_image, self.list_mask[index_mask])
+            self.change_check_boxes(index_mask)
+        elif self.buildings_check_point.get() == 1:
+            index_mask = len(self.list_mask) - 2
+            self.add_image_and_result_image(self.saved_og_image, self.list_mask[index_mask])
+            self.change_check_boxes(index_mask)
+        elif self.slope_check_point.get() == 1:
+            index_mask = len(self.list_mask) - 3
+            self.add_image_and_result_image(self.saved_og_image, self.list_mask[index_mask])
+            self.change_check_boxes(index_mask)
 
+        self.update_transparency(50)
         self.save_distance_when_mask_changed()
+
+    def change_check_boxes(self, last_index_mask, select_all=True):
+        if select_all:
+            for i in range(len(self.check_box_list[0:last_index_mask+1])):
+                self.check_box_list[i].select()
+
 
     def save_distance_when_mask_changed(self):
         for distance in self.entry_distance_labels:
@@ -246,9 +253,9 @@ class GUI(tk.Tk):
         progress_thread.start()
 
     def run_process(self, coordinates):
-        image, self.mask_dictionary = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
+        image, self.list_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
-        self.add_result_image(self.mask_dictionary["Buildings&Slopes&Trees"])  # TODO: need to be general
+        self.add_result_image(self.list_mask[-1])  # TODO: need to be general
         self.update_transparency(50)
 
     def start(self, event):
@@ -358,8 +365,8 @@ class GUI(tk.Tk):
         :param image: the result image
         :return:
         """
-        if self.mask_dictionary == {}:
-            self.mask_dictionary = {k: image for k in MASKS_KEYS}
+        # if self.list_mask == []:
+        #     self.list_mask = {k: image for k in MASKS_KEYS}
         self.result_image_1 = Image.fromarray(image).resize((WINDOW_X, WINDOW_Y))
         self.result_image_1 = self.result_image_1.convert(mode='RGB')
         self.result_image = ImageTk.PhotoImage(self.result_image_1)
@@ -476,6 +483,11 @@ class GUI(tk.Tk):
 
     def add_label_list_of_files_loaded(self):
         pass
+
+    def add_image_and_result_image(self, saved_og_image, mask):
+        self.add_original_image(saved_og_image)
+        self.add_result_image(mask)
+        return
 
 
 # Press the green button in the gutter to run the script.
