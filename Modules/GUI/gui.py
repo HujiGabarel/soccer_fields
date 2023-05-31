@@ -207,9 +207,8 @@ class GUI(tk.Tk):
 
     def change_check_boxes(self, last_index_mask, select_all=True):
         if select_all:
-            for i in range(len(self.check_box_list[0:last_index_mask+1])):
+            for i in range(len(self.check_box_list[0:last_index_mask + 1])):
                 self.check_box_list[i].select()
-
 
     def save_distance_when_mask_changed(self):
         for distance in self.entry_distance_labels:

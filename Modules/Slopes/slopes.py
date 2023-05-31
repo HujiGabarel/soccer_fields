@@ -2,7 +2,6 @@ import numpy as np
 import rasterio
 from typing import List, Tuple, Dict
 import matplotlib.pyplot as plt
-import utm
 import math
 from Modules.GUI.settings import *
 
