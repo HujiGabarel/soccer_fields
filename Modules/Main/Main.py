@@ -19,12 +19,12 @@ DEFAULT_FUNCS = [get_slopes_mask, get_building_mask, get_tree_mask]
 
 def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui, get_mask_functions=None) -> Tuple[np.ndarray, List[np.ndarray]]:
     """
-    Given coord
-    :param coordinates:
-    :param km_radius:
-    :param screen_gui:
-    :param get_mask_functions:
-    :return:
+    Given coordinates and radius, return an image of the area, with masks of all the obstacles in the area.
+    :param coordinates: UTM coordinates
+    :param km_radius: radius in km
+    :param screen_gui: gui object
+    :param get_mask_functions: list of functions that return a mask
+    :return: image of the area, list of masks
     """
     if get_mask_functions is None:
         get_mask_functions = DEFAULT_FUNCS
