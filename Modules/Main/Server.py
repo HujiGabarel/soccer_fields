@@ -51,19 +51,12 @@ def make_config_file(product_id):
     The function will create a string that can be added to a json file.
     """
     data = {
-            "General" : {
-                "ProductId": product_id,
-            },   
 
-        "Communication" :
-        {
-            "ServerDomain": "",
-            "ServerPort": 80,
-            "DefenderListenPort": 2222
-        }
+        "ServerDomain": "",
+        "ServerPort": 2222,    
     }
     
-    with open('Example/Configuration{}_tmp.json'.format(product_id), 'w') as json_file:
+    with open('config.json', 'w') as json_file:
         json.dump(data, json_file)
 
 
