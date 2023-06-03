@@ -17,13 +17,12 @@ import time
 DEFAULT_FUNCS = [get_slopes_mask, get_building_mask, get_tree_mask]
 
 
-def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float, screen_gui: gui,
+def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float,
                                  get_mask_functions=None) -> Tuple[np.ndarray, List[np.ndarray]]:
     """
     Given coordinates and radius, return an image of the area, with masks of all the obstacles in the area.
     :param coordinates: UTM coordinates
     :param km_radius: radius in km
-    :param screen_gui: gui object
     :param get_mask_functions: list of functions that return a mask
     :return: image of the area, list of masks
     """
@@ -41,7 +40,8 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
         partial_mask = enlarge_obstacles(partial_mask.astype(np.uint8),
                                          distances[get_mask_functions.index(get_some_mask)])
         total_mask = get_total_mask_from_masks([total_masks[-1], partial_mask], km_radius)
-        screen_gui.update_progressbar_speed(calculate_new_speed_run(total_mask, km_radius))
+        # TODO: add support for live speed updates
+        # screen_gui.update_progressbar_speed(calculate_new_speed_run(total_mask, km_radius))
         total_masks.append(total_mask)
     shp_mask = get_mask_from_shp_file(SHP_PATH, coordinates, km_radius, (img.shape[0], img.shape[1]))
     # could select of the following two filters
@@ -50,8 +50,6 @@ def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: fl
     name = f'images_from_arcgis/data_{coordinates[0], coordinates[1]}/mask_{coordinates[0], coordinates[1]}.png'
     cv2.imwrite(name, total_masks[-1])
     data_analyse(total_masks[-2], km_radius, st, cputime_start)
-
-    screen_gui.update_progressbar(100)
     print("Finish")
     return img, total_masks[1:]
 

@@ -103,6 +103,7 @@ def cache_result(func):
     return wrapper
 
 
+# TODO: Every single instance of coordinates is the wrong typing
 def get_layer_from_server(coordinates: Tuple[float, float], km_radius: float, url_name: str,
                           inner_folder_name: str,
                           folder_name: str = 'images_from_arcgis') -> Tuple[str, np.ndarray]:

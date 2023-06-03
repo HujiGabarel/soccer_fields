@@ -2,8 +2,9 @@ import tkinter as tk
 from PIL import ImageTk, ImageSequence
 import numpy as np
 import math
+from Modules.GUI import front_utils
 
-from Modules.Main.Main import get_viable_landing_in_radius
+# from Modules.Main.Main import get_viable_landing_in_radius
 import cv2
 import threading
 import os
@@ -252,7 +253,8 @@ class GUI(tk.Tk):
         progress_thread.start()
 
     def run_process(self, coordinates):
-        image, self.list_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
+        image, self.list_mask = front_utils.send_request(coordinates, float(self.Radius_value))
+        # image, self.list_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
         self.add_result_image(self.list_mask[-1])  # TODO: need to be general
         self.update_transparency(50)
@@ -354,7 +356,7 @@ class GUI(tk.Tk):
         :return:
         """
         self.saved_og_image = image
-        self.original_image_1 = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB)).resize((WINDOW_X, WINDOW_Y))
+        self.original_image_1 = Image.fromarray(cv2.cvtColor(image.astype(np.uint8), cv2.COLOR_BGR2RGB)).resize((WINDOW_X, WINDOW_Y))
         self.original_image = ImageTk.PhotoImage(self.original_image_1)
         self.canvas.create_image(0, 0, image=self.original_image, anchor=tk.NW)
 

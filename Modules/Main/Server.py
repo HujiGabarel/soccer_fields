@@ -13,39 +13,39 @@ import os
 app = Flask(__name__)
 app.secret_key = "secretKey"
 
-#Todo: put in config
+# Todo: put in config
 SERVER_LISTEN_PORT = 2222
-SERVER_HOST ="127.0.0.1"
+SERVER_HOST = "127.0.0.1"
+
+
 def main():
     app.run(debug=True, port=SERVER_LISTEN_PORT, host=SERVER_HOST)
 
 
 @app.route("/calc", methods=["POST"])
 def login_page():
+    # find user in data base and add to session:
+    cords = request.form["coordinates"]  # todo - probably from json
+    km_radius = request.form["radius"]  # todo - probably from float
+    cords = cords.replace("(", "")
+    cords = cords.replace(")", "")
+    cords = cords.replace(" ", "")
+    cords = cords.replace("'", "")
+    coordinates = cords.split(",")
+    cords = (int(coordinates[0]), int(coordinates[1]), int(coordinates[2]), coordinates[3])
+    km_radius = float(km_radius)
+    # todo - add option to add shp files
+    # todo - add options to cancel some masks
+
+    img, masks_list = Main.get_viable_landing_in_radius(cords, km_radius)  # todo - remove gui paramater from function
+    lists_masks_list = []
+    list_img = img.tolist()
+    for mask in masks_list:
+        lists_masks_list.append(mask.tolist())
+    return json.jsonify(list_img, lists_masks_list)  # todo - return also img
 
 
-        # find user in data base and add to session:
-        cords = request.form["coordinates"] #todo - probably from json
-        km_radius = request.form["radius"] #todo - probably from float
-
-        #todo - add option to add shp files
-        #todo - add options to cancel some masks
-
-
-
-        img,masks_dict = Main.get_viable_landing_in_radius(cords,km_radius,None) #todo - remove gui paramater from function
-        return json.jsonify(masks_dict) #todo - return also img
-
-
-
-
-
-
-
-
-
-
-#can generate config in remote
+# can generate config in remote
 def make_config_file(product_id):
     """
     The function will create a string that can be added to a json file.
@@ -53,9 +53,9 @@ def make_config_file(product_id):
     data = {
 
         "ServerDomain": "",
-        "ServerPort": 2222,    
+        "ServerPort": 2222,
     }
-    
+
     with open('config.json', 'w') as json_file:
         json.dump(data, json_file)
 
