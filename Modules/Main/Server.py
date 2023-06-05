@@ -1,14 +1,7 @@
-import time
 import Main
 from flask import Flask
-from flask import render_template
 from flask import request
-from flask import session
 from flask import json
-from flask import Response
-
-import shutil
-import os
 
 app = Flask(__name__)
 app.secret_key = "secretKey"
@@ -25,8 +18,8 @@ def main():
 @app.route("/calc", methods=["POST"])
 def login_page():
     # find user in data base and add to session:
-    cords = request.form["coordinates"]  # todo - probably from json
-    km_radius = request.form["radius"]  # todo - probably from float
+    cords = request.form["coordinates"]
+    km_radius = request.form["radius"]
     cords = cords.replace("(", "")
     cords = cords.replace(")", "")
     cords = cords.replace(" ", "")
@@ -35,6 +28,7 @@ def login_page():
     cords = (int(coordinates[0]), int(coordinates[1]), int(coordinates[2]), coordinates[3])
     km_radius = float(km_radius)
     # todo - add option to add shp files
+    # todo - support progressbar speed updates
 
     img, masks_list = Main.get_viable_landing_in_radius(cords, km_radius)
     lists_masks_list = []
