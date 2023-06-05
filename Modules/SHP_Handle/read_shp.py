@@ -2,6 +2,7 @@ import shapefile
 from PIL import Image, ImageDraw
 import numpy as np
 import cv2
+import matplotlib.pyplot as plt
 
 # opening the vector map
 from Modules.GUI.settings import *
@@ -218,8 +219,9 @@ def get_mask_from_shp_file(shp_path, coordinates, radius, image_size: tuple):
 
 
 if __name__ == '__main__':
-    SHP_PATH = "../../SHP_UTM/B_SITES_A.shp"
 
-    coordinates = (696531, 3662682)
-    radius_in_km = 0.57
-    get_mask_from_shp_file(SHP_PATH, coordinates, radius_in_km, (400, 400))
+    coordinates = (698813, 3620547)
+    radius_in_km = 0.3
+    mask=get_mask_from_shp_file(SHP_PATH, coordinates, radius_in_km, (400, 400))
+    plt.imshow(mask)
+    plt.show()
