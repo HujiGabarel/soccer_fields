@@ -1,3 +1,5 @@
+import sys
+
 import Main
 from flask import Flask
 from flask import request
@@ -54,4 +56,16 @@ def make_config_file(product_id):
 
 
 if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        SERVER_HOST = '127.0.0.1'
+        SERVER_LISTEN_PORT = 2222
+    elif len(sys.argv) == 2:
+        SERVER_HOST = sys.argv[1]
+        SERVER_LISTEN_PORT = 2222
+    elif len(sys.argv) == 3:
+        SERVER_HOST = sys.argv[1]
+        SERVER_LISTEN_PORT = sys.argv[2]
+    else:
+        print("Usage: Server.py [SERVER_HOST] [SERVER_LISTEN_PORT]")
+        exit(1)
     main()
