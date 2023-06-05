@@ -109,11 +109,10 @@ def create_mask_from_shapes(box_of_shapes_in_the_area, shapes_in_the_area):
     return convert_image_to_mask(image)
 
 
-def convert_image_to_mask(image):  # Todo: improve this
-    mask = np.array(image)
-    mask = mask.sum(axis=2)
-    mask[mask == 0] = UNVIABLE_LANDING
-    mask[mask == 765] = VIABLE_LANDING
+def convert_image_to_mask(image):
+    mask = np.sum(image, axis=2)
+    mask = np.where(mask == 0, UNVIABLE_LANDING, mask)
+    mask = np.where(mask == 765, VIABLE_LANDING, mask)
     return mask
 
 
@@ -219,9 +218,10 @@ def get_mask_from_shp_file(shp_path, coordinates, radius, image_size: tuple):
 
 
 if __name__ == '__main__':
-
-    coordinates = (698813, 3620547)
-    radius_in_km = 0.3
-    mask=get_mask_from_shp_file(SHP_PATH, coordinates, radius_in_km, (400, 400))
+    coordinates = (722796, 3652284)
+    radius_in_km = 30
+    # shp_path=f'C:\\Users\\t8875796\\PycharmProjects\\soccer_field\\Modules\\Main\\images_from_arcgis\\data_{coordinates[0],coordinates[1]}\\mask_{coordinates[0],coordinates[1]}_{radius_in_km}.shp'
+    shp_path = f'C:\\Users\\t8875796\\PycharmProjects\\soccer_field\\Modules\\Main\\mask_(722796, 3652284)_31.25.shp'
+    mask=get_mask_from_shp_file(shp_path, coordinates, radius_in_km, (1000, 1000))
     plt.imshow(mask)
     plt.show()
