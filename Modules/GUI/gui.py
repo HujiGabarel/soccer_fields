@@ -1,3 +1,4 @@
+import sys
 import tkinter as tk
 from PIL import ImageTk, ImageSequence
 import numpy as np
@@ -493,6 +494,20 @@ class GUI(tk.Tk):
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+
+    if len(sys.argv) == 1:
+        SERVER_HOST = '127.0.0.1'
+        SERVER_LISTEN_PORT = 2222
+    elif len(sys.argv) == 2:
+        SERVER_HOST = sys.argv[1]
+        SERVER_LISTEN_PORT = 2222
+    elif len(sys.argv) == 3:
+        SERVER_HOST = sys.argv[1]
+        SERVER_LISTEN_PORT = sys.argv[2]
+    else:
+        print("Usage: Server.py [SERVER_HOST] [SERVER_LISTEN_PORT]")
+        exit(1)
+    front_utils.url = f'http://{SERVER_HOST}:{SERVER_LISTEN_PORT}/calc'
     gui = GUI()
     gui.mainloop()
     print("Done!")

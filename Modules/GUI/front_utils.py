@@ -2,8 +2,10 @@ import numpy as np
 import requests
 import json
 
-
 # Define the data to be sent
+url = "http://localhost:2222/calc"  # Replace with your server URL
+
+
 def send_request(coordinates, radius):
     data = {
         "coordinates": f"{coordinates}",
@@ -11,9 +13,7 @@ def send_request(coordinates, radius):
     }
 
     # Send the POST request
-    url = "http://localhost:2222/calc"  # Replace with your server URL
     response = requests.post(url, data=data)
-
     # Handle the response
     if response.status_code == 200:
         # Successful response
@@ -28,4 +28,3 @@ def send_request(coordinates, radius):
     else:
         # Error handling
         print("Request failed with status code:", response.status_code)
-
