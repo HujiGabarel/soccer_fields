@@ -104,7 +104,7 @@ def cache_result(func):
 
 
 # TODO: Every single instance of coordinates is the wrong typing
-def get_layer_from_server(coordinates: Tuple[float, float], km_radius: float, url_name: str,
+def get_layer_from_server(coordinates: Tuple[int, int, int, str], km_radius: float, url_name: str,
                           inner_folder_name: str,
                           folder_name: str = 'images_from_arcgis') -> Tuple[str, np.ndarray]:
     """
@@ -181,7 +181,7 @@ def get_total_mask_from_masks(masks: List[np.ndarray], km_radius: float) -> np.n
 
 
 def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, predicted_mask_slope: np.ndarray,
-                        total_mask: np.ndarray, coordinates: Tuple[float, float]) -> None:
+                        total_mask: np.ndarray, coordinates: Tuple[int, int, int, str]) -> None:
     # This part is only plotting style:
     # plots predicted and original images
     # side-by-side plot of the tile and the masks
@@ -202,11 +202,11 @@ def plot_image_and_mask(image_to_predict: str, predicted_mask_tree: np.ndarray, 
 
 
 @cache_result
-def get_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
+def get_image_from_utm(coordinates: Tuple[int, int, int, str], km_radius: float) -> Tuple[str, np.ndarray]:
     return get_layer_from_server(coordinates, km_radius, 'aerial_url', 'img')
 
 
-def get_building_image_from_utm(coordinates: Tuple[float, float], km_radius: float) -> Tuple[str, np.ndarray]:
+def get_building_image_from_utm(coordinates: Tuple[int, int, int, str], km_radius: float) -> Tuple[str, np.ndarray]:
     return get_layer_from_server(coordinates, km_radius, 'building_url', 'img_buildings')
 
 

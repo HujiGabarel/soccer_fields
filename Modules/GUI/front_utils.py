@@ -11,7 +11,7 @@ def send_request(coordinates, radius):
     }
 
     # Send the POST request
-    url = "http://127.0.0.1:2222/calc"  # Replace with your server URL
+    url = "http://localhost:2222/calc"  # Replace with your server URL
     response = requests.post(url, data=data)
 
     # Handle the response

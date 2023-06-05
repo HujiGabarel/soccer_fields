@@ -17,7 +17,7 @@ import time
 DEFAULT_FUNCS = [get_slopes_mask, get_building_mask, get_tree_mask]
 
 
-def get_viable_landing_in_radius(coordinates: Tuple[float, float], km_radius: float,
+def get_viable_landing_in_radius(coordinates: Tuple[int, int, int, str], km_radius: float,
                                  get_mask_functions=None) -> Tuple[np.ndarray, List[np.ndarray]]:
     """
     Given coordinates and radius, return an image of the area, with masks of all the obstacles in the area.

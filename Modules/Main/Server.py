@@ -35,14 +35,13 @@ def login_page():
     cords = (int(coordinates[0]), int(coordinates[1]), int(coordinates[2]), coordinates[3])
     km_radius = float(km_radius)
     # todo - add option to add shp files
-    # todo - add options to cancel some masks
 
-    img, masks_list = Main.get_viable_landing_in_radius(cords, km_radius)  # todo - remove gui paramater from function
+    img, masks_list = Main.get_viable_landing_in_radius(cords, km_radius)
     lists_masks_list = []
     list_img = img.tolist()
     for mask in masks_list:
         lists_masks_list.append(mask.tolist())
-    return json.jsonify(list_img, lists_masks_list)  # todo - return also img
+    return json.jsonify(list_img, lists_masks_list)
 
 
 # can generate config in remote

@@ -15,7 +15,7 @@ DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 
 
 # the file is in format utm36
-def get_partial_dtm_from_total_dtm(coordinates: Tuple[float, float], km_radius: float, meters_per_pixel: float = 10) -> \
+def get_partial_dtm_from_total_dtm(coordinates: Tuple[int, int, int, str], km_radius: float, meters_per_pixel: float = 10) -> \
         Tuple[np.ndarray, int, int]:
     size = round(km_radius * 1000 / meters_per_pixel)
     dem = rasterio.open(DTM_FILE_PATH)  # turn .tiff file to dem format, each pixel is a height

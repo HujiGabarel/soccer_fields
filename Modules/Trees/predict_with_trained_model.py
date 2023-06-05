@@ -89,7 +89,7 @@ def get_tree_mask_from_image(aerial: str, pixels_to_ignore, trained_model_path=T
     return np.where(flipped_image == UNVIABLE_LANDING, VIABLE_LANDING, UNVIABLE_LANDING)
 
 
-def get_tree_mask(coordinates: Tuple[float, float], km_radius: float, total_mask=None,
+def get_tree_mask(coordinates: Tuple[int, int, int, str], km_radius: float, total_mask=None,
                   trained_model_path: str = TRAINED_MODEL_PATH):
     image_name, img = get_image_from_utm(coordinates, km_radius)
     tree_shape = img.shape
