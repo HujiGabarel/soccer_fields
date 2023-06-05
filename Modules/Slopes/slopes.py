@@ -39,7 +39,7 @@ def get_partial_dtm_from_total_dtm(coordinates: Tuple[int, int, int, str], km_ra
     return partial_dtm, new_rows, new_cols
 
 
-def check_coordinates_area_are_in_dtm(coordinates: Tuple[float, float], size: float,
+def check_coordinates_area_are_in_dtm(coordinates: Tuple[int, int, int, str], size: float,
                                       dem: rasterio.DatasetReader) -> bool:
     return ((dem.bounds.left < (coordinates[0] + size) < dem.bounds.right) and
             (dem.bounds.left < (coordinates[0] - size) < dem.bounds.right) and
