@@ -11,7 +11,7 @@ GRAY = (128, 128, 128)
 ACCEPTED_SLOPE_COLOR = 255
 QUESTIONABLE_SLOPE_COLOR = 255
 UNACCEPTED_SLOPE_COLOR = 0
-DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
+DTM_FILE_PATH = "../../DTM_data/dtm_mimad_wgs84utm36_10m.tif"
 
 
 # the file is in format utm36

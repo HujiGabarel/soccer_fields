@@ -1,7 +1,7 @@
 FROM ubuntu:latest
 LABEL authors="Guy Harel"
 FROM python:3.9
-COPY DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif /app/DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif
+COPY DTM_data/dtm_mimad_wgs84utm36_10m.tif /app/DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif
 COPY Models/our_models/official_masks_10%.joblib /app/Models/our_models/official_masks_10%.joblib
 COPY Modules /app/Modules
 COPY requirements.txt /app/requirements.txt
