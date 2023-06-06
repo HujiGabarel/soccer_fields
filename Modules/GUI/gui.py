@@ -3,6 +3,7 @@ import tkinter as tk
 from PIL import ImageTk, ImageSequence
 import numpy as np
 import math
+sys.path.append('../..')
 from Modules.GUI import front_utils
 
 # from Modules.Main.Main import get_viable_landing_in_radius

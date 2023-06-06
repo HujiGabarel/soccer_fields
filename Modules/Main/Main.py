@@ -1,11 +1,11 @@
 import sys
 
+sys.path.append('../..')
 from Modules.Main.Processing_runtimes import data_analyse
 from Modules.Main.utils import *
 from Modules.SHP_Handle.read_shp import get_mask_from_shp_file
 
 # Adding the root directory to the system path
-sys.path.append('../..')
 
 # Modules from your project
 from Modules.Trees.predict_with_trained_model import get_tree_mask
