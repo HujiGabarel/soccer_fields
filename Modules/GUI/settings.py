@@ -6,20 +6,21 @@ UNVIABLE_LANDING = 0
 SHP_PATH = "../../SHP_UTM/B_BUILDINGS_A.shp"
 DTM_FILE_PATH = "../../DTM_data/DTM_new/dtm_mimad_wgs84utm36_10m.tif"
 TRAINED_MODEL_PATH = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
-E_INITIAL_VALUE, N_INITIAL_VALUE,RADIUS_INIT_VALUE = "698812","3620547","0.2"
+E_INITIAL_VALUE, N_INITIAL_VALUE, RADIUS_INIT_VALUE = "698812", "3620547", "0.2"
+TIME_FOR_KM_AREA = 250  # in seconds
 # GUI
 dir_path = os.path.dirname(os.path.realpath(__file__))
 search_path = os.path.join(dir_path, 'images_for_gui/heli_logo.jpeg')
 cell_path = os.path.join(dir_path, 'images_for_gui/cell2.png')
-logo_path_gif = os.path.join(dir_path, 'images_for_gui/LOGO.gif')
 logo_path = os.path.join(dir_path, 'images_for_gui/logo.png')
-HELICOPTER_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/yasor.jpg')
+# HELICOPTER_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/yasor.jpg')
+ORIGINAL_IMAGE_PATH = logo_path
+RESULT_IMAGE_PATH = logo_path
 TREES_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/Trees.png')
 BUILDINGS_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/Buildings.png')
 SLOPES_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/Slopes.png')
 ELECTRICITY_IMAGE_PATH = os.path.join(dir_path, 'images_for_gui/electrical_line.png')
-ORIGINAL_IMAGE_PATH = logo_path
-RESULT_IMAGE_PATH = logo_path
+
 FONT = ('Helvetica', 16, "bold")
 FONT_SMALL = ('Helvetica', 8, "bold")
 BACKGROUND_COLOR = 'white'
