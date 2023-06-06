@@ -10,7 +10,7 @@ from torch.utils import model_zoo
 WHITE_COLOR = 255
 BLACK_COLOR = 0
 
-module_path = os.path.abspath(os.path.join('../../'))
+module_path = os.path.abspath(os.path.join('../../../'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
@@ -23,7 +23,7 @@ from building_footprint_segmentation.utils.py_network import (
     adjust_model,
 )
 
-from Modules.Building.ML_BUILDINGS_NOT_IN_USE.operations import handle_image_size
+from Modules.Back.Building.ML_BUILDINGS_NOT_IN_USE.operations import handle_image_size
 
 MAX_SIZE = 384
 TRAINED_MODEL = ReFineNet()

@@ -5,7 +5,8 @@ from os import path
 import numpy as np
 import rasterio as rio
 
-from Modules.Trees.detectree import settings, utils
+from Modules.Back.Trees.detectree import settings
+from Modules.Back.Trees.detectree import utils
 
 __all__ = ["PixelResponseBuilder"]
 

@@ -12,7 +12,7 @@ import rasterio as rio
 from rasterio import windows
 from tqdm import tqdm
 
-from Modules.Trees.detectree import settings
+from Modules.Back.Trees.detectree import settings
 
 __all__ = [
     "split_into_tiles",

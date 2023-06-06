@@ -2,7 +2,8 @@ import functools
 from collections.abc import Iterable
 
 import numpy as np
-from Modules.Trees.skimage import dtype
+from Modules.Back.Trees.skimage import dtype
+
 xyz_from_rgb = np.array([[0.412453, 0.357580, 0.180423],
                          [0.212671, 0.715160, 0.072169],
                          [0.019334, 0.119193, 0.950227]])

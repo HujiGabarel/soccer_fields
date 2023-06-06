@@ -1,17 +1,17 @@
+import sys
 import numpy as np
 import rasterio
-from typing import List, Tuple, Dict
+from typing import Tuple
 import matplotlib.pyplot as plt
 import math
-from Modules.GUI.settings import *
 
+from settings import DTM_FILE_PATH
 PURPLE = (255, 0, 255)
 YELLOW = (255, 255, 0)
 GRAY = (128, 128, 128)
 ACCEPTED_SLOPE_COLOR = 255
 QUESTIONABLE_SLOPE_COLOR = 255
 UNACCEPTED_SLOPE_COLOR = 0
-DTM_FILE_PATH = "../../DTM_data/dtm_Israel.tif"
 
 
 # the file is in format utm36

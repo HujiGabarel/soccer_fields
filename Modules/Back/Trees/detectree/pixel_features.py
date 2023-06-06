@@ -9,8 +9,10 @@ from dask import diagnostics
 from scipy import ndimage as ndi
 # from skimage import color
 from skimage.filters import rank
-from Modules.Trees.skimage import morphology, transform, color
-from Modules.Trees.detectree import settings, filters, utils
+from Modules.Back.Trees.skimage import morphology
+from Modules.Back.Trees.skimage import color, transform
+from Modules.Back.Trees.detectree import settings
+from Modules.Back.Trees.detectree import filters, utils
 
 __all__ = ["PixelFeaturesBuilder"]
 

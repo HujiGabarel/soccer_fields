@@ -1,15 +1,16 @@
 import os
 
 import numpy as np
-from joblib import dump, load
+from joblib import load
 
-from Modules.Main.utils import get_image_from_utm, mask_pixels_from_slopes
-from Modules.Trees.classifier import Classifier
+from Modules.Back.utils import get_image_from_utm, mask_pixels_from_slopes
+from Modules.Back.Trees.classifier import Classifier
 import rasterio as rio
 from rasterio import plot
-from Modules.GUI.settings import *
-from typing import List, Tuple, Dict
+from typing import Tuple
 import matplotlib.pyplot as plt
+
+from settings import TRAINED_MODEL_PATH, UNVIABLE_LANDING, VIABLE_LANDING
 
 """
 This file load trained model and predict for given image
@@ -102,7 +103,7 @@ def get_tree_mask(coordinates: Tuple[int, int, int, str], km_radius: float, tota
 
 
 if __name__ == '__main__':
-    trained_model_path = "../../Models/official_masks_10%.joblib"  # The trained model
+    trained_model_path = "../../../Models/official_masks_10%.joblib"  # The trained model
     images_directory = '../../Forest Segmented/from google'  # The directory of the images that the program will predict
     for image_name in os.listdir(images_directory):
         predict(trained_model_path, image_name, images_directory)

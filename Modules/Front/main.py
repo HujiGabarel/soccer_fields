@@ -1,19 +1,19 @@
 import sys
 import tkinter as tk
-from PIL import ImageTk, ImageSequence
+from PIL import ImageTk
 import numpy as np
-import math
+
+from Modules.Front import utils
+
 sys.path.append('../..')
-from Modules.GUI import front_utils
 
 # from Modules.Main.Main import get_viable_landing_in_radius
 import cv2
 import threading
-import os
 from PIL import Image
 from tkinter import ttk
 import time
-from Modules.GUI.settings import *
+from settings import *
 from tkinter import filedialog
 
 
@@ -267,7 +267,7 @@ class GUI(tk.Tk):
         progress_thread.start()
 
     def run_process(self, coordinates):
-        image, self.list_mask = front_utils.send_request(coordinates, float(self.Radius_value))
+        image, self.list_mask = utils.send_request(coordinates, float(self.Radius_value))
         # image, self.list_mask = get_viable_landing_in_radius(coordinates, float(self.Radius_value), self)
         self.add_original_image(image)
         self.add_result_image(self.list_mask[-1])  # TODO: need to be general
@@ -516,9 +516,9 @@ if __name__ == '__main__':
         SERVER_HOST = sys.argv[1]
         SERVER_LISTEN_PORT = sys.argv[2]
     else:
-        print("Usage: Server.py [SERVER_HOST] [SERVER_LISTEN_PORT]")
+        print("Usage: server.py [SERVER_HOST] [SERVER_LISTEN_PORT]")
         exit(1)
-    front_utils.url = f'http://{SERVER_HOST}:{SERVER_LISTEN_PORT}/calc'
+    utils.url = f'http://{SERVER_HOST}:{SERVER_LISTEN_PORT}/calc'
     gui = GUI()
     gui.mainloop()
     print("Done!")

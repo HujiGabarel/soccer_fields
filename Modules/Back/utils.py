@@ -1,4 +1,6 @@
 import json
+import math
+import os
 from typing import Tuple, List
 
 import cv2
@@ -8,8 +10,8 @@ import rasterio as rio
 from matplotlib import pyplot as plt
 from rasterio import plot
 
-from Modules.GUI.settings import *
-from Modules.Main import image_downloading
+from Modules.Back.Main import image_downloading
+from settings import VIABLE_LANDING, UNVIABLE_LANDING
 
 WHITE = 255
 BLACK = 0

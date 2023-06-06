@@ -1,17 +1,19 @@
 import sys
 
-sys.path.append('../..')
-from Modules.Main.Processing_runtimes import data_analyse
-from Modules.Main.utils import *
-from Modules.SHP_Handle.read_shp import get_mask_from_shp_file
+from settings import VIABLE_LANDING, SHP_PATH
+
+sys.path.append('../../..')
+from Modules.Back.Main.Processing_runtimes import data_analyse
+from Modules.Back.SHP_Handle.read_shp import get_mask_from_shp_file
 
 # Adding the root directory to the system path
 
 # Modules from your project
-from Modules.Trees.predict_with_trained_model import get_tree_mask
-from Modules.Slopes.slopes import get_slopes_mask
-from Modules.GUI import gui
-from Modules.Building.Buildings import get_building_mask
+from Modules.Back.Trees.predict_with_trained_model import get_tree_mask
+from Modules.Back.Slopes.slopes import get_slopes_mask
+from Modules.Front import main
+from Modules.Back.Building.Buildings import get_building_mask
+from Modules.Back.utils import *
 import time
 
 DEFAULT_FUNCS = [get_slopes_mask, get_building_mask, get_tree_mask]
@@ -54,8 +56,8 @@ def get_viable_landing_in_radius(coordinates: Tuple[int, int, int, str], km_radi
     return img, total_masks[1:]
 
 
-if __name__ == '__main__':
-    screen = gui.GUI()
-    screen.mainloop()
-    coordinates = (698812, 3620547, 36, 'N')
-    km_radius = 0.2
+# if __name__ == '__main__':
+    # screen = gui.GUI()
+    # screen.mainloop()
+    # coordinates = (698812, 3620547, 36, 'N')
+    # km_radius = 0.2

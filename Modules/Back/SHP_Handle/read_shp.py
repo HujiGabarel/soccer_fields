@@ -4,8 +4,10 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
+from settings import VIABLE_LANDING, UNVIABLE_LANDING
+
+
 # opening the vector map
-from Modules.GUI.settings import *
 
 
 def shp_file_to_list_of_shapes(shp_path) -> list[tuple[list[tuple[float, float]], tuple[float, float, float, float]]]:

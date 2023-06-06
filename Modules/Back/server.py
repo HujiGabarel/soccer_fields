@@ -1,6 +1,6 @@
 import sys
 
-import Main
+from Main import Main
 from flask import Flask
 from flask import request
 from flask import json
@@ -66,6 +66,6 @@ if __name__ == '__main__':
         SERVER_HOST = sys.argv[1]
         SERVER_LISTEN_PORT = sys.argv[2]
     else:
-        print("Usage: Server.py [SERVER_HOST] [SERVER_LISTEN_PORT]")
+        print("Usage: server.py [SERVER_HOST] [SERVER_LISTEN_PORT]")
         exit(1)
     main()

@@ -1,9 +1,9 @@
 import cv2
 import numpy as np
-from typing import Tuple, Union
+from typing import Tuple
 
-from Modules.GUI.settings import UNVIABLE_LANDING, VIABLE_LANDING
-from Modules.Main.utils import get_building_image_from_utm
+from settings import UNVIABLE_LANDING, VIABLE_LANDING
+from Modules.Back.utils import get_building_image_from_utm
 
 
 def smooth(building_mask: np.ndarray) -> np.ndarray:
