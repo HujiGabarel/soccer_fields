@@ -6,3 +6,6 @@ DTM_data
 images_from_argcis
 __pycache__
 /Forest Segmented/
+/Models/our_models/
+/Models/detectree_models/
+/Models/our_models/
