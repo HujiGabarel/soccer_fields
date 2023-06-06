@@ -5,7 +5,7 @@ VIABLE_LANDING = 255
 UNVIABLE_LANDING = 0
 SHP_PATH = "../../SHP_UTM/B_BUILDINGS_A.shp"
 DTM_FILE_PATH = "../../DTM_data/dtm_Israel.tif"
-TRAINED_MODEL_PATH = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
+TRAINED_MODEL_PATH = "../../Models/official_masks_10%.joblib"  # The trained model
 E_INITIAL_VALUE, N_INITIAL_VALUE, RADIUS_INIT_VALUE = "698812", "3620547", "0.2"
 TIME_FOR_KM_AREA = 300  # in seconds
 # GUI

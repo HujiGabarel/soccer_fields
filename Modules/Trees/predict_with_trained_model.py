@@ -102,7 +102,7 @@ def get_tree_mask(coordinates: Tuple[int, int, int, str], km_radius: float, tota
 
 
 if __name__ == '__main__':
-    trained_model_path = "../../Models/our_models/official_masks_10%.joblib"  # The trained model
+    trained_model_path = "../../Models/official_masks_10%.joblib"  # The trained model
     images_directory = '../../Forest Segmented/from google'  # The directory of the images that the program will predict
     for image_name in os.listdir(images_directory):
         predict(trained_model_path, image_name, images_directory)
