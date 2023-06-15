@@ -7,13 +7,13 @@
   <img src="./Modules/Front/images_for_gui/logo_cut.gif" alt="GIF">
 </p>
 
-## Description ##
+## 📝 Description 📝 ##
 
 Input UTM coordinates where you want to land, and specify a radius around those coordinates, get viable landing spots
 for a helicopter
 ![Image](./Modules/Front/images_for_gui/gui_preview.png)
 
-## Installation ##
+## ⚙️ Installation ⚙️ ##
 
 1. Clone the repository - `frontback` branch to make sure you can use a remote server.
 2. Make sure you have a DTM relevant to your area of interest, and place it in the following
@@ -21,7 +21,7 @@ for a helicopter
 3. Make sure you are running python 3.7 or higher, and run the following command in your
    terminal: `pip install -r requirements.txt`'
 
-## Usage ##
+## 📚 Usage 📚 ##
 
 The project is divided into two modules: the backend and the frontend.
 You can run them both together (using `localhost` for the IP and a common port such as `2222`), or you can run each module
@@ -83,13 +83,13 @@ etc.).
 2. Slide the slider to change the opacity of the overlayed areas.
 3. Tick the different checkboxes to display consideration only of certain obstacles.
 
-## Support
+## 🤝 Support 🤝
 
 feel free to contact either one of us at:
 
 * [Guy](mailto:guy.harel.43@gmail.com  "Guy's Email")
 * [Matan](mailto:matan.hadad.43@gmail.com  "Matan's Email")
 
-## Project Status 
+## 🚦 Project Status 🚦 
 
 We are no longer working on this project, but feel free to clone it and use it as you wish.
