@@ -92,6 +92,9 @@ def download_image(lat_center,long_center, zoom, url, tile_size = 256, channels 
     tl_pixel_y = int(tl_proj_y * tile_size)
     br_pixel_x = int(br_proj_x * tile_size)
     br_pixel_y = int(br_proj_y * tile_size)
+    # print all of these
+    print(f"tl_proj_x: {tl_proj_x}, tl_proj_y: {tl_proj_y}")
+    print(f"br_proj_x: {br_proj_x}, br_proj_y: {br_proj_y}")
 
     tl_tile_x = int(tl_proj_x)
     tl_tile_y = int(tl_proj_y)

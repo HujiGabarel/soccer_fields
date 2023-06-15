@@ -4,7 +4,6 @@ from os import path
 
 import numpy as np
 import rasterio as rio
-
 from Modules.Back.Trees.detectree import settings
 from Modules.Back.Trees.detectree import utils
 
@@ -85,7 +84,7 @@ class PixelResponseBuilder(object):
         """
         with rio.open(img_filepath) as src:
             img_binary = src.read(1)
-
+        # img_binary = gdal.Open(img_filepath).ReadAsArray()
         try:
             return self.build_response_from_arr(img_binary)
         except NonBinaryResponseError:

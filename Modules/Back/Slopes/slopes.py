@@ -4,6 +4,7 @@ import rasterio
 from typing import Tuple
 import matplotlib.pyplot as plt
 import math
+import tifffile
 
 from settings import DTM_FILE_PATH
 PURPLE = (255, 0, 255)
@@ -18,21 +19,32 @@ UNACCEPTED_SLOPE_COLOR = 0
 def get_partial_dtm_from_total_dtm(coordinates: Tuple[int, int, int, str], km_radius: float, meters_per_pixel: float = 10) -> \
         Tuple[np.ndarray, int, int]:
     size = round(km_radius * 1000 / meters_per_pixel)
-    dem = rasterio.open(DTM_FILE_PATH)  # turn .tiff file to dem format, each pixel is a height
-
-    if check_coordinates_area_are_in_dtm(coordinates, size, dem):
-        print("coordinates are in range")
-    else:
-        print("coordinates are not in range")
-        raise Exception("coordinates are not in range")
+    # dem = rasterio.open(DTM_FILE_PATH)  # turn .tiff file to dem format, each pixel is a height
+    dem = tifffile.imread(DTM_FILE_PATH)
+    with tifffile.TiffFile(DTM_FILE_PATH) as tiff:
+        # Read the TIFF tags to get spatial information
+        tags = tiff.pages[0].tags
+        x_origin = tags['ModelTiepointTag'].value[3]
+        y_origin = tags['ModelTiepointTag'].value[4]
+    # Calculate the bounds
+    # if check_coordinates_area_are_in_dtm(coordinates, size, dem):
+    #     print("coordinates are in range")
+    # else:
+    #     print("coordinates are not in range")
+    #     raise Exception("coordinates are not in range")
     # calculating the center for partial_dtm
-    col_center = round((coordinates[0] - dem.bounds.left) / meters_per_pixel)
-    row_center = -round((coordinates[1] - dem.bounds.top) / meters_per_pixel)
+    # col_center = round((coordinates[0] - dem.bounds.left) / meters_per_pixel)
+    # row_center = -round((coordinates[1] - dem.bounds.top) / meters_per_pixel)
 
-    window = rasterio.windows.Window.from_slices((row_center - size, row_center + size + 1),
-                                                 (col_center - size, col_center + size + 1))
+    col_center = round((coordinates[0] - x_origin) / meters_per_pixel)
+    row_center = -round((coordinates[1] - y_origin) / meters_per_pixel)
+    # window = rasterio.windows.Window.from_slices((row_center - size, row_center + size + 1),
+    #                                              (col_center - size, col_center + size + 1))
 
-    partial_dtm = dem.read(1, window=window).astype("int")  # convert height to int instead of float
+    # window = tifffile.imread(DTM_FILE_PATH)
+    partial_dtm = dem[row_center - size:row_center + size + 1, col_center - size:col_center + size + 1]
+
+    # partial_dtm = dem.read(1, window=window).astype("int")  # convert height to int instead of float
     new_rows = partial_dtm.shape[0]
     new_cols = partial_dtm.shape[1]
 

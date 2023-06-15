@@ -1,5 +1,6 @@
 import os
 
+import cv2
 import numpy as np
 from joblib import load
 
@@ -104,6 +105,14 @@ def get_tree_mask(coordinates: Tuple[int, int, int, str], km_radius: float, tota
 
 if __name__ == '__main__':
     trained_model_path = "../../../Models/official_masks_10%.joblib"  # The trained model
-    images_directory = '../../Forest Segmented/from google'  # The directory of the images that the program will predict
-    for image_name in os.listdir(images_directory):
-        predict(trained_model_path, image_name, images_directory)
+    # images_directory = '../../Forest Segmented/from google'  # The directory of the images that the program will predict
+    # for image_name in os.listdir(images_directory):
+    #     predict(trained_model_path, image_name, images_directory)
+    np.random.seed(0)
+    arr = np.random.randint(0, 256, size=(100,100,3), dtype=np.uint8)
+    mask = np.ones(arr.shape, dtype=np.uint8)
+    unwanted = mask_pixels_from_slopes(mask, arr.shape, mask.shape)
+    cv2.imwrite("test.png", arr)
+    res = predict_image("test.png", trained_model_path, unwanted)
+    plt.imshow(res)
+    plt.show()

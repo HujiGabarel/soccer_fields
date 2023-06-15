@@ -9,8 +9,8 @@ from dask import diagnostics
 from scipy import ndimage as ndi
 # from skimage import color
 from skimage.filters import rank
-from Modules.Back.Trees.skimage import morphology
-from Modules.Back.Trees.skimage import color, transform
+from skimage import morphology
+from skimage import color, transform
 from Modules.Back.Trees.detectree import settings
 from Modules.Back.Trees.detectree import filters, utils
 
