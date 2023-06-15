@@ -1,11 +1,11 @@
 # 🚁 SOCCER FIELD 🚁
 
-![GIF](.\Modules\Front\images_for_gui\logo_cut.gif)
+![GIF](./Modules/Front/images_for_gui/logo_cut.gif)
 ## Description ##
 
 Input UTM coordinates where you want to land, and specify a radius around those coordinates, get viable landing spots
 for a helicopter
-![Image](.\Modules\Front\images_for_gui\gui_preview.png)
+![Image](./Modules/Front/images_for_gui/gui_preview.png)
 
 ## Installation ##
 
