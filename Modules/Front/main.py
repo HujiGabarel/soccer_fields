@@ -516,7 +516,7 @@ if __name__ == '__main__':
         SERVER_HOST = sys.argv[1]
         SERVER_LISTEN_PORT = sys.argv[2]
     else:
-        print("Usage: server.py [SERVER_HOST] [SERVER_LISTEN_PORT]")
+        print("Usage: python main.py [SERVER_HOST] [SERVER_LISTEN_PORT]")
         exit(1)
     utils.url = f'http://{SERVER_HOST}:{SERVER_LISTEN_PORT}/calc'
     gui = GUI()
