@@ -1,4 +1,8 @@
-# <center> 🚁 SOCCER FIELD 🚁 </center> #
+<div align="center">
+
+# 🚁 SOCCER FIELD 🚁 #
+
+</div>
 <p align="center">
   <img src="./Modules/Front/images_for_gui/logo_cut.gif" alt="GIF">
 </p>
