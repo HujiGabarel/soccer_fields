@@ -15,7 +15,7 @@ for a helicopter
 
 ## ⚙️ Installation ⚙️ ##
 
-1. Clone the repository - `frontback` branch to make sure you can use a remote server.
+1. Clone the repository - `main` branch to make sure you can use a remote server.
 2. Make sure you have a DTM relevant to your area of interest, and place it in the following
    path: `DTM_data\your_model.tif`
 3. Make sure you are running python 3.7 or higher, and run the following command in your
